@@ -1,0 +1,168 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download } from "lucide-react";
+import { getAllContacts, deleteContact } from "@/lib/store";
+import { QRContact } from "@/lib/types";
+import QRCodeDisplay from "@/components/QRCodeDisplay";
+
+export default function CodesPage() {
+  const [contacts, setContacts] = useState<QRContact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    getAllContacts()
+      .then(setContacts)
+      .finally(() => setLoading(false));
+  }, []);
+
+  function getQRUrl(id: string) {
+    return `${window.location.origin}/qr/${id}`;
+  }
+
+  function handleCopy(id: string) {
+    navigator.clipboard.writeText(getQRUrl(id));
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  async function handleDelete(id: string) {
+    if (deleteConfirm === id) {
+      await deleteContact(id);
+      setContacts((prev) => prev.filter((c) => c.id !== id));
+      setDeleteConfirm(null);
+    } else {
+      setDeleteConfirm(id);
+      setTimeout(() => setDeleteConfirm(null), 3000);
+    }
+  }
+
+  function handleDownloadQR(id: string) {
+    const container = document.querySelector(`#qr-${id} svg`) as SVGElement;
+    if (!container) return;
+    const svgData = new XMLSerializer().serializeToString(container);
+    const blob = new Blob([svgData], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `qr-${id}.svg`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const filtered = contacts.filter(
+    (c) =>
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.company.toLowerCase().includes(search.toLowerCase()) ||
+      c.id.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="p-8">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">QR Codes</h1>
+          <p className="text-gray-500 mt-1">{contacts.length} QR Codes gesamt</p>
+        </div>
+        <Link
+          href="/dashboard/create"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          Neuer QR Code
+        </Link>
+      </div>
+
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Suche nach Name, Unternehmen oder ID..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full max-w-md border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+        />
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-20 text-gray-400">
+          <p className="text-lg">Keine QR Codes gefunden</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map((contact) => (
+            <div
+              key={contact.id}
+              className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col gap-4 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-900">{contact.name || "Unbenannt"}</h3>
+                  <p className="text-sm text-gray-500">{contact.company || contact.title || "—"}</p>
+                </div>
+                {contact.logoUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={contact.logoUrl} alt="Logo" className="w-10 h-10 object-contain rounded-lg" />
+                )}
+              </div>
+
+              <div id={`qr-${contact.id}`} className="flex justify-center py-2">
+                <QRCodeDisplay value={getQRUrl(contact.id)} size={140} />
+              </div>
+
+              <p className="text-xs text-gray-400 text-center font-mono">
+                {new Date(contact.createdAt).toLocaleDateString("de-DE")}
+              </p>
+
+              <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                <Link
+                  href={`/dashboard/edit/${contact.id}`}
+                  className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  Bearbeiten
+                </Link>
+                <button
+                  onClick={() => handleCopy(contact.id)}
+                  className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors"
+                >
+                  {copiedId === contact.id ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                </button>
+                <a
+                  href={`/qr/${contact.id}`}
+                  target="_blank"
+                  className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+                <button
+                  onClick={() => handleDownloadQR(contact.id)}
+                  className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDelete(contact.id)}
+                  className={`p-2 rounded-xl transition-colors border ${
+                    deleteConfirm === contact.id
+                      ? "border-red-200 text-red-600 bg-red-50"
+                      : "border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-500"
+                  }`}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
