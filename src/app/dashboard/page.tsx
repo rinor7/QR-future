@@ -131,8 +131,11 @@ export default function DashboardPage() {
                     <p className="font-semibold text-gray-900">{contact.name || "—"}</p>
                     <p className="text-sm text-gray-500">{contact.company || contact.title || ""}</p>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500 leading-5">
                     {new Date(contact.createdAt).toLocaleDateString("de-DE")}
+                    {contact.createdBy && (
+                      <span className="block text-xs text-gray-400 mt-0.5">{contact.createdBy.split("@")[0]}</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">

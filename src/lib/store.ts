@@ -11,6 +11,7 @@ function toContact(row: Record<string, unknown>): QRContact {
     id: row.id as string,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
+    createdBy: (row.created_by as string) ?? "",
     name: (row.name as string) ?? "",
     title: (row.title as string) ?? "",
     company: (row.company as string) ?? "",
@@ -72,14 +73,20 @@ export async function getContact(id: string): Promise<QRContact | null> {
 }
 
 export async function createContact(input: CreateQRContact): Promise<QRContact> {
+  const supabase = getSupabase();
   const id = generateId();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  const createdBy = user?.email ?? "";
+
   const row = {
     id,
     ...toRow(input),
+    created_by: createdBy,
     updated_at: new Date().toISOString(),
   };
 
-  const { data, error } = await getSupabase()
+  const { data, error } = await supabase
     .from("contacts")
     .insert(row)
     .select()

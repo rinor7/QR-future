@@ -18,7 +18,8 @@ create table if not exists contacts (
   pdf_label       text default 'Dokument öffnen' not null,
   address         text default '' not null,
   primary_color   text default '#2563eb' not null,
-  notes           text default '' not null
+  notes           text default '' not null,
+  created_by      text default '' not null
 );
 
 -- Allow anyone to read contacts (needed for QR landing pages)

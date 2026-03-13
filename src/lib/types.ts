@@ -2,6 +2,7 @@ export interface QRContact {
   id: string;
   createdAt: string;
   updatedAt: string;
+  createdBy: string;
 
   // Identity
   name: string;
@@ -31,4 +32,4 @@ export interface QRContact {
   notes: string;
 }
 
-export type CreateQRContact = Omit<QRContact, 'id' | 'createdAt' | 'updatedAt'>;
+export type CreateQRContact = Omit<QRContact, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>;

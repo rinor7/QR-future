@@ -25,6 +25,7 @@ export const t = {
     col_created: "Erstellt",
     col_link: "Link",
     col_actions: "Aktionen",
+    col_created_by: "Erstellt von",
     delete_confirm: "Nochmal klicken zum Bestätigen",
     delete: "Löschen",
     // Codes page
@@ -98,6 +99,7 @@ export const t = {
     col_created: "Created",
     col_link: "Link",
     col_actions: "Actions",
+    col_created_by: "Created by",
     delete_confirm: "Click again to confirm",
     delete: "Delete",
     // Codes page
