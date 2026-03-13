@@ -7,11 +7,13 @@ import { QRContact, CreateQRContact } from "@/lib/types";
 import QRForm from "@/components/QRForm";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { ExternalLink, Copy, Check, Download } from "lucide-react";
+import { useLang } from "@/lib/language";
 
 export default function EditPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { tr } = useLang();
   const id = params.id as string;
 
   const [contact, setContact] = useState<QRContact | null>(null);
@@ -61,7 +63,7 @@ export default function EditPage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (e) {
-      setError("Fehler beim Speichern.");
+      setError(tr.save_error);
       console.error(e);
     }
   }
@@ -79,18 +81,18 @@ export default function EditPage() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">QR Code bearbeiten</h1>
-        <p className="text-gray-500 mt-1">{contact.name || "Unbenannt"}</p>
+        <h1 className="text-3xl font-bold text-gray-900">{tr.edit_title}</h1>
+        <p className="text-gray-500 mt-1">{contact.name || tr.unnamed}</p>
       </div>
 
       {justCreated && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 text-sm font-medium">
-          QR Code erfolgreich erstellt!
+          {tr.edit_success}
         </div>
       )}
       {saved && (
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 text-sm font-medium">
-          Gespeichert!
+          {tr.saved}
         </div>
       )}
       {error && (
@@ -101,7 +103,7 @@ export default function EditPage() {
 
       <div className="flex gap-8">
         <div className="flex-1">
-          <QRForm initial={contact} onSubmit={handleSubmit} submitLabel="Speichern" />
+          <QRForm initial={contact} onSubmit={handleSubmit} submitLabel={tr.save} />
         </div>
 
         {/* QR Preview */}
@@ -122,21 +124,21 @@ export default function EditPage() {
                   className="flex items-center justify-center gap-2 w-full border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  Seite öffnen
+                  {tr.open_page}
                 </a>
                 <button
                   onClick={handleCopy}
                   className="flex items-center justify-center gap-2 w-full border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                 >
                   {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                  {copied ? "Kopiert!" : "Link kopieren"}
+                  {copied ? tr.copied : tr.copy_link}
                 </button>
                 <button
                   onClick={handleDownloadQR}
                   className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                 >
                   <Download className="w-4 h-4" />
-                  QR herunterladen
+                  {tr.download_qr}
                 </button>
               </div>
             </div>

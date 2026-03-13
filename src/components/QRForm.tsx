@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CreateQRContact } from "@/lib/types";
+import { useLang } from "@/lib/language";
 
 const DEFAULTS: CreateQRContact = {
   name: "",
@@ -30,6 +31,7 @@ interface Props {
 
 export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
   const router = useRouter();
+  const { tr } = useLang();
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
 
   function set(field: keyof CreateQRContact, value: string) {
@@ -44,8 +46,8 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
       {/* Identity */}
-      <Section title="Identität">
-        <Field label="Name *" required>
+      <Section title={tr.section_identity}>
+        <Field label={`${tr.field_name} *`} required>
           <input
             type="text"
             value={form.name}
@@ -55,7 +57,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             className={input}
           />
         </Field>
-        <Field label="Titel / Position">
+        <Field label={tr.field_title}>
           <input
             type="text"
             value={form.title}
@@ -64,7 +66,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             className={input}
           />
         </Field>
-        <Field label="Unternehmen">
+        <Field label={tr.field_company}>
           <input
             type="text"
             value={form.company}
@@ -73,7 +75,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             className={input}
           />
         </Field>
-        <Field label="Logo URL">
+        <Field label={tr.field_logo}>
           <input
             type="url"
             value={form.logoUrl}
@@ -81,9 +83,9 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             placeholder="https://..."
             className={input}
           />
-          <p className="text-xs text-gray-400 mt-1">Direkter Bildlink (PNG, JPG, SVG)</p>
+          <p className="text-xs text-gray-400 mt-1">{tr.field_logo_hint}</p>
         </Field>
-        <Field label="Akzentfarbe">
+        <Field label={tr.field_color}>
           <div className="flex items-center gap-3">
             <input
               type="color"
@@ -97,8 +99,8 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
       </Section>
 
       {/* Contact */}
-      <Section title="Kontaktdaten">
-        <Field label="Telefon">
+      <Section title={tr.section_contact}>
+        <Field label={tr.field_phone}>
           <input
             type="tel"
             value={form.phone}
@@ -107,7 +109,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             className={input}
           />
         </Field>
-        <Field label="E-Mail">
+        <Field label={tr.field_email}>
           <input
             type="email"
             value={form.email}
@@ -116,7 +118,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             className={input}
           />
         </Field>
-        <Field label="Website">
+        <Field label={tr.field_website}>
           <input
             type="url"
             value={form.website}
@@ -125,7 +127,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             className={input}
           />
         </Field>
-        <Field label="Adresse">
+        <Field label={tr.field_address}>
           <input
             type="text"
             value={form.address}
@@ -137,8 +139,8 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
       </Section>
 
       {/* Social */}
-      <Section title="Social Media">
-        <Field label="LinkedIn URL">
+      <Section title={tr.section_social}>
+        <Field label={tr.field_linkedin}>
           <input
             type="url"
             value={form.linkedinUrl}
@@ -147,7 +149,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             className={input}
           />
         </Field>
-        <Field label="Instagram URL">
+        <Field label={tr.field_instagram}>
           <input
             type="url"
             value={form.instagramUrl}
@@ -156,7 +158,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             className={input}
           />
         </Field>
-        <Field label="Facebook URL">
+        <Field label={tr.field_facebook}>
           <input
             type="url"
             value={form.facebookUrl}
@@ -168,8 +170,8 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
       </Section>
 
       {/* File / PDF */}
-      <Section title="Datei / PDF">
-        <Field label="PDF / Datei URL">
+      <Section title={tr.section_pdf}>
+        <Field label={tr.field_pdf_url}>
           <input
             type="url"
             value={form.pdfUrl}
@@ -178,7 +180,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             className={input}
           />
         </Field>
-        <Field label="Button-Beschriftung">
+        <Field label={tr.field_pdf_label}>
           <input
             type="text"
             value={form.pdfLabel}
@@ -190,12 +192,12 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
       </Section>
 
       {/* Notes */}
-      <Section title="Notizen (intern)">
-        <Field label="Interne Notiz">
+      <Section title={tr.section_notes}>
+        <Field label={tr.field_notes}>
           <textarea
             value={form.notes}
             onChange={(e) => set("notes", e.target.value)}
-            placeholder="Nur im Dashboard sichtbar..."
+            placeholder={tr.field_notes_placeholder}
             rows={3}
             className={`${input} resize-none`}
           />
@@ -215,7 +217,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
           onClick={() => router.back()}
           className="px-6 py-2.5 rounded-xl font-medium text-gray-600 hover:bg-gray-100 transition-colors"
         >
-          Abbrechen
+          {tr.cancel}
         </button>
       </div>
     </form>

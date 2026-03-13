@@ -6,8 +6,10 @@ import { QrCode, Plus, Pencil, Trash2, ExternalLink, Copy, Check } from "lucide-
 import { getAllContacts, deleteContact } from "@/lib/store";
 import { QRContact } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
+import { useLang } from "@/lib/language";
 
 export default function DashboardPage() {
+  const { tr } = useLang();
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -51,33 +53,33 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Verwalten Sie Ihre QR Codes</p>
+          <p className="text-gray-500 mt-1">{tr.dashboard_subtitle}</p>
         </div>
         <Link
           href="/dashboard/create"
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
         >
           <Plus className="w-5 h-5" />
-          + QR Code erstellen
+          + {tr.create_qr}
         </Link>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-5 mb-8">
         <StatCard
-          label="Gesamt QR Codes"
+          label={tr.stat_total}
           value={contacts.length}
           icon={<QrCode className="w-6 h-6 text-blue-600" />}
           bg="bg-blue-50"
         />
         <StatCard
-          label="Mit Telefon"
+          label={tr.stat_phone}
           value={contacts.filter((c) => c.phone).length}
           icon={<span className="text-2xl">📞</span>}
           bg="bg-green-50"
         />
         <StatCard
-          label="Mit Website"
+          label={tr.stat_website}
           value={contacts.filter((c) => c.website).length}
           icon={<span className="text-2xl">🌐</span>}
           bg="bg-purple-50"
@@ -87,7 +89,7 @@ export default function DashboardPage() {
       {/* QR Codes list */}
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Alle QR Codes</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{tr.all_codes}</h2>
         </div>
 
         {loading ? (
@@ -97,13 +99,13 @@ export default function DashboardPage() {
         ) : contacts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-400">
             <QrCode className="w-16 h-16 mb-4 opacity-30" />
-            <p className="text-lg font-medium">Noch keine QR Codes</p>
-            <p className="text-sm mt-1">Erstellen Sie Ihren ersten QR Code</p>
+            <p className="text-lg font-medium">{tr.no_codes}</p>
+            <p className="text-sm mt-1">{tr.no_codes_sub}</p>
             <Link
               href="/dashboard/create"
               className="mt-4 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition-colors"
             >
-              Jetzt erstellen
+              {tr.create_now}
             </Link>
           </div>
         ) : (
@@ -111,10 +113,10 @@ export default function DashboardPage() {
             <thead>
               <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 <th className="px-6 py-3 text-left">QR Code</th>
-                <th className="px-6 py-3 text-left">Name / Unternehmen</th>
-                <th className="px-6 py-3 text-left">Erstellt</th>
-                <th className="px-6 py-3 text-left">Link</th>
-                <th className="px-6 py-3 text-right">Aktionen</th>
+                <th className="px-6 py-3 text-left">{tr.col_name}</th>
+                <th className="px-6 py-3 text-left">{tr.col_created}</th>
+                <th className="px-6 py-3 text-left">{tr.col_link}</th>
+                <th className="px-6 py-3 text-right">{tr.col_actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -171,7 +173,7 @@ export default function DashboardPage() {
                             ? "text-red-600 bg-red-50"
                             : "text-gray-400 hover:text-red-500 hover:bg-red-50"
                         }`}
-                        title={deleteConfirm === contact.id ? "Nochmal klicken zum Bestätigen" : "Löschen"}
+                        title={deleteConfirm === contact.id ? tr.delete_confirm : tr.delete}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
