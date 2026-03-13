@@ -1,4 +1,5 @@
 import { getSupabase } from "./supabase";
+import { getSupabaseBrowser } from "./supabase-browser";
 import { QRContact, CreateQRContact } from "./types";
 
 function generateId(): string {
@@ -73,7 +74,7 @@ export async function getContact(id: string): Promise<QRContact | null> {
 }
 
 export async function createContact(input: CreateQRContact): Promise<QRContact> {
-  const supabase = getSupabase();
+  const supabase = getSupabaseBrowser();
   const id = generateId();
 
   const { data: { user } } = await supabase.auth.getUser();
