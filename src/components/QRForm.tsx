@@ -47,7 +47,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
     <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
       {/* Identity */}
       <Section title={tr.section_identity}>
-        <Field label={`${tr.field_name} *`} required>
+        <Field label={tr.field_name} required>
           <input
             type="text"
             value={form.name}
