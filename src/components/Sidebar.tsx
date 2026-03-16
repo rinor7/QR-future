@@ -8,6 +8,7 @@ import {
   QrCode,
   Settings,
   LogOut,
+  Zap,
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { useLang } from "@/lib/language";
@@ -94,12 +95,15 @@ export default function Sidebar() {
             <span className={lang === "en" ? "text-blue-600" : "text-gray-400"}>EN</span>
           </span>
         </button>
-        <div className="flex items-center justify-between px-3 py-1.5">
+        <Link
+          href="/dashboard/upgrade"
+          className="flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+        >
           <span className="text-xs text-gray-400">{tr.plan_label}</span>
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
-            {PLAN_LABELS[plan]}
+            {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
           </span>
-        </div>
+        </Link>
         <div className="text-xs text-gray-400 text-center py-1">v1.0.0</div>
         <button
           onClick={handleLogout}
