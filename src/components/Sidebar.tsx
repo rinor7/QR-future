@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   QrCode,
@@ -10,11 +11,25 @@ import {
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { useLang } from "@/lib/language";
+import { getUserProfile } from "@/lib/store";
+import { Plan, PLAN_LABELS } from "@/lib/types";
+
+const PLAN_COLORS: Record<Plan, string> = {
+  free: "bg-gray-100 text-gray-600",
+  star: "bg-yellow-100 text-yellow-700",
+  premium: "bg-blue-100 text-blue-700",
+  platinum: "bg-purple-100 text-purple-700",
+};
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { tr, lang, toggleLang } = useLang();
+  const [plan, setPlan] = useState<Plan>("free");
+
+  useEffect(() => {
+    getUserProfile().then((p) => { if (p) setPlan(p.plan); });
+  }, []);
 
   const nav = [
     { href: "/dashboard", label: tr.nav_dashboard, icon: LayoutDashboard },
@@ -79,6 +94,12 @@ export default function Sidebar() {
             <span className={lang === "en" ? "text-blue-600" : "text-gray-400"}>EN</span>
           </span>
         </button>
+        <div className="flex items-center justify-between px-3 py-1.5">
+          <span className="text-xs text-gray-400">{tr.plan_label}</span>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
+            {PLAN_LABELS[plan]}
+          </span>
+        </div>
         <div className="text-xs text-gray-400 text-center py-1">v1.0.0</div>
         <button
           onClick={handleLogout}
