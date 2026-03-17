@@ -104,6 +104,15 @@ export default function Sidebar() {
             {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
           </span>
         </Link>
+        {plan === "free" && (
+          <Link
+            href="/dashboard/upgrade"
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors"
+          >
+            <span className="text-orange-500 text-lg leading-none">⏱</span>
+            <span className="text-xs text-orange-600 font-medium">QR Codes laufen nach 48h ab</span>
+          </Link>
+        )}
         <div className="text-xs text-gray-400 text-center py-1">v1.0.0</div>
         <button
           onClick={handleLogout}
