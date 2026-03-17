@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, FileText } from "lucide-react";
+import { Upload, FileText, Plus, Link2 } from "lucide-react";
 import { CreateQRContact } from "@/lib/types";
 import { useLang } from "@/lib/language";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
@@ -84,6 +84,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
   const [pdfUploading, setPdfUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [pdfMode, setPdfMode] = useState<null | "upload" | "link">(null);
 
   useEffect(() => {
     getSupabaseBrowser()
@@ -305,10 +306,11 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
         </Field>
       </Section>
 
-      {/* PDF upload */}
+      {/* PDF / Link */}
       <Section title={tr.section_pdf}>
         <Field label={tr.field_pdf_url}>
           <div className="space-y-2">
+            {/* Current file/link */}
             {form.pdfUrl && (
               <div className="flex items-center gap-2">
                 <a
@@ -323,31 +325,84 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
                 <span className="text-gray-300">·</span>
                 <button
                   type="button"
-                  onClick={() => set("pdfUrl", "")}
+                  onClick={() => { set("pdfUrl", ""); setPdfMode(null); }}
                   className="text-xs text-red-400 hover:text-red-600 transition-colors"
                 >
                   {tr.upload_remove}
                 </button>
               </div>
             )}
-            <label
-              className={`flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors w-full ${
-                pdfUploading ? "opacity-50 pointer-events-none" : ""
-              }`}
-            >
-              <Upload className="w-4 h-4 text-gray-400 flex-shrink-0" />
-              <span className="text-gray-600">
-                {pdfUploading ? tr.upload_uploading : tr.upload_pdf}
-              </span>
-              <input
-                type="file"
-                accept=".pdf"
-                className="sr-only"
-                onChange={handlePdfUpload}
-              />
-            </label>
+
+            {/* Mode picker: show when no URL and no mode selected yet */}
+            {!form.pdfUrl && pdfMode === null && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPdfMode("upload")}
+                  className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  <Plus className="w-4 h-4 text-gray-400" />
+                  {tr.pdf_option_upload}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPdfMode("link")}
+                  className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  <Plus className="w-4 h-4 text-gray-400" />
+                  {tr.pdf_option_link}
+                </button>
+              </div>
+            )}
+
+            {/* File upload mode */}
+            {!form.pdfUrl && pdfMode === "upload" && (
+              <>
+                <label
+                  className={`flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors w-full ${
+                    pdfUploading ? "opacity-50 pointer-events-none" : ""
+                  }`}
+                >
+                  <Upload className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <span className="text-gray-600">
+                    {pdfUploading ? tr.upload_uploading : tr.upload_pdf}
+                  </span>
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    className="sr-only"
+                    onChange={handlePdfUpload}
+                  />
+                </label>
+                <p className="text-xs text-gray-400">{tr.upload_pdf_hint}</p>
+              </>
+            )}
+
+            {/* Link mode */}
+            {!form.pdfUrl && pdfMode === "link" && (
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="url"
+                    value={form.pdfUrl}
+                    onChange={(e) => set("pdfUrl", e.target.value)}
+                    placeholder="https://..."
+                    className={`${input} pl-9`}
+                    autoFocus
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPdfMode(null)}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             {pdfError && <p className="text-xs text-red-500">{pdfError}</p>}
-            <p className="text-xs text-gray-400">{tr.upload_pdf_hint}</p>
           </div>
         </Field>
         <Field label={tr.field_pdf_label}>
