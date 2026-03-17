@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { QrCode } from "lucide-react";
 
@@ -88,6 +89,13 @@ export default function LoginPage() {
               {loading ? "Anmelden..." : "Anmelden"}
             </button>
           </form>
+
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Noch kein Konto?{" "}
+            <Link href="/register" className="text-blue-600 hover:underline font-medium">
+              Registrieren
+            </Link>
+          </p>
         </div>
       </div>
     </div>

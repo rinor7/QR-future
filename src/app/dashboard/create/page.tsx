@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import QRForm from "@/components/QRForm";
 import { createContact } from "@/lib/store";
-import { CreateQRContact } from "@/lib/types";
+import { CreateQRContact, PLAN_LABELS } from "@/lib/types";
 import { useState } from "react";
 import { useLang } from "@/lib/language";
 
@@ -13,12 +13,22 @@ export default function CreatePage() {
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(data: CreateQRContact) {
+    setError(null);
     try {
       const contact = await createContact(data);
       router.push(`/dashboard/edit/${contact.id}?created=1`);
     } catch (e) {
-      setError(tr.create_error);
-      console.error(e);
+      const msg = e instanceof Error ? e.message : "";
+      if (msg.startsWith("PLAN_LIMIT:")) {
+        const [, plan, limit] = msg.split(":");
+        const planLabel = PLAN_LABELS[plan as keyof typeof PLAN_LABELS] ?? plan;
+        setError(
+          `${tr.plan_limit_reached} ${planLabel} — ${limit} QR Codes. ${tr.plan_upgrade_hint}`
+        );
+      } else {
+        setError(tr.create_error);
+        console.error(e);
+      }
     }
   }
 

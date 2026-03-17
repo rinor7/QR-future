@@ -78,6 +78,11 @@ export const t = {
     field_notes: "Interne Notiz",
     field_notes_placeholder: "Nur im Dashboard sichtbar...",
     cancel: "Abbrechen",
+    // Plan
+    plan_label: "Plan",
+    plan_limit_reached: "Limit erreicht für Plan",
+    plan_upgrade_hint: "Bitte upgraden Sie Ihren Plan.",
+    plan_free_note: "Kostenlose QR Codes werden nach 48 Stunden gelöscht.",
   },
   en: {
     // Sidebar
@@ -152,6 +157,11 @@ export const t = {
     field_notes: "Internal Note",
     field_notes_placeholder: "Only visible in the dashboard...",
     cancel: "Cancel",
+    // Plan
+    plan_label: "Plan",
+    plan_limit_reached: "Limit reached for plan",
+    plan_upgrade_hint: "Please upgrade your plan.",
+    plan_free_note: "Free QR codes are automatically deleted after 48 hours.",
   },
 };
 

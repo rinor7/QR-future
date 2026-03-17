@@ -1,6 +1,6 @@
 import { getSupabase } from "./supabase";
 import { getSupabaseBrowser } from "./supabase-browser";
-import { QRContact, CreateQRContact } from "./types";
+import { QRContact, CreateQRContact, UserProfile, Plan, PLAN_LIMITS } from "./types";
 
 function generateId(): string {
   return `qr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -52,16 +52,48 @@ function toRow(data: Partial<CreateQRContact>) {
   };
 }
 
+// ── Profile ──────────────────────────────────────────────────────────────────
+
+export async function getUserProfile(): Promise<UserProfile | null> {
+  const supabase = getSupabaseBrowser();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
+
+  if (error || !data) return null;
+
+  return {
+    userId: data.user_id as string,
+    email: data.email as string,
+    plan: (data.plan as Plan) ?? "free",
+    createdAt: data.created_at as string,
+  };
+}
+
+// ── Contacts ─────────────────────────────────────────────────────────────────
+
+// Dashboard: only current user's contacts
 export async function getAllContacts(): Promise<QRContact[]> {
-  const { data, error } = await getSupabase()
+  const supabase = getSupabaseBrowser();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
     .from("contacts")
     .select("*")
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
   return (data ?? []).map(toContact);
 }
 
+// Public QR landing page — no auth needed
 export async function getContact(id: string): Promise<QRContact | null> {
   const { data, error } = await getSupabase()
     .from("contacts")
@@ -73,17 +105,42 @@ export async function getContact(id: string): Promise<QRContact | null> {
   return toContact(data);
 }
 
+export async function getContactCount(): Promise<number> {
+  const supabase = getSupabaseBrowser();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return 0;
+
+  const { count, error } = await supabase
+    .from("contacts")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  if (error) return 0;
+  return count ?? 0;
+}
+
 export async function createContact(input: CreateQRContact): Promise<QRContact> {
   const supabase = getSupabaseBrowser();
-  const id = generateId();
-
   const { data: { user } } = await supabase.auth.getUser();
-  const createdBy = user?.email ?? "";
+  if (!user) throw new Error("Not authenticated");
 
+  // Check plan limit
+  const profile = await getUserProfile();
+  const plan = profile?.plan ?? "free";
+  const limit = PLAN_LIMITS[plan];
+  if (limit !== -1) {
+    const count = await getContactCount();
+    if (count >= limit) {
+      throw new Error(`PLAN_LIMIT:${plan}:${limit}`);
+    }
+  }
+
+  const id = generateId();
   const row = {
     id,
     ...toRow(input),
-    created_by: createdBy,
+    created_by: user.email ?? "",
+    user_id: user.id,
     updated_at: new Date().toISOString(),
   };
 
@@ -101,7 +158,8 @@ export async function updateContact(
   id: string,
   input: Partial<CreateQRContact>
 ): Promise<QRContact | null> {
-  const { data, error } = await getSupabase()
+  const supabase = getSupabaseBrowser();
+  const { data, error } = await supabase
     .from("contacts")
     .update({ ...toRow(input), updated_at: new Date().toISOString() })
     .eq("id", id)
@@ -113,6 +171,7 @@ export async function updateContact(
 }
 
 export async function deleteContact(id: string): Promise<void> {
-  const { error } = await getSupabase().from("contacts").delete().eq("id", id);
+  const supabase = getSupabaseBrowser();
+  const { error } = await supabase.from("contacts").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }
