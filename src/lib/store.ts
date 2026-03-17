@@ -1,6 +1,6 @@
 import { getSupabase } from "./supabase";
 import { getSupabaseBrowser } from "./supabase-browser";
-import { QRContact, CreateQRContact, UserProfile, Plan, PLAN_LIMITS } from "./types";
+import { QRContact, CreateQRContact, ContactLink, UserProfile, Plan, PLAN_LIMITS } from "./types";
 
 function generateId(): string {
   return `qr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -23,8 +23,11 @@ function toContact(row: Record<string, unknown>): QRContact {
     linkedinUrl: (row.linkedin_url as string) ?? "",
     instagramUrl: (row.instagram_url as string) ?? "",
     facebookUrl: (row.facebook_url as string) ?? "",
-    pdfUrl: (row.pdf_url as string) ?? "",
-    pdfLabel: (row.pdf_label as string) ?? "Dokument öffnen",
+    links: (() => {
+      if (row.links && Array.isArray(row.links)) return row.links as ContactLink[];
+      if (row.pdf_url) return [{ url: row.pdf_url as string, label: (row.pdf_label as string) || "Dokument öffnen", type: "link" as const }];
+      return [];
+    })(),
     address: (row.address as string) ?? "",
     primaryColor: (row.primary_color as string) ?? "#2563eb",
     notes: (row.notes as string) ?? "",
@@ -44,8 +47,7 @@ function toRow(data: Partial<CreateQRContact>) {
     ...(data.linkedinUrl !== undefined && { linkedin_url: data.linkedinUrl }),
     ...(data.instagramUrl !== undefined && { instagram_url: data.instagramUrl }),
     ...(data.facebookUrl !== undefined && { facebook_url: data.facebookUrl }),
-    ...(data.pdfUrl !== undefined && { pdf_url: data.pdfUrl }),
-    ...(data.pdfLabel !== undefined && { pdf_label: data.pdfLabel }),
+    ...(data.links !== undefined && { links: data.links }),
     ...(data.address !== undefined && { address: data.address }),
     ...(data.primaryColor !== undefined && { primary_color: data.primaryColor }),
     ...(data.notes !== undefined && { notes: data.notes }),

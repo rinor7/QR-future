@@ -1,3 +1,9 @@
+export interface ContactLink {
+  url: string;
+  label: string;
+  type: 'file' | 'link';
+}
+
 export interface QRContact {
   id: string;
   createdAt: string;
@@ -20,9 +26,8 @@ export interface QRContact {
   instagramUrl: string;
   facebookUrl: string;
 
-  // File
-  pdfUrl: string;
-  pdfLabel: string;
+  // Links / Files (up to 4)
+  links: ContactLink[];
 
   // vCard
   address: string;
