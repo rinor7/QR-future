@@ -185,6 +185,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
                   src={form.logoUrl}
                   alt="Logo"
                   className="w-12 h-12 object-contain rounded-lg border border-gray-200 bg-gray-50"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                 />
                 <button
                   type="button"
