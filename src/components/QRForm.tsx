@@ -63,10 +63,10 @@ async function uploadToStorage(
   const ext = file.name.split(".").pop() ?? "bin";
   const path = `${folder}/${userId}/${Date.now()}.${ext}`;
   const { error } = await supabase.storage
-    .from("uploads")
+    .from("Uploads")
     .upload(path, file, { upsert: true });
   if (error) throw new Error(error.message);
-  return supabase.storage.from("uploads").getPublicUrl(path).data.publicUrl;
+  return supabase.storage.from("Uploads").getPublicUrl(path).data.publicUrl;
 }
 
 interface Props {

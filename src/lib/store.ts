@@ -171,7 +171,7 @@ export async function updateContact(
 }
 
 function extractStoragePath(url: string): string | null {
-  const marker = "/storage/v1/object/public/uploads/";
+  const marker = "/storage/v1/object/public/Uploads/";
   const idx = url.indexOf(marker);
   if (idx === -1) return null;
   return url.slice(idx + marker.length);
@@ -198,7 +198,7 @@ export async function deleteContact(id: string): Promise<void> {
       if (p) paths.push(p);
     }
     if (paths.length > 0) {
-      await supabase.storage.from("uploads").remove(paths);
+      await supabase.storage.from("Uploads").remove(paths);
     }
   }
 
