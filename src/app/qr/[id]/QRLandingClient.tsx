@@ -171,6 +171,10 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
                 <div className="text-xs text-gray-400 font-normal">Dokument</div>
                 <div className="text-sm font-semibold" style={{ color }}>{contact.pdfLabel || "Öffnen"}</div>
               </div>
+              <div className="flex items-center gap-0.5 text-gray-400 shrink-0">
+                <Download className="w-3 h-3" />
+                <span className="text-xs">PDF</span>
+              </div>
             </a>
           )}
         </div>
