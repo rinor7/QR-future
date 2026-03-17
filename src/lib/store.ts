@@ -170,8 +170,38 @@ export async function updateContact(
   return toContact(data);
 }
 
+function extractStoragePath(url: string): string | null {
+  const marker = "/storage/v1/object/public/uploads/";
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  return url.slice(idx + marker.length);
+}
+
 export async function deleteContact(id: string): Promise<void> {
   const supabase = getSupabaseBrowser();
+
+  // Clean up any uploaded files from storage
+  const { data } = await supabase
+    .from("contacts")
+    .select("logo_url, pdf_url")
+    .eq("id", id)
+    .single();
+
+  if (data) {
+    const paths: string[] = [];
+    if (data.logo_url) {
+      const p = extractStoragePath(data.logo_url);
+      if (p) paths.push(p);
+    }
+    if (data.pdf_url) {
+      const p = extractStoragePath(data.pdf_url);
+      if (p) paths.push(p);
+    }
+    if (paths.length > 0) {
+      await supabase.storage.from("uploads").remove(paths);
+    }
+  }
+
   const { error } = await supabase.from("contacts").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }

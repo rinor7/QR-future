@@ -3,10 +3,22 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download } from "lucide-react";
-import { getAllContacts, deleteContact } from "@/lib/store";
-import { QRContact } from "@/lib/types";
+import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
+import { QRContact, Plan } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
+
+function getExpiryLabel(createdAt: string): { label: string; expired: boolean } {
+  const created = new Date(createdAt).getTime();
+  const expiresAt = created + 48 * 60 * 60 * 1000;
+  const now = Date.now();
+  const remaining = expiresAt - now;
+  if (remaining <= 0) return { label: "Abgelaufen", expired: true };
+  const hours = Math.floor(remaining / (60 * 60 * 1000));
+  const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+  if (hours > 0) return { label: `Läuft ab in ${hours}h`, expired: false };
+  return { label: `Läuft ab in ${minutes}min`, expired: false };
+}
 
 export default function CodesPage() {
   const { tr } = useLang();
@@ -15,11 +27,13 @@ export default function CodesPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [plan, setPlan] = useState<Plan>("free");
 
   useEffect(() => {
     getAllContacts()
       .then(setContacts)
       .finally(() => setLoading(false));
+    getUserProfile().then((p) => { if (p) setPlan(p.plan); });
   }, []);
 
   function getQRUrl(id: string) {
@@ -114,9 +128,19 @@ export default function CodesPage() {
                 <QRCodeDisplay value={getQRUrl(contact.id)} size={140} />
               </div>
 
-              <p className="text-xs text-gray-400 text-center font-mono">
-                {new Date(contact.createdAt).toLocaleDateString("de-DE")}
-              </p>
+              <div className="text-center">
+                <p className="text-xs text-gray-400 font-mono">
+                  {new Date(contact.createdAt).toLocaleDateString("de-DE")}
+                </p>
+                {plan === "free" && (() => {
+                  const { label, expired } = getExpiryLabel(contact.createdAt);
+                  return (
+                    <p className={`text-xs font-medium mt-0.5 ${expired ? "text-red-400" : "text-orange-400"}`}>
+                      {label}
+                    </p>
+                  );
+                })()}
+              </div>
 
               <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
                 <Link
