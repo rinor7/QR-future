@@ -71,15 +71,20 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
                 src={contact.logoUrl}
                 alt={contact.company || "Logo"}
                 className="w-20 h-20 rounded-2xl object-contain bg-white shadow-lg border-4 border-white"
+                onError={(e) => {
+                  const img = e.target as HTMLImageElement;
+                  img.style.display = "none";
+                  const fallback = img.parentElement?.querySelector(".logo-fallback") as HTMLElement;
+                  if (fallback) fallback.style.display = "flex";
+                }}
               />
-            ) : (
-              <div
-                className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg border-4 border-white"
-                style={{ backgroundColor: color }}
-              >
-                {(contact.name || contact.company || "?")[0].toUpperCase()}
-              </div>
-            )}
+            ) : null}
+            <div
+              className="logo-fallback w-20 h-20 rounded-2xl items-center justify-center text-white text-3xl font-bold shadow-lg border-4 border-white"
+              style={{ backgroundColor: color, display: contact.logoUrl ? "none" : "flex" }}
+            >
+              {(contact.name || contact.company || "?")[0].toUpperCase()}
+            </div>
           </div>
         </div>
 
