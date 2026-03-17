@@ -129,45 +129,6 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
             </a>
           )}
 
-          {contact.linkedinUrl && (
-            <a
-              href={contact.linkedinUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-4 w-full text-white py-4 px-5 rounded-2xl font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: color }}
-            >
-              <Linkedin className="w-5 h-5 shrink-0" />
-              <span className="flex-1 text-center uppercase tracking-widest">Vernetzen</span>
-            </a>
-          )}
-
-          {contact.instagramUrl && (
-            <a
-              href={contact.instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-4 w-full text-white py-4 px-5 rounded-2xl font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: color }}
-            >
-              <Instagram className="w-5 h-5 shrink-0" />
-              <span className="flex-1 text-center uppercase tracking-widest">Instagram</span>
-            </a>
-          )}
-
-          {contact.facebookUrl && (
-            <a
-              href={contact.facebookUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-4 w-full text-white py-4 px-5 rounded-2xl font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: color }}
-            >
-              <Facebook className="w-5 h-5 shrink-0" />
-              <span className="flex-1 text-center uppercase tracking-widest">Facebook</span>
-            </a>
-          )}
-
           {contact.pdfUrl && (
             <a
               href={contact.pdfUrl}
@@ -185,7 +146,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
         </div>
 
         {/* vCard + Share */}
-        <div className="px-6 pb-8 flex gap-3">
+        <div className="px-6 pb-4 flex gap-3">
           <button
             onClick={handleVCard}
             className="flex-1 flex items-center justify-center gap-2 border-2 py-3.5 rounded-2xl font-semibold text-sm tracking-wide hover:bg-gray-50 transition-colors"
@@ -203,6 +164,48 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
             {shared ? "Kopiert!" : "Share"}
           </button>
         </div>
+
+        {/* Social media icons */}
+        {(contact.linkedinUrl || contact.instagramUrl || contact.facebookUrl) && (
+          <div className="px-6 pb-8 flex items-center justify-center gap-4">
+            {contact.linkedinUrl && (
+              <a
+                href={contact.linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-11 h-11 rounded-full flex items-center justify-center border-2 hover:opacity-80 transition-opacity"
+                style={{ borderColor: color, color }}
+                title="LinkedIn"
+              >
+                <Linkedin className="w-5 h-5" />
+              </a>
+            )}
+            {contact.instagramUrl && (
+              <a
+                href={contact.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-11 h-11 rounded-full flex items-center justify-center border-2 hover:opacity-80 transition-opacity"
+                style={{ borderColor: color, color }}
+                title="Instagram"
+              >
+                <Instagram className="w-5 h-5" />
+              </a>
+            )}
+            {contact.facebookUrl && (
+              <a
+                href={contact.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-11 h-11 rounded-full flex items-center justify-center border-2 hover:opacity-80 transition-opacity"
+                style={{ borderColor: color, color }}
+                title="Facebook"
+              >
+                <Facebook className="w-5 h-5" />
+              </a>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
