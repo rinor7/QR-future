@@ -59,7 +59,8 @@ export default function EditPage() {
 
   async function handleSubmit(data: CreateQRContact) {
     try {
-      await updateContact(id, data);
+      const updated = await updateContact(id, data);
+      if (updated) setContact(updated);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (e) {
