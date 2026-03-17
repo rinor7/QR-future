@@ -107,7 +107,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
     if (!file) return;
     setLogoError(null);
     if (file.size > MAX_SIZE) {
-      setLogoError("Datei zu groß. Maximum 14 MB.");
+      setLogoError(tr.upload_error_size);
       return;
     }
     try {
@@ -117,7 +117,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
       const url = await uploadToStorage("logos", toUpload, userId);
       set("logoUrl", url);
     } catch {
-      setLogoError("Upload fehlgeschlagen. Bitte erneut versuchen.");
+      setLogoError(tr.upload_error_failed);
     } finally {
       setLogoUploading(false);
     }
@@ -128,7 +128,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
     if (!file) return;
     setPdfError(null);
     if (file.size > MAX_SIZE) {
-      setPdfError("Datei zu groß. Maximum 14 MB.");
+      setPdfError(tr.upload_error_size);
       return;
     }
     try {
@@ -136,7 +136,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
       const url = await uploadToStorage("files", file, userId);
       set("pdfUrl", url);
     } catch {
-      setPdfError("Upload fehlgeschlagen. Bitte erneut versuchen.");
+      setPdfError(tr.upload_error_failed);
     } finally {
       setPdfUploading(false);
     }
@@ -192,7 +192,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
                   onClick={() => set("logoUrl", "")}
                   className="text-xs text-red-400 hover:text-red-600 transition-colors"
                 >
-                  Entfernen
+                  {tr.upload_remove}
                 </button>
               </div>
             )}
@@ -203,7 +203,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             >
               <Upload className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <span className="text-gray-600">
-                {logoUploading ? "Wird hochgeladen…" : "Logo hochladen"}
+                {logoUploading ? tr.upload_uploading : tr.upload_logo}
               </span>
               <input
                 type="file"
@@ -215,9 +215,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             {logoError && (
               <p className="text-xs text-red-500">{logoError}</p>
             )}
-            <p className="text-xs text-gray-400">
-              Max. 14 MB · Wird automatisch komprimiert wenn nötig
-            </p>
+            <p className="text-xs text-gray-400">{tr.upload_logo_hint}</p>
           </div>
         </Field>
 
@@ -320,7 +318,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
                   className="text-xs text-blue-600 hover:underline flex items-center gap-1"
                 >
                   <FileText className="w-3.5 h-3.5" />
-                  Aktuelle Datei öffnen
+                  {tr.upload_pdf_open}
                 </a>
                 <span className="text-gray-300">·</span>
                 <button
@@ -328,7 +326,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
                   onClick={() => set("pdfUrl", "")}
                   className="text-xs text-red-400 hover:text-red-600 transition-colors"
                 >
-                  Entfernen
+                  {tr.upload_remove}
                 </button>
               </div>
             )}
@@ -339,7 +337,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             >
               <Upload className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <span className="text-gray-600">
-                {pdfUploading ? "Wird hochgeladen…" : "PDF hochladen"}
+                {pdfUploading ? tr.upload_uploading : tr.upload_pdf}
               </span>
               <input
                 type="file"
@@ -349,7 +347,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
               />
             </label>
             {pdfError && <p className="text-xs text-red-500">{pdfError}</p>}
-            <p className="text-xs text-gray-400">Max. 14 MB · Nur PDF-Dateien</p>
+            <p className="text-xs text-gray-400">{tr.upload_pdf_hint}</p>
           </div>
         </Field>
         <Field label={tr.field_pdf_label}>
