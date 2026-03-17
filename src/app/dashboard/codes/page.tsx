@@ -13,7 +13,7 @@ export default function CodesPage() {
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -33,14 +33,9 @@ export default function CodesPage() {
   }
 
   async function handleDelete(id: string) {
-    if (deleteConfirm === id) {
-      await deleteContact(id);
-      setContacts((prev) => prev.filter((c) => c.id !== id));
-      setDeleteConfirm(null);
-    } else {
-      setDeleteConfirm(id);
-      setTimeout(() => setDeleteConfirm(null), 3000);
-    }
+    await deleteContact(id);
+    setContacts((prev) => prev.filter((c) => c.id !== id));
+    setDeleteModal(null);
   }
 
   function handleDownloadQR(id: string) {
@@ -151,18 +146,43 @@ export default function CodesPage() {
                   <Download className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => handleDelete(contact.id)}
-                  className={`p-2 rounded-xl transition-colors border ${
-                    deleteConfirm === contact.id
-                      ? "border-red-200 text-red-600 bg-red-50"
-                      : "border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-500"
-                  }`}
+                  onClick={() => setDeleteModal(contact.id)}
+                  className="p-2 rounded-xl transition-colors border border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-500"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+            <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
+              <Trash2 className="w-6 h-6 text-red-600" />
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 text-center mb-2">QR Code löschen?</h2>
+            <p className="text-sm text-gray-500 text-center mb-6">
+              Alle Daten dieses QR Codes werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteModal(null)}
+                className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-50 transition-colors"
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={() => handleDelete(deleteModal)}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-medium text-sm transition-colors"
+              >
+                Ja, löschen
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
