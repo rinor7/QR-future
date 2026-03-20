@@ -160,6 +160,9 @@ export const t = {
     users_col_joined: "Beigetreten",
     users_remove: "Entfernen",
     users_no_members: "Keine weiteren Mitglieder",
+    users_resend: "Einladung erneut senden",
+    users_resend_sending: "Wird gesendet…",
+    users_resend_success: "Einladung erneut gesendet!",
     created_by: "Erstellt von",
     // Clients page
     clients_title: "Kunden",
@@ -327,6 +330,9 @@ export const t = {
     users_col_joined: "Joined",
     users_remove: "Remove",
     users_no_members: "No other members",
+    users_resend: "Resend invitation",
+    users_resend_sending: "Sending…",
+    users_resend_success: "Invitation resent!",
     created_by: "Created by",
     // Clients page
     clients_title: "Clients",
