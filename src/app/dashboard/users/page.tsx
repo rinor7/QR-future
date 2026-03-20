@@ -87,11 +87,17 @@ export default function UsersPage() {
 
   async function handleRemove(memberId: string) {
     if (removingId === memberId) {
-      await fetch("/api/users/remove", {
+      const res = await fetch("/api/users/remove", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: memberId }),
       });
+      if (!res.ok) {
+        const { error } = await res.json();
+        setInviteMsg({ type: "error", text: error ?? "Remove failed" });
+        setRemovingId(null);
+        return;
+      }
       setMembers((prev) => prev.filter((m) => m.userId !== memberId));
       setRemovingId(null);
     } else {
