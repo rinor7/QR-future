@@ -114,8 +114,8 @@ export default function CodesPage() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold text-gray-900">{`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</h3>
-                  <p className="text-sm text-gray-500">{contact.company || contact.title || "—"}</p>
+                  <h3 className="font-semibold text-gray-900">{contact.qrLabel || `${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</h3>
+                  <p className="text-sm text-gray-500">{`${contact.firstName} ${contact.lastName}`.trim() || contact.company || contact.title || "—"}</p>
                 </div>
                 {contact.logoUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
