@@ -141,15 +141,20 @@ export async function removeTeamMember(memberId: string): Promise<void> {
 
 // ── Contacts ─────────────────────────────────────────────────────────────────
 
-// Dashboard: all contacts in the org (RLS handles filtering by owner pool)
+// Dashboard: all contacts in the org
 export async function getAllContacts(): Promise<QRContact[]> {
   const supabase = getSupabaseBrowser();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
+  const profile = await getUserProfile();
+  if (!profile) return [];
+
+  // Filter by ownerId — covers all org members (writers store under ownerId)
   const { data, error } = await supabase
     .from("contacts")
     .select("*")
+    .eq("user_id", profile.ownerId)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
