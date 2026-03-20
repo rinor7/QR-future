@@ -58,7 +58,7 @@ export const t = {
     // QRForm
     qr_label: "QR Code Name",
     qr_label_hint: "Nur für Sie sichtbar – hilft beim Erkennen im Dashboard.",
-    qr_label_placeholder: "z.B. Messe 2025, Visitenkarte Büro",
+    qr_label_placeholder: "z.B. Messe 2026, Visitenkarte Büro",
     section_identity: "Angaben",
     section_contact: "Kontaktdaten",
     section_social: "Social Media",
