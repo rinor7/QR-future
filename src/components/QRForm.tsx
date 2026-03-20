@@ -370,28 +370,31 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
       <Section title={tr.section_social}>
         <Field label={tr.field_linkedin}>
           <input
-            type="url"
+            type="text"
             value={form.linkedinUrl}
             onChange={(e) => set("linkedinUrl", e.target.value)}
-            placeholder="https://linkedin.com/in/..."
+            onBlur={(e) => { if (e.target.value) set("linkedinUrl", normalizeUrl(e.target.value.trim())); }}
+            placeholder="linkedin.com/in/..."
             className={input}
           />
         </Field>
         <Field label={tr.field_instagram}>
           <input
-            type="url"
+            type="text"
             value={form.instagramUrl}
             onChange={(e) => set("instagramUrl", e.target.value)}
-            placeholder="https://instagram.com/..."
+            onBlur={(e) => { if (e.target.value) set("instagramUrl", normalizeUrl(e.target.value.trim())); }}
+            placeholder="instagram.com/..."
             className={input}
           />
         </Field>
         <Field label={tr.field_facebook}>
           <input
-            type="url"
+            type="text"
             value={form.facebookUrl}
             onChange={(e) => set("facebookUrl", e.target.value)}
-            placeholder="https://facebook.com/..."
+            onBlur={(e) => { if (e.target.value) set("facebookUrl", normalizeUrl(e.target.value.trim())); }}
+            placeholder="facebook.com/..."
             className={input}
           />
         </Field>
