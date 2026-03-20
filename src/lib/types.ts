@@ -29,6 +29,10 @@ export interface QRContact {
   linkedinUrl: string;
   instagramUrl: string;
   facebookUrl: string;
+  tiktokUrl: string;
+  snapchatUrl: string;
+  xUrl: string;
+  otherSocialUrl: string;
 
   // Links / Files (up to 4)
   links: ContactLink[];
@@ -41,6 +45,7 @@ export interface QRContact {
 
   // Display
   primaryColor: string;
+  bgImageUrl: string;
   notes: string;
 }
 
@@ -63,9 +68,32 @@ export const PLAN_LABELS: Record<Plan, string> = {
   platinum: 'Platinum',
 };
 
+export type Role = 'admin' | 'writer' | 'reader';
+
 export interface UserProfile {
   userId: string;
   email: string;
   plan: Plan;
+  role: Role;
+  ownerId: string;
+  createdAt: string;
+  isPlatformAdmin: boolean;
+  canManageUsers: boolean; // true if user belongs to the platform owner's org
+}
+
+export interface ClientAccount {
+  userId: string;
+  email: string;
+  plan: Plan;
+  createdAt: string;
+  qrCount: number;
+}
+
+export interface TeamMember {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: Role;
   createdAt: string;
 }

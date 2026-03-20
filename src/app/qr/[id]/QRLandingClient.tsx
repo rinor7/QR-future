@@ -7,6 +7,10 @@ import {
   Linkedin,
   Instagram,
   Facebook,
+  Twitter,
+  Ghost,
+  Music2,
+  Link2,
   FileText,
   Share2,
   Download,
@@ -17,8 +21,19 @@ import { useState } from "react";
 
 function formatPhone(phone: string): string {
   const digits = phone.replace(/\D/g, "");
+  // Switzerland +41 + 9 digits → +41 XX XXX XX XX
   if (phone.startsWith("+41") && digits.length === 11) {
     return `+41 ${digits.slice(2, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 9)} ${digits.slice(9, 11)}`;
+  }
+  // Kosovo +383 + 8 digits → +383 XX XXX XXX
+  if (phone.startsWith("+383") && digits.length === 11) {
+    return `+383 ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8, 11)}`;
+  }
+  // Generic: keep + and country code, space-group remaining digits as XX XXX XXX...
+  if (phone.startsWith("+") && digits.length >= 8) {
+    const sub = digits.slice(digits.length >= 11 ? 3 : 2);
+    const groups = sub.match(/.{1,3}/g) ?? [];
+    return `+${digits.slice(0, digits.length - sub.length)} ${groups.join(" ")}`;
   }
   return phone;
 }
@@ -66,10 +81,18 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#f1f5f9" }}>
       <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
 
-        {/* Header with gradient */}
-        <div className="relative h-28" style={{ backgroundColor: color }}>
+        {/* Header with gradient or bg image */}
+        <div
+          className="relative h-28"
+          style={contact.bgImageUrl
+            ? { backgroundImage: `url(${contact.bgImageUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+            : { backgroundColor: color }
+          }
+        >
           <div className="absolute inset-0 opacity-20" style={{
-            backgroundImage: "radial-gradient(circle at 80% 20%, white 0%, transparent 60%)"
+            backgroundImage: contact.bgImageUrl
+              ? "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%)"
+              : "radial-gradient(circle at 80% 20%, white 0%, transparent 60%)"
           }} />
           {/* Avatar */}
           <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
@@ -217,42 +240,41 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
         </div>
 
         {/* Social media icons */}
-        {(contact.linkedinUrl || contact.instagramUrl || contact.facebookUrl) && (
-          <div className="px-5 pb-6 flex items-center justify-center gap-3">
+        {(contact.linkedinUrl || contact.instagramUrl || contact.facebookUrl || contact.tiktokUrl || contact.snapchatUrl || contact.xUrl || contact.otherSocialUrl) && (
+          <div className="px-5 pb-6 flex items-center justify-center flex-wrap gap-3">
             {contact.linkedinUrl && (
-              <a
-                href={contact.linkedinUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                style={{ backgroundColor: `${color}15`, color }}
-                title="LinkedIn"
-              >
+              <a href={contact.linkedinUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="LinkedIn">
                 <Linkedin className="w-4 h-4" />
               </a>
             )}
             {contact.instagramUrl && (
-              <a
-                href={contact.instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                style={{ backgroundColor: `${color}15`, color }}
-                title="Instagram"
-              >
+              <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="Instagram">
                 <Instagram className="w-4 h-4" />
               </a>
             )}
             {contact.facebookUrl && (
-              <a
-                href={contact.facebookUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                style={{ backgroundColor: `${color}15`, color }}
-                title="Facebook"
-              >
+              <a href={contact.facebookUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="Facebook">
                 <Facebook className="w-4 h-4" />
+              </a>
+            )}
+            {contact.tiktokUrl && (
+              <a href={contact.tiktokUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="TikTok">
+                <Music2 className="w-4 h-4" />
+              </a>
+            )}
+            {contact.snapchatUrl && (
+              <a href={contact.snapchatUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="Snapchat">
+                <Ghost className="w-4 h-4" />
+              </a>
+            )}
+            {contact.xUrl && (
+              <a href={contact.xUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="X">
+                <Twitter className="w-4 h-4" />
+              </a>
+            )}
+            {contact.otherSocialUrl && (
+              <a href={contact.otherSocialUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="Link">
+                <Link2 className="w-4 h-4" />
               </a>
             )}
           </div>

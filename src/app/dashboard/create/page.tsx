@@ -4,13 +4,19 @@ import { useRouter } from "next/navigation";
 import QRForm from "@/components/QRForm";
 import { createContact } from "@/lib/store";
 import { CreateQRContact, PLAN_LABELS } from "@/lib/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLang } from "@/lib/language";
+import { useRole } from "@/lib/useRole";
 
 export default function CreatePage() {
   const router = useRouter();
   const { tr } = useLang();
+  const { isReader, loading: roleLoading } = useRole();
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!roleLoading && isReader) router.replace("/dashboard/codes");
+  }, [isReader, roleLoading, router]);
 
   async function handleSubmit(data: CreateQRContact) {
     setError(null);

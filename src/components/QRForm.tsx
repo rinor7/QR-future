@@ -20,12 +20,17 @@ const DEFAULTS: CreateQRContact = {
   linkedinUrl: "",
   instagramUrl: "",
   facebookUrl: "",
+  tiktokUrl: "",
+  snapchatUrl: "",
+  xUrl: "",
+  otherSocialUrl: "",
   links: [],
   street: "",
   streetNr: "",
   plz: "",
   city: "",
   primaryColor: "#2563eb",
+  bgImageUrl: "",
   notes: "",
 };
 
@@ -86,6 +91,10 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
   const [userId, setUserId] = useState("");
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
+  const [bgUploading, setBgUploading] = useState(false);
+  const [bgError, setBgError] = useState<string | null>(null);
+  const [logoDragging, setLogoDragging] = useState(false);
+  const [bgDragging, setBgDragging] = useState(false);
   const [addMode, setAddMode] = useState<null | "upload" | "link">(null);
   const [linkUploading, setLinkUploading] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
@@ -137,25 +146,46 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
     onSubmit(form);
   }
 
-  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function processLogoFile(file: File) {
     setLogoError(null);
-    if (file.size > MAX_SIZE) {
-      setLogoError(tr.upload_error_size);
-      return;
-    }
+    if (file.size > MAX_SIZE) { setLogoError(tr.upload_error_size); return; }
     try {
       setLogoUploading(true);
-      const toUpload =
-        file.size > COMPRESS_THRESHOLD ? await compressImage(file) : file;
+      const toUpload = file.size > COMPRESS_THRESHOLD ? await compressImage(file) : file;
       const url = await uploadToStorage("logos", toUpload, userId);
       set("logoUrl", url);
-    } catch {
-      setLogoError(tr.upload_error_failed);
-    } finally {
-      setLogoUploading(false);
-    }
+    } catch { setLogoError(tr.upload_error_failed); }
+    finally { setLogoUploading(false); }
+  }
+
+  async function processBgFile(file: File) {
+    setBgError(null);
+    if (file.size > MAX_SIZE) { setBgError(tr.upload_error_size); return; }
+    try {
+      setBgUploading(true);
+      const toUpload = file.size > COMPRESS_THRESHOLD ? await compressImage(file) : file;
+      const url = await uploadToStorage("logos", toUpload, userId);
+      set("bgImageUrl", url);
+    } catch { setBgError(tr.upload_error_failed); }
+    finally { setBgUploading(false); }
+  }
+
+  function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; if (file) processLogoFile(file);
+  }
+
+  function handleLogoDrop(e: React.DragEvent) {
+    e.preventDefault(); setLogoDragging(false);
+    const file = e.dataTransfer.files?.[0]; if (file) processLogoFile(file);
+  }
+
+  function handleBgUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; if (file) processBgFile(file);
+  }
+
+  function handleBgDrop(e: React.DragEvent) {
+    e.preventDefault(); setBgDragging(false);
+    const file = e.dataTransfer.files?.[0]; if (file) processBgFile(file);
   }
 
   async function handleLinkFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -242,57 +272,60 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             {form.logoUrl && (
               <div className="flex items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={form.logoUrl}
-                  alt="Logo"
-                  className="w-12 h-12 object-contain rounded-lg border border-gray-200 bg-gray-50"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                />
-                <button
-                  type="button"
-                  onClick={() => set("logoUrl", "")}
-                  className="text-xs text-red-400 hover:text-red-600 transition-colors"
-                >
-                  {tr.upload_remove}
-                </button>
+                <img src={form.logoUrl} alt="Logo" className="w-12 h-12 object-contain rounded-lg border border-gray-200 bg-gray-50" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                <button type="button" onClick={() => set("logoUrl", "")} className="text-xs text-red-400 hover:text-red-600 transition-colors">{tr.upload_remove}</button>
               </div>
             )}
             <label
-              className={`flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors w-full ${
-                logoUploading ? "opacity-50 pointer-events-none" : ""
-              }`}
+              onDragOver={(e) => { e.preventDefault(); setLogoDragging(true); }}
+              onDragLeave={() => setLogoDragging(false)}
+              onDrop={handleLogoDrop}
+              className={`flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-8 text-sm transition-colors w-full ${
+                logoDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
+              } ${logoUploading ? "opacity-50 pointer-events-none" : ""}`}
             >
-              <Upload className="w-4 h-4 text-gray-400 flex-shrink-0" />
-              <span className="text-gray-600">
-                {logoUploading ? tr.upload_uploading : tr.upload_logo}
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={handleLogoUpload}
-              />
+              <Upload className="w-6 h-6 text-gray-400" />
+              <span className="text-gray-600">{logoUploading ? tr.upload_uploading : tr.upload_logo}</span>
+              <span className="text-xs text-gray-400">drag & drop {tr.upload_logo_hint}</span>
+              <input type="file" accept="image/*" className="sr-only" onChange={handleLogoUpload} />
             </label>
-            {logoError && (
-              <p className="text-xs text-red-500">{logoError}</p>
-            )}
-            <p className="text-xs text-gray-400">{tr.upload_logo_hint}</p>
+            {logoError && <p className="text-xs text-red-500">{logoError}</p>}
           </div>
         </Field>
 
         <Field label={tr.field_color}>
           <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={form.primaryColor}
-              onChange={(e) => set("primaryColor", e.target.value)}
-              className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer"
-            />
-            <span className="text-sm text-gray-500 font-mono">
-              {form.primaryColor}
-            </span>
+            <input type="color" value={form.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer" />
+            <span className="text-sm text-gray-500 font-mono">{form.primaryColor}</span>
           </div>
           <p className="text-xs text-gray-400 mt-1">{tr.field_color_hint}</p>
+        </Field>
+
+        {/* Background image upload */}
+        <Field label={tr.upload_bg}>
+          <div className="space-y-2">
+            {form.bgImageUrl && (
+              <div className="flex items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={form.bgImageUrl} alt="BG" className="w-16 h-10 object-cover rounded-lg border border-gray-200" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                <button type="button" onClick={() => set("bgImageUrl", "")} className="text-xs text-red-400 hover:text-red-600 transition-colors">{tr.upload_remove}</button>
+              </div>
+            )}
+            <label
+              onDragOver={(e) => { e.preventDefault(); setBgDragging(true); }}
+              onDragLeave={() => setBgDragging(false)}
+              onDrop={handleBgDrop}
+              className={`flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-8 text-sm transition-colors w-full ${
+                bgDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
+              } ${bgUploading ? "opacity-50 pointer-events-none" : ""}`}
+            >
+              <Upload className="w-6 h-6 text-gray-400" />
+              <span className="text-gray-600">{bgUploading ? tr.upload_uploading : tr.upload_bg}</span>
+              <span className="text-xs text-gray-400">drag & drop · {tr.upload_bg_hint}</span>
+              <input type="file" accept="image/*" className="sr-only" onChange={handleBgUpload} />
+            </label>
+            {bgError && <p className="text-xs text-red-500">{bgError}</p>}
+          </div>
         </Field>
       </Section>
 
@@ -318,10 +351,11 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
         </Field>
         <Field label={tr.field_website}>
           <input
-            type="url"
+            type="text"
             value={form.website}
             onChange={(e) => set("website", e.target.value)}
-            placeholder="https://www.qr-card.ch"
+            onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }}
+            placeholder="www.qr-card.ch"
             className={input}
           />
         </Field>
@@ -369,30 +403,38 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
       <Section title={tr.section_social}>
         <Field label={tr.field_linkedin}>
           <input
-            type="url"
+            type="text"
             value={form.linkedinUrl}
             onChange={(e) => set("linkedinUrl", e.target.value)}
-            placeholder="https://linkedin.com/in/..."
+            onBlur={(e) => { if (e.target.value) set("linkedinUrl", normalizeUrl(e.target.value.trim())); }}
+            placeholder="linkedin.com/in/..."
             className={input}
           />
         </Field>
         <Field label={tr.field_instagram}>
           <input
-            type="url"
+            type="text"
             value={form.instagramUrl}
             onChange={(e) => set("instagramUrl", e.target.value)}
-            placeholder="https://instagram.com/..."
+            onBlur={(e) => { if (e.target.value) set("instagramUrl", normalizeUrl(e.target.value.trim())); }}
+            placeholder="instagram.com/..."
             className={input}
           />
         </Field>
         <Field label={tr.field_facebook}>
-          <input
-            type="url"
-            value={form.facebookUrl}
-            onChange={(e) => set("facebookUrl", e.target.value)}
-            placeholder="https://facebook.com/..."
-            className={input}
-          />
+          <input type="text" value={form.facebookUrl} onChange={(e) => set("facebookUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("facebookUrl", normalizeUrl(e.target.value.trim())); }} placeholder="facebook.com/..." className={input} />
+        </Field>
+        <Field label={tr.field_tiktok}>
+          <input type="text" value={form.tiktokUrl} onChange={(e) => set("tiktokUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("tiktokUrl", normalizeUrl(e.target.value.trim())); }} placeholder="tiktok.com/@..." className={input} />
+        </Field>
+        <Field label={tr.field_snapchat}>
+          <input type="text" value={form.snapchatUrl} onChange={(e) => set("snapchatUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("snapchatUrl", normalizeUrl(e.target.value.trim())); }} placeholder="snapchat.com/add/..." className={input} />
+        </Field>
+        <Field label={tr.field_x}>
+          <input type="text" value={form.xUrl} onChange={(e) => set("xUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("xUrl", normalizeUrl(e.target.value.trim())); }} placeholder="x.com/..." className={input} />
+        </Field>
+        <Field label={tr.field_other_social}>
+          <input type="text" value={form.otherSocialUrl} onChange={(e) => set("otherSocialUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("otherSocialUrl", normalizeUrl(e.target.value.trim())); }} placeholder="https://..." className={input} />
         </Field>
       </Section>
 

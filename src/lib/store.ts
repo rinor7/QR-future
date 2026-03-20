@@ -1,6 +1,6 @@
 import { getSupabase } from "./supabase";
 import { getSupabaseBrowser } from "./supabase-browser";
-import { QRContact, CreateQRContact, ContactLink, UserProfile, Plan, PLAN_LIMITS } from "./types";
+import { QRContact, CreateQRContact, ContactLink, UserProfile, Plan, PLAN_LIMITS, Role, TeamMember } from "./types";
 
 function generateId(): string {
   return `qr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -25,6 +25,10 @@ function toContact(row: Record<string, unknown>): QRContact {
     linkedinUrl: (row.linkedin_url as string) ?? "",
     instagramUrl: (row.instagram_url as string) ?? "",
     facebookUrl: (row.facebook_url as string) ?? "",
+    tiktokUrl: (row.tiktok_url as string) ?? "",
+    snapchatUrl: (row.snapchat_url as string) ?? "",
+    xUrl: (row.x_url as string) ?? "",
+    otherSocialUrl: (row.other_social_url as string) ?? "",
     links: (() => {
       if (row.links && Array.isArray(row.links)) return row.links as ContactLink[];
       if (row.pdf_url) return [{ url: row.pdf_url as string, label: (row.pdf_label as string) || "Dokument öffnen", type: "link" as const }];
@@ -35,6 +39,7 @@ function toContact(row: Record<string, unknown>): QRContact {
     plz: (row.plz as string) ?? "",
     city: (row.city as string) ?? "",
     primaryColor: (row.primary_color as string) ?? "#2563eb",
+    bgImageUrl: (row.bg_image_url as string) ?? "",
     notes: (row.notes as string) ?? "",
   };
 }
@@ -55,12 +60,17 @@ function toRow(data: Partial<CreateQRContact>) {
     ...(data.linkedinUrl !== undefined && { linkedin_url: data.linkedinUrl }),
     ...(data.instagramUrl !== undefined && { instagram_url: data.instagramUrl }),
     ...(data.facebookUrl !== undefined && { facebook_url: data.facebookUrl }),
+    ...(data.tiktokUrl !== undefined && { tiktok_url: data.tiktokUrl }),
+    ...(data.snapchatUrl !== undefined && { snapchat_url: data.snapchatUrl }),
+    ...(data.xUrl !== undefined && { x_url: data.xUrl }),
+    ...(data.otherSocialUrl !== undefined && { other_social_url: data.otherSocialUrl }),
     ...(data.links !== undefined && { links: data.links }),
     ...(data.street !== undefined && { street: data.street }),
     ...(data.streetNr !== undefined && { street_nr: data.streetNr }),
     ...(data.plz !== undefined && { plz: data.plz }),
     ...(data.city !== undefined && { city: data.city }),
     ...(data.primaryColor !== undefined && { primary_color: data.primaryColor }),
+    ...(data.bgImageUrl !== undefined && { bg_image_url: data.bgImageUrl }),
     ...(data.notes !== undefined && { notes: data.notes }),
   };
 }
@@ -80,26 +90,88 @@ export async function getUserProfile(): Promise<UserProfile | null> {
 
   if (error || !data) return null;
 
+  const isPlatformAdmin = (data.is_platform_admin as boolean) ?? false;
+  const ownerId = (data.owner_id as string) ?? (data.user_id as string);
+
+  // Check if org owner is the platform admin (so invited team members also get Users tab)
+  let canManageUsers = isPlatformAdmin;
+  if (!isPlatformAdmin && ownerId !== (data.user_id as string)) {
+    const { data: ownerData } = await supabase
+      .from("profiles")
+      .select("is_platform_admin")
+      .eq("user_id", ownerId)
+      .single();
+    canManageUsers = (ownerData?.is_platform_admin as boolean) ?? false;
+  }
+
   return {
     userId: data.user_id as string,
     email: data.email as string,
     plan: (data.plan as Plan) ?? "free",
+    role: (data.role as Role) ?? "admin",
+    ownerId,
     createdAt: data.created_at as string,
+    isPlatformAdmin,
+    canManageUsers,
   };
+}
+
+// ── Team members ──────────────────────────────────────────────────────────────
+
+export async function getTeamMembers(): Promise<TeamMember[]> {
+  const supabase = getSupabaseBrowser();
+  // RLS policy returns only profiles in the same org
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("user_id, email, role, created_at, first_name, last_name")
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({
+    userId: row.user_id as string,
+    email: row.email as string,
+    firstName: (row.first_name as string) ?? "",
+    lastName: (row.last_name as string) ?? "",
+    role: (row.role as Role) ?? "reader",
+    createdAt: row.created_at as string,
+  }));
+}
+
+export async function updateTeamMemberRole(memberId: string, role: Role): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ role })
+    .eq("user_id", memberId);
+  if (error) throw new Error(error.message);
+}
+
+export async function removeTeamMember(memberId: string): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  // Delete their profile — the auth user itself requires service role (done via API route)
+  const { error } = await supabase
+    .from("profiles")
+    .delete()
+    .eq("user_id", memberId);
+  if (error) throw new Error(error.message);
 }
 
 // ── Contacts ─────────────────────────────────────────────────────────────────
 
-// Dashboard: only current user's contacts
+// Dashboard: all contacts in the org
 export async function getAllContacts(): Promise<QRContact[]> {
   const supabase = getSupabaseBrowser();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
+  const profile = await getUserProfile();
+  if (!profile) return [];
+
+  // Filter by ownerId — covers all org members (writers store under ownerId)
   const { data, error } = await supabase
     .from("contacts")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", profile.ownerId)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
@@ -125,8 +197,7 @@ export async function getContactCount(): Promise<number> {
 
   const { count, error } = await supabase
     .from("contacts")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
+    .select("id", { count: "exact", head: true });
 
   if (error) return 0;
   return count ?? 0;
@@ -137,9 +208,20 @@ export async function createContact(input: CreateQRContact): Promise<QRContact> 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  // Check plan limit
   const profile = await getUserProfile();
-  const plan = profile?.plan ?? "free";
+
+  // Plan limit: use owner's plan for writers
+  let plan = profile?.plan ?? "free";
+  if (profile?.role !== "admin") {
+    // Fetch owner profile to get the correct plan
+    const { data: ownerData } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("user_id", profile?.ownerId)
+      .single();
+    plan = (ownerData?.plan as Plan) ?? "free";
+  }
+
   const limit = PLAN_LIMITS[plan];
   if (limit !== -1) {
     const count = await getContactCount();
@@ -153,7 +235,8 @@ export async function createContact(input: CreateQRContact): Promise<QRContact> 
     id,
     ...toRow(input),
     created_by: user.email ?? "",
-    user_id: user.id,
+    // Writers store contacts under the admin's user_id so they appear in the org pool
+    user_id: profile?.ownerId ?? user.id,
     updated_at: new Date().toISOString(),
   };
 
@@ -193,7 +276,6 @@ function extractStoragePath(url: string): string | null {
 export async function deleteContact(id: string): Promise<void> {
   const supabase = getSupabaseBrowser();
 
-  // Clean up any uploaded files from storage
   const { data } = await supabase
     .from("contacts")
     .select("logo_url, pdf_url")

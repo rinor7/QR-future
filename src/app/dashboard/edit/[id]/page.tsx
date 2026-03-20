@@ -8,12 +8,14 @@ import QRForm from "@/components/QRForm";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { ExternalLink, Copy, Check, Download } from "lucide-react";
 import { useLang } from "@/lib/language";
+import { useRole } from "@/lib/useRole";
 
 export default function EditPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const { tr } = useLang();
+  const { isReader, loading: roleLoading } = useRole();
   const id = params.id as string;
 
   const [contact, setContact] = useState<QRContact | null>(null);
@@ -22,6 +24,10 @@ export default function EditPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const justCreated = searchParams.get("created") === "1";
+
+  useEffect(() => {
+    if (!roleLoading && isReader) router.replace("/dashboard/codes");
+  }, [isReader, roleLoading, router]);
 
   useEffect(() => {
     getContact(id).then((c) => {
