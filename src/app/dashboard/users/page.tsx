@@ -27,12 +27,14 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (roleLoading) return;
-    if (!isAdmin) {
-      router.replace("/dashboard");
-      return;
-    }
-    load();
-  }, [isAdmin, roleLoading]);
+    getUserProfile().then((p) => {
+      if (!p?.canManageUsers) {
+        router.replace("/dashboard");
+        return;
+      }
+      load();
+    });
+  }, [roleLoading]);
 
   async function load() {
     setLoading(true);

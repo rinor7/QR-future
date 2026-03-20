@@ -78,6 +78,7 @@ export interface UserProfile {
   ownerId: string;
   createdAt: string;
   isPlatformAdmin: boolean;
+  canManageUsers: boolean; // true if user belongs to the platform owner's org
 }
 
 export interface ClientAccount {

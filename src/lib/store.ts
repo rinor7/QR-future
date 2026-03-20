@@ -90,14 +90,29 @@ export async function getUserProfile(): Promise<UserProfile | null> {
 
   if (error || !data) return null;
 
+  const isPlatformAdmin = (data.is_platform_admin as boolean) ?? false;
+  const ownerId = (data.owner_id as string) ?? (data.user_id as string);
+
+  // Check if org owner is the platform admin (so invited team members also get Users tab)
+  let canManageUsers = isPlatformAdmin;
+  if (!isPlatformAdmin && ownerId !== (data.user_id as string)) {
+    const { data: ownerData } = await supabase
+      .from("profiles")
+      .select("is_platform_admin")
+      .eq("user_id", ownerId)
+      .single();
+    canManageUsers = (ownerData?.is_platform_admin as boolean) ?? false;
+  }
+
   return {
     userId: data.user_id as string,
     email: data.email as string,
     plan: (data.plan as Plan) ?? "free",
     role: (data.role as Role) ?? "admin",
-    ownerId: (data.owner_id as string) ?? (data.user_id as string),
+    ownerId,
     createdAt: data.created_at as string,
-    isPlatformAdmin: (data.is_platform_admin as boolean) ?? false,
+    isPlatformAdmin,
+    canManageUsers,
   };
 }
 

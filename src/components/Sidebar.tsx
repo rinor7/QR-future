@@ -15,7 +15,7 @@ import {
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { useLang } from "@/lib/language";
 import { getUserProfile } from "@/lib/store";
-import { Plan, PLAN_LABELS, Role } from "@/lib/types";
+import { Plan, PLAN_LABELS } from "@/lib/types";
 
 const PLAN_COLORS: Record<Plan, string> = {
   free: "bg-gray-100 text-gray-600",
@@ -29,15 +29,15 @@ export default function Sidebar() {
   const router = useRouter();
   const { tr, lang, toggleLang } = useLang();
   const [plan, setPlan] = useState<Plan>("free");
-  const [role, setRole] = useState<Role | null>(null);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [canManageUsers, setCanManageUsers] = useState(false);
 
   useEffect(() => {
     getUserProfile().then((p) => {
       if (p) {
         setPlan(p.plan);
-        setRole(p.role);
         setIsPlatformAdmin(p.isPlatformAdmin ?? false);
+        setCanManageUsers(p.canManageUsers ?? false);
       }
     });
   }, []);
@@ -45,7 +45,7 @@ export default function Sidebar() {
   const nav = [
     { href: "/dashboard", label: tr.nav_dashboard, icon: LayoutDashboard },
     { href: "/dashboard/codes", label: tr.nav_codes, icon: QrCode },
-    ...(role === "admin" ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
+    ...(canManageUsers ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
     ...(isPlatformAdmin ? [{ href: "/dashboard/clients", label: tr.nav_clients, icon: Building2 }] : []),
     { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
   ];
