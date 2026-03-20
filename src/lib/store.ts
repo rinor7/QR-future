@@ -197,9 +197,13 @@ export async function getContactCount(): Promise<number> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return 0;
 
+  const profile = await getUserProfile();
+  if (!profile) return 0;
+
   const { count, error } = await supabase
     .from("contacts")
-    .select("id", { count: "exact", head: true });
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", profile.ownerId);
 
   if (error) return 0;
   return count ?? 0;
