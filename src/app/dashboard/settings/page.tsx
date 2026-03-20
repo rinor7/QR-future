@@ -48,7 +48,7 @@ export default function SettingsPage() {
     setEmailError(null);
     setEmailSuccess(false);
     if (!newEmail || newEmail === email) {
-      setEmailError("Bitte eine andere E-Mail-Adresse eingeben.");
+      setEmailError(tr.settings_email_error_same);
       return;
     }
     setEmailLoading(true);
@@ -69,11 +69,11 @@ export default function SettingsPage() {
     setPwSuccess(false);
 
     if (newPassword !== confirmPassword) {
-      setPwError("Passwörter stimmen nicht überein.");
+      setPwError(tr.settings_pw_error_match);
       return;
     }
     if (newPassword.length < 6) {
-      setPwError("Mindestens 6 Zeichen erforderlich.");
+      setPwError(tr.settings_pw_error_short);
       return;
     }
 
@@ -85,7 +85,7 @@ export default function SettingsPage() {
       password: currentPassword,
     });
     if (signInError) {
-      setPwError("Aktuelles Passwort ist falsch.");
+      setPwError(tr.settings_pw_error_wrong);
       setPwLoading(false);
       return;
     }
@@ -111,7 +111,7 @@ export default function SettingsPage() {
 
       {/* Account Info */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Konto</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{tr.settings_account}</h2>
         <div className="space-y-3">
           <div>
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">E-Mail</label>
@@ -124,7 +124,7 @@ export default function SettingsPage() {
                 {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
               </span>
               <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline">
-                Plan ändern
+                {tr.settings_plan_change}
               </Link>
             </div>
           </div>
@@ -133,14 +133,14 @@ export default function SettingsPage() {
 
       {/* Change Email */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">E-Mail ändern</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{tr.settings_email_change}</h2>
         <form onSubmit={handleChangeEmail} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Aktuelle E-Mail</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tr.settings_email_current}</label>
             <p className="text-sm text-gray-500 font-mono">{email}</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Neue E-Mail-Adresse</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tr.settings_email_new}</label>
             <input
               type="email"
               value={newEmail}
@@ -151,27 +151,23 @@ export default function SettingsPage() {
             />
           </div>
           {emailError && <p className="text-sm text-red-600">{emailError}</p>}
-          {emailSuccess && (
-            <p className="text-sm text-green-600">
-              Bestätigungs-E-Mail wurde gesendet. Bitte prüfen Sie Ihr Postfach und bestätigen Sie die neue Adresse.
-            </p>
-          )}
+          {emailSuccess && <p className="text-sm text-green-600">{tr.settings_email_success}</p>}
           <button
             type="submit"
             disabled={emailLoading}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl font-medium transition-colors text-sm"
           >
-            {emailLoading ? "Wird gespeichert..." : "E-Mail ändern"}
+            {emailLoading ? tr.settings_email_saving : tr.settings_email_btn}
           </button>
         </form>
       </div>
 
       {/* Change Password */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Passwort ändern</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{tr.settings_pw_change}</h2>
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Aktuelles Passwort</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tr.settings_pw_current}</label>
             <input
               type="password"
               value={currentPassword}
@@ -181,7 +177,7 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Neues Passwort</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tr.settings_pw_new}</label>
             <input
               type="password"
               value={newPassword}
@@ -191,7 +187,7 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Neues Passwort bestätigen</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{tr.settings_pw_confirm}</label>
             <input
               type="password"
               value={confirmPassword}
@@ -202,14 +198,14 @@ export default function SettingsPage() {
           </div>
 
           {pwError && <p className="text-sm text-red-600">{pwError}</p>}
-          {pwSuccess && <p className="text-sm text-green-600">Passwort erfolgreich geändert.</p>}
+          {pwSuccess && <p className="text-sm text-green-600">{tr.settings_pw_success}</p>}
 
           <button
             type="submit"
             disabled={pwLoading}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl font-medium transition-colors text-sm"
           >
-            {pwLoading ? "Wird gespeichert..." : "Passwort ändern"}
+            {pwLoading ? tr.settings_pw_saving : tr.settings_pw_btn}
           </button>
         </form>
       </div>
