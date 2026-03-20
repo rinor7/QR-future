@@ -19,6 +19,8 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
 
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteFirstName, setInviteFirstName] = useState("");
+  const [inviteLastName, setInviteLastName] = useState("");
   const [inviteRole, setInviteRole] = useState<Role>("writer");
   const [inviting, setInviting] = useState(false);
   const [inviteMsg, setInviteMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -57,7 +59,7 @@ export default function UsersPage() {
       const res = await fetch("/api/users/invite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: inviteEmail, role: inviteRole, ownerId: profile?.ownerId }),
+        body: JSON.stringify({ email: inviteEmail, role: inviteRole, ownerId: profile?.ownerId, firstName: inviteFirstName, lastName: inviteLastName }),
       });
       if (!res.ok) {
         const { error } = await res.json();
@@ -65,6 +67,8 @@ export default function UsersPage() {
       } else {
         setInviteMsg({ type: "success", text: tr.users_invite_success });
         setInviteEmail("");
+        setInviteFirstName("");
+        setInviteLastName("");
         await load();
       }
     } catch {
@@ -115,31 +119,49 @@ export default function UsersPage() {
           <UserPlus className="w-4 h-4" />
           {tr.users_invite}
         </h2>
-        <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="email"
-            required
-            value={inviteEmail}
-            onChange={(e) => setInviteEmail(e.target.value)}
-            placeholder={tr.users_invite_email}
-            className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <select
-            value={inviteRole}
-            onChange={(e) => setInviteRole(e.target.value as Role)}
-            className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="writer">{tr.role_writer}</option>
-            <option value="reader">{tr.role_reader}</option>
-            <option value="admin">{tr.role_admin}</option>
-          </select>
-          <button
-            type="submit"
-            disabled={inviting}
-            className="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
-            {inviting ? tr.users_invite_sending : tr.users_invite_btn}
-          </button>
+        <form onSubmit={handleInvite} className="space-y-3">
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={inviteFirstName}
+              onChange={(e) => setInviteFirstName(e.target.value)}
+              placeholder={tr.field_first_name}
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="text"
+              value={inviteLastName}
+              onChange={(e) => setInviteLastName(e.target.value)}
+              placeholder={tr.field_last_name}
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="flex gap-3">
+            <input
+              type="email"
+              required
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder={tr.users_invite_email}
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <select
+              value={inviteRole}
+              onChange={(e) => setInviteRole(e.target.value as Role)}
+              className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="writer">{tr.role_writer}</option>
+              <option value="reader">{tr.role_reader}</option>
+              <option value="admin">{tr.role_admin}</option>
+            </select>
+            <button
+              type="submit"
+              disabled={inviting}
+              className="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              {inviting ? tr.users_invite_sending : tr.users_invite_btn}
+            </button>
+          </div>
         </form>
         {inviteMsg && (
           <p className={`mt-3 text-sm ${inviteMsg.type === "success" ? "text-green-600" : "text-red-500"}`}>
@@ -169,7 +191,12 @@ export default function UsersPage() {
             ) : (
               members.map((m) => (
                 <tr key={m.userId} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
-                  <td className="px-6 py-4 text-gray-800 font-medium">{m.email}</td>
+                  <td className="px-6 py-4">
+                    {(m.firstName || m.lastName) && (
+                      <p className="text-gray-900 font-semibold text-sm">{`${m.firstName} ${m.lastName}`.trim()}</p>
+                    )}
+                    <p className="text-gray-500 text-xs">{m.email}</p>
+                  </td>
                   <td className="px-6 py-4">
                     {m.userId === ownerId ? (
                       <span className="inline-block px-2 py-0.5 rounded-lg bg-purple-50 text-purple-700 text-xs font-semibold">

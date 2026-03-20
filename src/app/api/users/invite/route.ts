@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { email, role, ownerId } = await req.json();
+  const { email, role, ownerId, firstName, lastName } = await req.json();
 
   if (!email || !role || !ownerId) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
@@ -32,13 +32,15 @@ export async function POST(req: NextRequest) {
     userId = inviteData.user?.id ?? null;
   }
 
-  // Upsert profile with correct role + owner_id
+  // Upsert profile with correct role + owner_id + name
   if (userId) {
     await supabase.from("profiles").upsert({
       user_id: userId,
       email,
       role,
       owner_id: ownerId,
+      first_name: firstName ?? "",
+      last_name: lastName ?? "",
     });
   }
 

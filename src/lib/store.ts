@@ -123,13 +123,15 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
   // RLS policy returns only profiles in the same org
   const { data, error } = await supabase
     .from("profiles")
-    .select("user_id, email, role, created_at")
+    .select("user_id, email, role, created_at, first_name, last_name")
     .order("created_at", { ascending: true });
 
   if (error) throw new Error(error.message);
   return (data ?? []).map((row) => ({
     userId: row.user_id as string,
     email: row.email as string,
+    firstName: (row.first_name as string) ?? "",
+    lastName: (row.last_name as string) ?? "",
     role: (row.role as Role) ?? "reader",
     createdAt: row.created_at as string,
   }));

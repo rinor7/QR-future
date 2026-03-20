@@ -92,6 +92,8 @@ export interface ClientAccount {
 export interface TeamMember {
   userId: string;
   email: string;
+  firstName: string;
+  lastName: string;
   role: Role;
   createdAt: string;
 }
