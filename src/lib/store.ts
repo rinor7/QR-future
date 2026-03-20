@@ -13,6 +13,7 @@ function toContact(row: Record<string, unknown>): QRContact {
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     createdBy: (row.created_by as string) ?? "",
+    qrLabel: (row.qr_label as string) ?? "",
     firstName: (() => { const n = (row.name as string) ?? ""; const i = n.lastIndexOf(" "); return i === -1 ? n : n.slice(0, i); })(),
     lastName: (() => { const n = (row.name as string) ?? ""; const i = n.lastIndexOf(" "); return i === -1 ? "" : n.slice(i + 1); })(),
     title: (row.title as string) ?? "",
@@ -29,7 +30,10 @@ function toContact(row: Record<string, unknown>): QRContact {
       if (row.pdf_url) return [{ url: row.pdf_url as string, label: (row.pdf_label as string) || "Dokument öffnen", type: "link" as const }];
       return [];
     })(),
-    address: (row.address as string) ?? "",
+    street: (row.street as string) ?? "",
+    streetNr: (row.street_nr as string) ?? "",
+    plz: (row.plz as string) ?? "",
+    city: (row.city as string) ?? "",
     primaryColor: (row.primary_color as string) ?? "#2563eb",
     notes: (row.notes as string) ?? "",
   };
@@ -38,6 +42,7 @@ function toContact(row: Record<string, unknown>): QRContact {
 // Map camelCase app types → snake_case DB columns
 function toRow(data: Partial<CreateQRContact>) {
   return {
+    ...(data.qrLabel !== undefined && { qr_label: data.qrLabel }),
     ...((data.firstName !== undefined || data.lastName !== undefined) && {
       name: `${data.firstName ?? ""} ${data.lastName ?? ""}`.trim(),
     }),
@@ -51,7 +56,10 @@ function toRow(data: Partial<CreateQRContact>) {
     ...(data.instagramUrl !== undefined && { instagram_url: data.instagramUrl }),
     ...(data.facebookUrl !== undefined && { facebook_url: data.facebookUrl }),
     ...(data.links !== undefined && { links: data.links }),
-    ...(data.address !== undefined && { address: data.address }),
+    ...(data.street !== undefined && { street: data.street }),
+    ...(data.streetNr !== undefined && { street_nr: data.streetNr }),
+    ...(data.plz !== undefined && { plz: data.plz }),
+    ...(data.city !== undefined && { city: data.city }),
     ...(data.primaryColor !== undefined && { primary_color: data.primaryColor }),
     ...(data.notes !== undefined && { notes: data.notes }),
   };

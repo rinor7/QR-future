@@ -39,7 +39,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
       contact.phone ? `TEL;TYPE=CELL:${contact.phone}` : "",
       contact.email ? `EMAIL:${contact.email}` : "",
       contact.website ? `URL:${contact.website}` : "",
-      contact.address ? `ADR:;;${contact.address};;;;` : "",
+      (contact.street || contact.city) ? `ADR:;;${contact.street} ${contact.streetNr};${contact.city};;${contact.plz};Switzerland` : "",
       "END:VCARD",
     ]
       .filter(Boolean)
@@ -99,9 +99,10 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
           {contact.company && (
             <p className="text-sm font-semibold mt-0.5" style={{ color }}>{contact.company}</p>
           )}
-          {contact.address && (
+          {(contact.street || contact.city) && (
             <p className="flex items-center justify-center gap-1 text-xs text-gray-400 mt-2">
-              <MapPin className="w-3 h-3" />{contact.address}
+              <MapPin className="w-3 h-3" />
+              {[`${contact.street} ${contact.streetNr}`.trim(), contact.plz, contact.city].filter(Boolean).join(", ")}
             </p>
           )}
         </div>
