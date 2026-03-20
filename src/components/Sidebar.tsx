@@ -31,6 +31,7 @@ export default function Sidebar() {
   const [plan, setPlan] = useState<Plan>("free");
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [canManageUsers, setCanManageUsers] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -38,6 +39,7 @@ export default function Sidebar() {
         setPlan(p.plan);
         setIsPlatformAdmin(p.isPlatformAdmin ?? false);
         setCanManageUsers(p.canManageUsers ?? false);
+        setIsAdmin(p.role === "admin");
       }
     });
   }, []);
@@ -45,7 +47,7 @@ export default function Sidebar() {
   const nav = [
     { href: "/dashboard", label: tr.nav_dashboard, icon: LayoutDashboard },
     { href: "/dashboard/codes", label: tr.nav_codes, icon: QrCode },
-    ...(canManageUsers ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
+    ...(canManageUsers && isAdmin ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
     ...(isPlatformAdmin ? [{ href: "/dashboard/clients", label: tr.nav_clients, icon: Building2 }] : []),
     { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
   ];
