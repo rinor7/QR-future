@@ -77,10 +77,18 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#f1f5f9" }}>
       <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
 
-        {/* Header with gradient */}
-        <div className="relative h-28" style={{ backgroundColor: color }}>
+        {/* Header with gradient or bg image */}
+        <div
+          className="relative h-28"
+          style={contact.bgImageUrl
+            ? { backgroundImage: `url(${contact.bgImageUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+            : { backgroundColor: color }
+          }
+        >
           <div className="absolute inset-0 opacity-20" style={{
-            backgroundImage: "radial-gradient(circle at 80% 20%, white 0%, transparent 60%)"
+            backgroundImage: contact.bgImageUrl
+              ? "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%)"
+              : "radial-gradient(circle at 80% 20%, white 0%, transparent 60%)"
           }} />
           {/* Avatar */}
           <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">

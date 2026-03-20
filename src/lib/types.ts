@@ -41,6 +41,7 @@ export interface QRContact {
 
   // Display
   primaryColor: string;
+  bgImageUrl: string;
   notes: string;
 }
 
