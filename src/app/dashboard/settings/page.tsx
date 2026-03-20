@@ -111,7 +111,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-4 wide:p-8 max-w-2xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">{tr.settings_title}</h1>
         <p className="text-gray-500 mt-1">{tr.settings_subtitle}</p>

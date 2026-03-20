@@ -11,6 +11,7 @@ import {
   Zap,
   Users,
   Building2,
+  X,
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { useLang } from "@/lib/language";
@@ -24,7 +25,7 @@ const PLAN_COLORS: Record<Plan, string> = {
   platinum: "bg-purple-100 text-purple-700",
 };
 
-export default function Sidebar() {
+export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { tr, lang, toggleLang } = useLang();
@@ -64,15 +65,21 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 min-h-screen bg-white border-r border-gray-200 flex flex-col">
+    <aside className={`w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 fixed top-0 left-0 h-full z-50 transition-transform duration-300 ease-in-out wide:relative wide:translate-x-0 wide:min-h-screen ${open ? "translate-x-0" : "-translate-x-full"}`}>
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-gray-200">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <QrCode className="w-5 h-5 text-white" />
           </div>
           <span className="font-bold text-lg text-gray-900">QR Plattform</span>
         </div>
+        <button
+          onClick={onClose}
+          className="wide:hidden p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Nav */}

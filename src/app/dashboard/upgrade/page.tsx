@@ -82,13 +82,13 @@ export default function UpgradePage() {
   }
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="p-4 wide:p-8 max-w-5xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Plan upgraden</h1>
         <p className="text-gray-500 mt-1">Wählen Sie den passenden Plan für Ihre Bedürfnisse</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {PLANS.map((plan) => {
           const isCurrent = plan.id === currentPlan;
           return (

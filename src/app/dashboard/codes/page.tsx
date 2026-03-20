@@ -74,8 +74,8 @@ export default function CodesPage() {
   );
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 wide:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">QR Codes</h1>
           <p className="text-gray-500 mt-1">{contacts.length} {tr.codes_total}</p>
@@ -110,7 +110,7 @@ export default function CodesPage() {
           <p className="text-lg">{tr.no_results}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 wide:grid-cols-3 gap-5">
           {filtered.map((contact) => (
             <div
               key={contact.id}
@@ -134,7 +134,7 @@ export default function CodesPage() {
                 )}
               </div>
 
-              <div id={`qr-${contact.id}`} className="flex justify-center py-2">
+              <div id={`qr-${contact.id}`} className="flex justify-center py-2 mt-auto">
                 <QRCodeDisplay value={getQRUrl(contact.id)} size={140} />
               </div>
 
