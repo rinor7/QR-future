@@ -16,9 +16,11 @@ export default function AuthCallbackPage() {
       const params = new URLSearchParams(hash.replace("#", ""));
       const access_token = params.get("access_token");
       const refresh_token = params.get("refresh_token");
+      const type = params.get("type");
       if (access_token && refresh_token) {
         supabase.auth.setSession({ access_token, refresh_token }).then(() => {
-          router.replace("/dashboard");
+          // Invited users must set a password first
+          router.replace(type === "invite" ? "/auth/set-password" : "/dashboard");
         });
         return;
       }
@@ -27,9 +29,10 @@ export default function AuthCallbackPage() {
     // Handle query param flow (PKCE: ?code=...)
     const searchParams = new URLSearchParams(window.location.search);
     const code = searchParams.get("code");
+    const type = searchParams.get("type");
     if (code) {
       supabase.auth.exchangeCodeForSession(code).then(() => {
-        router.replace("/dashboard");
+        router.replace(type === "invite" ? "/auth/set-password" : "/dashboard");
       });
       return;
     }
