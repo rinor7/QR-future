@@ -26,6 +26,8 @@ export default function UsersPage() {
   const [inviteMsg, setInviteMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
+  const [resendMsg, setResendMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (roleLoading) return;
@@ -92,6 +94,19 @@ export default function UsersPage() {
       setRemovingId(memberId);
       setTimeout(() => setRemovingId(null), 3000);
     }
+  }
+
+  async function handleResend(memberId: string, email: string) {
+    setResendingId(memberId);
+    const profile = await getUserProfile();
+    await fetch("/api/users/resend-invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, ownerId: profile?.ownerId }),
+    });
+    setResendingId(null);
+    setResendMsg(memberId);
+    setTimeout(() => setResendMsg(null), 3000);
   }
 
   const roleLabel = (role: Role) =>
@@ -223,17 +238,26 @@ export default function UsersPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     {m.userId !== currentUserId && m.userId !== ownerId && (
-                      <button
-                        onClick={() => handleRemove(m.userId)}
-                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                          removingId === m.userId
-                            ? "bg-red-600 text-white"
-                            : "text-red-500 hover:bg-red-50"
-                        }`}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        {removingId === m.userId ? tr.delete_confirm : tr.users_remove}
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleResend(m.userId, m.email)}
+                          disabled={resendingId === m.userId}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50"
+                        >
+                          {resendMsg === m.userId ? tr.users_resend_success : resendingId === m.userId ? tr.users_resend_sending : tr.users_resend}
+                        </button>
+                        <button
+                          onClick={() => handleRemove(m.userId)}
+                          className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            removingId === m.userId
+                              ? "bg-red-600 text-white"
+                              : "text-red-500 hover:bg-red-50"
+                          }`}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          {removingId === m.userId ? tr.delete_confirm : tr.users_remove}
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
