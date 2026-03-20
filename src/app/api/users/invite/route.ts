@@ -14,9 +14,8 @@ export async function POST(req: NextRequest) {
   );
 
   // Try to invite — if already registered, look them up instead
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://staging.qr-card.ch";
   const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${siteUrl}/auth/callback`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
     data: { role, owner_id: ownerId },
   });
 
