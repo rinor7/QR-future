@@ -32,6 +32,7 @@ export default function Sidebar() {
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [canManageUsers, setCanManageUsers] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -40,6 +41,7 @@ export default function Sidebar() {
         setIsPlatformAdmin(p.isPlatformAdmin ?? false);
         setCanManageUsers(p.canManageUsers ?? false);
         setIsAdmin(p.role === "admin");
+        setIsOwner(p.userId === p.ownerId);
       }
     });
   }, []);
@@ -109,16 +111,25 @@ export default function Sidebar() {
             <span className={lang === "en" ? "text-blue-600" : "text-gray-400"}>EN</span>
           </span>
         </button>
-        <Link
-          href="/dashboard/upgrade"
-          className="flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          <span className="text-xs text-gray-400">{tr.plan_label}</span>
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
-            {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
-          </span>
-        </Link>
-        {plan === "free" && (
+        {isOwner ? (
+          <Link
+            href="/dashboard/upgrade"
+            className="flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <span className="text-xs text-gray-400">{tr.plan_label}</span>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
+              {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
+            </span>
+          </Link>
+        ) : (
+          <div className="flex items-center justify-between w-full px-3 py-1.5">
+            <span className="text-xs text-gray-400">{tr.plan_label}</span>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
+              {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
+            </span>
+          </div>
+        )}
+        {isOwner && plan === "free" && (
           <Link
             href="/dashboard/upgrade"
             className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors"

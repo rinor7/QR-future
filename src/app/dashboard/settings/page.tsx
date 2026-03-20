@@ -21,6 +21,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<Plan>("free");
+  const [isOwner, setIsOwner] = useState(false);
 
   const [newEmail, setNewEmail] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
@@ -40,7 +41,12 @@ export default function SettingsPage() {
       if (!user) { router.push("/login"); return; }
       setEmail(user.email ?? "");
     });
-    getUserProfile().then((p) => { if (p) setPlan(p.plan); });
+    getUserProfile().then((p) => {
+      if (p) {
+        setPlan(p.plan);
+        setIsOwner(p.userId === p.ownerId);
+      }
+    });
   }, [router]);
 
   async function handleChangeEmail(e: React.FormEvent) {
@@ -123,9 +129,11 @@ export default function SettingsPage() {
               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
                 {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
               </span>
-              <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline">
-                {tr.settings_plan_change}
-              </Link>
+              {isOwner && (
+                <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline">
+                  {tr.settings_plan_change}
+                </Link>
+              )}
             </div>
           </div>
         </div>
