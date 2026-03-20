@@ -30,7 +30,7 @@ export default function ClientsPage() {
       }
       load();
     });
-  }, []);
+  }, [router]);
 
   async function load() {
     setLoading(true);

@@ -10,7 +10,7 @@ import { UserPlus, Trash2 } from "lucide-react";
 
 export default function UsersPage() {
   const { tr } = useLang();
-  const { isAdmin, loading: roleLoading } = useRole();
+  const { loading: roleLoading } = useRole();
   const router = useRouter();
 
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -34,7 +34,7 @@ export default function UsersPage() {
       }
       load();
     });
-  }, [roleLoading]);
+  }, [roleLoading, router]);
 
   async function load() {
     setLoading(true);
