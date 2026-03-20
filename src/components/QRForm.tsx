@@ -318,10 +318,11 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
         </Field>
         <Field label={tr.field_website}>
           <input
-            type="url"
+            type="text"
             value={form.website}
             onChange={(e) => set("website", e.target.value)}
-            placeholder="https://www.qr-card.ch"
+            onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }}
+            placeholder="www.qr-card.ch"
             className={input}
           />
         </Field>
