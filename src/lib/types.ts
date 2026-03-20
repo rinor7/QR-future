@@ -68,9 +68,20 @@ export const PLAN_LABELS: Record<Plan, string> = {
   platinum: 'Platinum',
 };
 
+export type Role = 'admin' | 'writer' | 'reader';
+
 export interface UserProfile {
   userId: string;
   email: string;
   plan: Plan;
+  role: Role;
+  ownerId: string;
+  createdAt: string;
+}
+
+export interface TeamMember {
+  userId: string;
+  email: string;
+  role: Role;
   createdAt: string;
 }

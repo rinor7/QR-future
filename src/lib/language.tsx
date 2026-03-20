@@ -10,6 +10,7 @@ export const t = {
     nav_dashboard: "Dashboard",
     nav_codes: "QR Codes",
     nav_settings: "Einstellungen",
+    nav_users: "Benutzer",
     nav_language: "Sprache",
     logout: "Abmelden",
     // Dashboard page
@@ -139,12 +140,33 @@ export const t = {
     delete_modal_body: "Alle Daten dieses QR Codes werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
     delete_modal_cancel: "Abbrechen",
     delete_modal_confirm: "Ja, löschen",
+    // Roles
+    role_admin: "Admin",
+    role_writer: "Bearbeiter",
+    role_reader: "Leser",
+    // Users page
+    users_title: "Benutzerverwaltung",
+    users_subtitle: "Laden Sie Teammitglieder ein und verwalten Sie deren Rollen.",
+    users_invite: "Benutzer einladen",
+    users_invite_email: "E-Mail-Adresse",
+    users_invite_role: "Rolle",
+    users_invite_btn: "Einladen",
+    users_invite_sending: "Wird gesendet…",
+    users_invite_success: "Einladung gesendet!",
+    users_invite_error: "Fehler beim Senden.",
+    users_col_email: "E-Mail",
+    users_col_role: "Rolle",
+    users_col_joined: "Beigetreten",
+    users_remove: "Entfernen",
+    users_no_members: "Keine weiteren Mitglieder",
+    created_by: "Erstellt von",
   },
   en: {
     // Sidebar
     nav_dashboard: "Dashboard",
     nav_codes: "QR Codes",
     nav_settings: "Settings",
+    nav_users: "Users",
     nav_language: "Language",
     logout: "Logout",
     // Dashboard page
@@ -274,6 +296,26 @@ export const t = {
     delete_modal_body: "All data for this QR code will be permanently deleted. This action cannot be undone.",
     delete_modal_cancel: "Cancel",
     delete_modal_confirm: "Yes, delete",
+    // Roles
+    role_admin: "Admin",
+    role_writer: "Writer",
+    role_reader: "Reader",
+    // Users page
+    users_title: "User Management",
+    users_subtitle: "Invite team members and manage their roles.",
+    users_invite: "Invite User",
+    users_invite_email: "Email Address",
+    users_invite_role: "Role",
+    users_invite_btn: "Invite",
+    users_invite_sending: "Sending…",
+    users_invite_success: "Invitation sent!",
+    users_invite_error: "Error sending invite.",
+    users_col_email: "Email",
+    users_col_role: "Role",
+    users_col_joined: "Joined",
+    users_remove: "Remove",
+    users_no_members: "No other members",
+    created_by: "Created by",
   },
 };
 

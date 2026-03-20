@@ -1,6 +1,6 @@
 import { getSupabase } from "./supabase";
 import { getSupabaseBrowser } from "./supabase-browser";
-import { QRContact, CreateQRContact, ContactLink, UserProfile, Plan, PLAN_LIMITS } from "./types";
+import { QRContact, CreateQRContact, ContactLink, UserProfile, Plan, PLAN_LIMITS, Role, TeamMember } from "./types";
 
 function generateId(): string {
   return `qr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -94,13 +94,53 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     userId: data.user_id as string,
     email: data.email as string,
     plan: (data.plan as Plan) ?? "free",
+    role: (data.role as Role) ?? "admin",
+    ownerId: (data.owner_id as string) ?? (data.user_id as string),
     createdAt: data.created_at as string,
   };
 }
 
+// ── Team members ──────────────────────────────────────────────────────────────
+
+export async function getTeamMembers(): Promise<TeamMember[]> {
+  const supabase = getSupabaseBrowser();
+  // RLS policy returns only profiles in the same org
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("user_id, email, role, created_at")
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({
+    userId: row.user_id as string,
+    email: row.email as string,
+    role: (row.role as Role) ?? "reader",
+    createdAt: row.created_at as string,
+  }));
+}
+
+export async function updateTeamMemberRole(memberId: string, role: Role): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ role })
+    .eq("user_id", memberId);
+  if (error) throw new Error(error.message);
+}
+
+export async function removeTeamMember(memberId: string): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  // Delete their profile — the auth user itself requires service role (done via API route)
+  const { error } = await supabase
+    .from("profiles")
+    .delete()
+    .eq("user_id", memberId);
+  if (error) throw new Error(error.message);
+}
+
 // ── Contacts ─────────────────────────────────────────────────────────────────
 
-// Dashboard: only current user's contacts
+// Dashboard: all contacts in the org (RLS handles filtering by owner pool)
 export async function getAllContacts(): Promise<QRContact[]> {
   const supabase = getSupabaseBrowser();
   const { data: { user } } = await supabase.auth.getUser();
@@ -109,7 +149,6 @@ export async function getAllContacts(): Promise<QRContact[]> {
   const { data, error } = await supabase
     .from("contacts")
     .select("*")
-    .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
@@ -135,8 +174,7 @@ export async function getContactCount(): Promise<number> {
 
   const { count, error } = await supabase
     .from("contacts")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
+    .select("id", { count: "exact", head: true });
 
   if (error) return 0;
   return count ?? 0;
@@ -147,9 +185,20 @@ export async function createContact(input: CreateQRContact): Promise<QRContact> 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  // Check plan limit
   const profile = await getUserProfile();
-  const plan = profile?.plan ?? "free";
+
+  // Plan limit: use owner's plan for writers
+  let plan = profile?.plan ?? "free";
+  if (profile?.role !== "admin") {
+    // Fetch owner profile to get the correct plan
+    const { data: ownerData } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("user_id", profile?.ownerId)
+      .single();
+    plan = (ownerData?.plan as Plan) ?? "free";
+  }
+
   const limit = PLAN_LIMITS[plan];
   if (limit !== -1) {
     const count = await getContactCount();
@@ -163,7 +212,8 @@ export async function createContact(input: CreateQRContact): Promise<QRContact> 
     id,
     ...toRow(input),
     created_by: user.email ?? "",
-    user_id: user.id,
+    // Writers store contacts under the admin's user_id so they appear in the org pool
+    user_id: profile?.ownerId ?? user.id,
     updated_at: new Date().toISOString(),
   };
 
@@ -203,7 +253,6 @@ function extractStoragePath(url: string): string | null {
 export async function deleteContact(id: string): Promise<void> {
   const supabase = getSupabaseBrowser();
 
-  // Clean up any uploaded files from storage
   const { data } = await supabase
     .from("contacts")
     .select("logo_url, pdf_url")

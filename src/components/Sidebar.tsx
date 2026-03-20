@@ -9,11 +9,12 @@ import {
   Settings,
   LogOut,
   Zap,
+  Users,
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { useLang } from "@/lib/language";
 import { getUserProfile } from "@/lib/store";
-import { Plan, PLAN_LABELS } from "@/lib/types";
+import { Plan, PLAN_LABELS, Role } from "@/lib/types";
 
 const PLAN_COLORS: Record<Plan, string> = {
   free: "bg-gray-100 text-gray-600",
@@ -27,14 +28,21 @@ export default function Sidebar() {
   const router = useRouter();
   const { tr, lang, toggleLang } = useLang();
   const [plan, setPlan] = useState<Plan>("free");
+  const [role, setRole] = useState<Role | null>(null);
 
   useEffect(() => {
-    getUserProfile().then((p) => { if (p) setPlan(p.plan); });
+    getUserProfile().then((p) => {
+      if (p) {
+        setPlan(p.plan);
+        setRole(p.role);
+      }
+    });
   }, []);
 
   const nav = [
     { href: "/dashboard", label: tr.nav_dashboard, icon: LayoutDashboard },
     { href: "/dashboard/codes", label: tr.nav_codes, icon: QrCode },
+    ...(role === "admin" ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
     { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
   ];
 

@@ -7,6 +7,7 @@ import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
+import { useRole } from "@/lib/useRole";
 
 function getExpiryInfo(createdAt: string): { hours: number; minutes: number; expired: boolean } {
   const created = new Date(createdAt).getTime();
@@ -21,6 +22,7 @@ function getExpiryInfo(createdAt: string): { hours: number; minutes: number; exp
 
 export default function CodesPage() {
   const { tr } = useLang();
+  const { isAdmin, isReader } = useRole();
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -78,13 +80,15 @@ export default function CodesPage() {
           <h1 className="text-3xl font-bold text-gray-900">QR Codes</h1>
           <p className="text-gray-500 mt-1">{contacts.length} {tr.codes_total}</p>
         </div>
-        <Link
-          href="/dashboard/create"
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          {tr.new_qr}
-        </Link>
+        {!isReader && (
+          <Link
+            href="/dashboard/create"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            {tr.new_qr}
+          </Link>
+        )}
       </div>
 
       <div className="mb-6">
@@ -153,14 +157,22 @@ export default function CodesPage() {
                 })()}
               </div>
 
+              {contact.createdBy && (
+                <p className="text-xs text-gray-400 -mt-2">
+                  {tr.created_by}: {contact.createdBy}
+                </p>
+              )}
+
               <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                <Link
-                  href={`/dashboard/edit/${contact.id}`}
-                  className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                  {tr.edit}
-                </Link>
+                {!isReader && (
+                  <Link
+                    href={`/dashboard/edit/${contact.id}`}
+                    className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    {tr.edit}
+                  </Link>
+                )}
                 <button
                   onClick={() => handleCopy(contact.id)}
                   className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors"
@@ -180,12 +192,14 @@ export default function CodesPage() {
                 >
                   <Download className="w-4 h-4" />
                 </button>
-                <button
-                  onClick={() => setDeleteModal(contact.id)}
-                  className="p-2 rounded-xl transition-colors border border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-500"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => setDeleteModal(contact.id)}
+                    className="p-2 rounded-xl transition-colors border border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-500"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
           ))}
