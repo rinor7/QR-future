@@ -20,6 +20,10 @@ const DEFAULTS: CreateQRContact = {
   linkedinUrl: "",
   instagramUrl: "",
   facebookUrl: "",
+  tiktokUrl: "",
+  snapchatUrl: "",
+  xUrl: "",
+  otherSocialUrl: "",
   links: [],
   street: "",
   streetNr: "",
@@ -418,14 +422,19 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
           />
         </Field>
         <Field label={tr.field_facebook}>
-          <input
-            type="text"
-            value={form.facebookUrl}
-            onChange={(e) => set("facebookUrl", e.target.value)}
-            onBlur={(e) => { if (e.target.value) set("facebookUrl", normalizeUrl(e.target.value.trim())); }}
-            placeholder="facebook.com/..."
-            className={input}
-          />
+          <input type="text" value={form.facebookUrl} onChange={(e) => set("facebookUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("facebookUrl", normalizeUrl(e.target.value.trim())); }} placeholder="facebook.com/..." className={input} />
+        </Field>
+        <Field label={tr.field_tiktok}>
+          <input type="text" value={form.tiktokUrl} onChange={(e) => set("tiktokUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("tiktokUrl", normalizeUrl(e.target.value.trim())); }} placeholder="tiktok.com/@..." className={input} />
+        </Field>
+        <Field label={tr.field_snapchat}>
+          <input type="text" value={form.snapchatUrl} onChange={(e) => set("snapchatUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("snapchatUrl", normalizeUrl(e.target.value.trim())); }} placeholder="snapchat.com/add/..." className={input} />
+        </Field>
+        <Field label={tr.field_x}>
+          <input type="text" value={form.xUrl} onChange={(e) => set("xUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("xUrl", normalizeUrl(e.target.value.trim())); }} placeholder="x.com/..." className={input} />
+        </Field>
+        <Field label={tr.field_other_social}>
+          <input type="text" value={form.otherSocialUrl} onChange={(e) => set("otherSocialUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("otherSocialUrl", normalizeUrl(e.target.value.trim())); }} placeholder="https://..." className={input} />
         </Field>
       </Section>
 

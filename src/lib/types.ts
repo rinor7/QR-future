@@ -29,6 +29,10 @@ export interface QRContact {
   linkedinUrl: string;
   instagramUrl: string;
   facebookUrl: string;
+  tiktokUrl: string;
+  snapchatUrl: string;
+  xUrl: string;
+  otherSocialUrl: string;
 
   // Links / Files (up to 4)
   links: ContactLink[];

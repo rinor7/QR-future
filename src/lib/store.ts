@@ -25,6 +25,10 @@ function toContact(row: Record<string, unknown>): QRContact {
     linkedinUrl: (row.linkedin_url as string) ?? "",
     instagramUrl: (row.instagram_url as string) ?? "",
     facebookUrl: (row.facebook_url as string) ?? "",
+    tiktokUrl: (row.tiktok_url as string) ?? "",
+    snapchatUrl: (row.snapchat_url as string) ?? "",
+    xUrl: (row.x_url as string) ?? "",
+    otherSocialUrl: (row.other_social_url as string) ?? "",
     links: (() => {
       if (row.links && Array.isArray(row.links)) return row.links as ContactLink[];
       if (row.pdf_url) return [{ url: row.pdf_url as string, label: (row.pdf_label as string) || "Dokument öffnen", type: "link" as const }];
@@ -56,6 +60,10 @@ function toRow(data: Partial<CreateQRContact>) {
     ...(data.linkedinUrl !== undefined && { linkedin_url: data.linkedinUrl }),
     ...(data.instagramUrl !== undefined && { instagram_url: data.instagramUrl }),
     ...(data.facebookUrl !== undefined && { facebook_url: data.facebookUrl }),
+    ...(data.tiktokUrl !== undefined && { tiktok_url: data.tiktokUrl }),
+    ...(data.snapchatUrl !== undefined && { snapchat_url: data.snapchatUrl }),
+    ...(data.xUrl !== undefined && { x_url: data.xUrl }),
+    ...(data.otherSocialUrl !== undefined && { other_social_url: data.otherSocialUrl }),
     ...(data.links !== undefined && { links: data.links }),
     ...(data.street !== undefined && { street: data.street }),
     ...(data.streetNr !== undefined && { street_nr: data.streetNr }),
