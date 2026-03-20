@@ -22,6 +22,11 @@ export default function SettingsPage() {
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<Plan>("free");
 
+  const [newEmail, setNewEmail] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailSuccess, setEmailSuccess] = useState(false);
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -37,6 +42,26 @@ export default function SettingsPage() {
     });
     getUserProfile().then((p) => { if (p) setPlan(p.plan); });
   }, [router]);
+
+  async function handleChangeEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailError(null);
+    setEmailSuccess(false);
+    if (!newEmail || newEmail === email) {
+      setEmailError("Bitte eine andere E-Mail-Adresse eingeben.");
+      return;
+    }
+    setEmailLoading(true);
+    const supabase = getSupabaseBrowser();
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    if (error) {
+      setEmailError(error.message);
+    } else {
+      setEmailSuccess(true);
+      setNewEmail("");
+    }
+    setEmailLoading(false);
+  }
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
@@ -104,6 +129,41 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Change Email */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">E-Mail ändern</h2>
+        <form onSubmit={handleChangeEmail} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Aktuelle E-Mail</label>
+            <p className="text-sm text-gray-500 font-mono">{email}</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Neue E-Mail-Adresse</label>
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="neue@email.com"
+              required
+              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          {emailError && <p className="text-sm text-red-600">{emailError}</p>}
+          {emailSuccess && (
+            <p className="text-sm text-green-600">
+              Bestätigungs-E-Mail wurde gesendet. Bitte prüfen Sie Ihr Postfach und bestätigen Sie die neue Adresse.
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={emailLoading}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl font-medium transition-colors text-sm"
+          >
+            {emailLoading ? "Wird gespeichert..." : "E-Mail ändern"}
+          </button>
+        </form>
       </div>
 
       {/* Change Password */}
