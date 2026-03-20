@@ -65,7 +65,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
   }
 
   return (
-    <aside className={`w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 fixed top-0 left-0 h-full z-50 transition-transform duration-300 ease-in-out wide:relative wide:translate-x-0 wide:min-h-screen ${open ? "translate-x-0" : "-translate-x-full"}`}>
+    <aside className={`w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 fixed top-0 left-0 h-screen z-50 transition-transform duration-300 ease-in-out wide:sticky wide:top-0 wide:h-screen wide:translate-x-0 wide:overflow-y-auto ${open ? "translate-x-0" : "-translate-x-full"}`}>
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-gray-200">
         <div className="flex items-center gap-2 flex-1">
