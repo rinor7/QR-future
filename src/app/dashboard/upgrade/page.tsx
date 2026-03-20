@@ -56,8 +56,12 @@ export default function UpgradePage() {
   const [loading, setLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    getUserProfile().then((p) => { if (p) setCurrentPlan(p.plan); });
-  }, []);
+    getUserProfile().then((p) => {
+      if (!p) return;
+      if (p.userId !== p.ownerId) { router.replace("/dashboard"); return; }
+      setCurrentPlan(p.plan);
+    });
+  }, [router]);
 
   async function handleUpgrade(priceId: string) {
     setLoading(priceId);
