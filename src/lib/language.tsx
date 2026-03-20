@@ -145,6 +145,8 @@ export const t = {
     role_admin: "Admin",
     role_writer: "Bearbeiter",
     role_reader: "Leser",
+    role_label: "Rolle",
+    our_plans: "Unsere Pläne",
     // Users page
     users_title: "Benutzerverwaltung",
     users_subtitle: "Laden Sie Teammitglieder ein und verwalten Sie deren Rollen.",
@@ -315,6 +317,8 @@ export const t = {
     role_admin: "Admin",
     role_writer: "Writer",
     role_reader: "Reader",
+    role_label: "Role",
+    our_plans: "Our Plans",
     // Users page
     users_title: "User Management",
     users_subtitle: "Invite team members and manage their roles.",

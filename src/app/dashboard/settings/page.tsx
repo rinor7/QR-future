@@ -21,6 +21,8 @@ export default function SettingsPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<Plan>("free");
+  const [isOwner, setIsOwner] = useState(false);
+  const [userRole, setUserRole] = useState<string>("");
 
   const [newEmail, setNewEmail] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
@@ -40,7 +42,13 @@ export default function SettingsPage() {
       if (!user) { router.push("/login"); return; }
       setEmail(user.email ?? "");
     });
-    getUserProfile().then((p) => { if (p) setPlan(p.plan); });
+    getUserProfile().then((p) => {
+      if (p) {
+        setPlan(p.plan);
+        setIsOwner(p.userId === p.ownerId);
+        setUserRole(p.role);
+      }
+    });
   }, [router]);
 
   async function handleChangeEmail(e: React.FormEvent) {
@@ -103,7 +111,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-4 wide:p-8 max-w-2xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">{tr.settings_title}</h1>
         <p className="text-gray-500 mt-1">{tr.settings_subtitle}</p>
@@ -117,17 +125,33 @@ export default function SettingsPage() {
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">E-Mail</label>
             <p className="mt-1 text-sm text-gray-900 font-medium">{email}</p>
           </div>
-          <div>
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Plan</label>
-            <div className="mt-1 flex items-center gap-3">
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
-                {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
-              </span>
-              <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline">
-                {tr.settings_plan_change}
-              </Link>
+          {isOwner ? (
+            <div>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Plan</label>
+              <div className="mt-1 flex items-center gap-3">
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
+                  {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
+                </span>
+                <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline">
+                  {tr.settings_plan_change}
+                </Link>
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{tr.role_label}</label>
+                <p className="mt-1 text-sm text-gray-900 font-medium">
+                  {userRole === "admin" ? tr.role_admin : userRole === "writer" ? tr.role_writer : tr.role_reader}
+                </p>
+              </div>
+              <div>
+                <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline">
+                  {tr.our_plans}
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

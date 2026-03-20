@@ -93,9 +93,11 @@ export async function getUserProfile(): Promise<UserProfile | null> {
   const isPlatformAdmin = (data.is_platform_admin as boolean) ?? false;
   const ownerId = (data.owner_id as string) ?? (data.user_id as string);
 
-  // Check if org owner is the platform admin (so invited team members also get Users tab)
+  // canManageUsers: true only for platform admin OR team members whose org owner is platform admin
+  // Regular clients (owner_id === user_id, not platform admin) always get false
   let canManageUsers = isPlatformAdmin;
-  if (!isPlatformAdmin && ownerId !== (data.user_id as string)) {
+  const isTeamMember = ownerId !== (data.user_id as string);
+  if (!isPlatformAdmin && isTeamMember) {
     const { data: ownerData } = await supabase
       .from("profiles")
       .select("is_platform_admin")

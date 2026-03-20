@@ -11,6 +11,7 @@ import {
   Zap,
   Users,
   Building2,
+  X,
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { useLang } from "@/lib/language";
@@ -24,13 +25,16 @@ const PLAN_COLORS: Record<Plan, string> = {
   platinum: "bg-purple-100 text-purple-700",
 };
 
-export default function Sidebar() {
+export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { tr, lang, toggleLang } = useLang();
   const [plan, setPlan] = useState<Plan>("free");
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [canManageUsers, setCanManageUsers] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const [userRole, setUserRole] = useState<string>("");
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -38,6 +42,9 @@ export default function Sidebar() {
         setPlan(p.plan);
         setIsPlatformAdmin(p.isPlatformAdmin ?? false);
         setCanManageUsers(p.canManageUsers ?? false);
+        setIsAdmin(p.role === "admin");
+        setIsOwner(p.userId === p.ownerId);
+        setUserRole(p.role);
       }
     });
   }, []);
@@ -45,7 +52,7 @@ export default function Sidebar() {
   const nav = [
     { href: "/dashboard", label: tr.nav_dashboard, icon: LayoutDashboard },
     { href: "/dashboard/codes", label: tr.nav_codes, icon: QrCode },
-    ...(canManageUsers ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
+    ...(canManageUsers && isAdmin ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
     ...(isPlatformAdmin ? [{ href: "/dashboard/clients", label: tr.nav_clients, icon: Building2 }] : []),
     { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
   ];
@@ -58,15 +65,21 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 min-h-screen bg-white border-r border-gray-200 flex flex-col">
+    <aside className={`w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 fixed top-0 left-0 h-screen z-50 transition-transform duration-300 ease-in-out wide:sticky wide:top-0 wide:h-screen wide:translate-x-0 wide:overflow-y-auto ${open ? "translate-x-0" : "-translate-x-full"}`}>
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-gray-200">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <QrCode className="w-5 h-5 text-white" />
           </div>
           <span className="font-bold text-lg text-gray-900">QR Plattform</span>
         </div>
+        <button
+          onClick={onClose}
+          className="wide:hidden p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Nav */}
@@ -107,23 +120,43 @@ export default function Sidebar() {
             <span className={lang === "en" ? "text-blue-600" : "text-gray-400"}>EN</span>
           </span>
         </button>
-        <Link
-          href="/dashboard/upgrade"
-          className="flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          <span className="text-xs text-gray-400">{tr.plan_label}</span>
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
-            {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
-          </span>
-        </Link>
-        {plan === "free" && (
-          <Link
-            href="/dashboard/upgrade"
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors"
-          >
-            <span className="text-orange-500 text-lg leading-none">⏱</span>
-            <span className="text-xs text-orange-600 font-medium">{tr.free_expiry_warning}</span>
-          </Link>
+        {isOwner ? (
+          <>
+            <Link
+              href="/dashboard/upgrade"
+              className="flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <span className="text-xs text-gray-400">{tr.plan_label}</span>
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
+                {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
+              </span>
+            </Link>
+            {plan === "free" && (
+              <Link
+                href="/dashboard/upgrade"
+                className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors"
+              >
+                <span className="text-orange-500 text-lg leading-none">⏱</span>
+                <span className="text-xs text-orange-600 font-medium">{tr.free_expiry_warning}</span>
+              </Link>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-between w-full px-3 py-1.5">
+              <span className="text-xs text-gray-400">{tr.role_label}</span>
+              <span className="text-xs font-semibold text-gray-700">
+                {userRole === "admin" ? tr.role_admin : userRole === "writer" ? tr.role_writer : tr.role_reader}
+              </span>
+            </div>
+            <Link
+              href="/dashboard/upgrade"
+              className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <Zap className="w-4 h-4 text-blue-500" />
+              <span className="text-xs text-blue-600 font-medium">{tr.our_plans}</span>
+            </Link>
+          </>
         )}
         <div className="text-xs text-gray-400 text-center py-1">v1.0.0</div>
         <button
