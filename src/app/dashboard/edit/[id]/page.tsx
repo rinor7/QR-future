@@ -121,7 +121,7 @@ export default function EditPage() {
                 QR Code
               </h3>
               <div id="qr-preview" className="flex justify-center mb-4">
-                <QRCodeDisplay value={getQRUrl()} size={180} />
+                <QRCodeDisplay value={getQRUrl()} size={180} logoUrl={contact?.logoUrl} />
               </div>
               <p className="text-xs text-gray-400 font-mono break-all mb-4">/qr/{id}</p>
               <div className="space-y-2">

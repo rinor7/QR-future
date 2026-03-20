@@ -135,7 +135,7 @@ export default function CodesPage() {
               </div>
 
               <div id={`qr-${contact.id}`} className="flex justify-center py-2 mt-auto">
-                <QRCodeDisplay value={getQRUrl(contact.id)} size={140} />
+                <QRCodeDisplay value={getQRUrl(contact.id)} size={140} logoUrl={contact.logoUrl} />
               </div>
 
               <div className="text-center">
