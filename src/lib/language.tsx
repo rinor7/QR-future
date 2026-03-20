@@ -11,6 +11,7 @@ export const t = {
     nav_codes: "QR Codes",
     nav_settings: "Einstellungen",
     nav_users: "Benutzer",
+    nav_clients: "Kunden",
     nav_language: "Sprache",
     logout: "Abmelden",
     // Dashboard page
@@ -160,6 +161,16 @@ export const t = {
     users_remove: "Entfernen",
     users_no_members: "Keine weiteren Mitglieder",
     created_by: "Erstellt von",
+    // Clients page
+    clients_title: "Kunden",
+    clients_subtitle: "Übersicht aller registrierten Kunden-Accounts.",
+    clients_no_clients: "Noch keine Kunden registriert.",
+    clients_col_qr: "QR Codes",
+    clients_col_joined: "Registriert",
+    clients_change_plan: "Plan ändern",
+    clients_delete: "Konto löschen",
+    clients_delete_confirm: "Wirklich löschen?",
+    clients_stat_total: "Kunden gesamt",
   },
   en: {
     // Sidebar
@@ -167,6 +178,7 @@ export const t = {
     nav_codes: "QR Codes",
     nav_settings: "Settings",
     nav_users: "Users",
+    nav_clients: "Clients",
     nav_language: "Language",
     logout: "Logout",
     // Dashboard page
@@ -316,6 +328,16 @@ export const t = {
     users_remove: "Remove",
     users_no_members: "No other members",
     created_by: "Created by",
+    // Clients page
+    clients_title: "Clients",
+    clients_subtitle: "Overview of all registered client accounts.",
+    clients_no_clients: "No clients registered yet.",
+    clients_col_qr: "QR Codes",
+    clients_col_joined: "Registered",
+    clients_change_plan: "Change plan",
+    clients_delete: "Delete account",
+    clients_delete_confirm: "Really delete?",
+    clients_stat_total: "Total clients",
   },
 };
 

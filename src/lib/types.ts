@@ -77,6 +77,15 @@ export interface UserProfile {
   role: Role;
   ownerId: string;
   createdAt: string;
+  isPlatformAdmin: boolean;
+}
+
+export interface ClientAccount {
+  userId: string;
+  email: string;
+  plan: Plan;
+  createdAt: string;
+  qrCount: number;
 }
 
 export interface TeamMember {

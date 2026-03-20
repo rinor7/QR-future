@@ -10,6 +10,7 @@ import {
   LogOut,
   Zap,
   Users,
+  Building2,
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { useLang } from "@/lib/language";
@@ -29,12 +30,14 @@ export default function Sidebar() {
   const { tr, lang, toggleLang } = useLang();
   const [plan, setPlan] = useState<Plan>("free");
   const [role, setRole] = useState<Role | null>(null);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   useEffect(() => {
     getUserProfile().then((p) => {
       if (p) {
         setPlan(p.plan);
         setRole(p.role);
+        setIsPlatformAdmin(p.isPlatformAdmin ?? false);
       }
     });
   }, []);
@@ -43,6 +46,7 @@ export default function Sidebar() {
     { href: "/dashboard", label: tr.nav_dashboard, icon: LayoutDashboard },
     { href: "/dashboard/codes", label: tr.nav_codes, icon: QrCode },
     ...(role === "admin" ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
+    ...(isPlatformAdmin ? [{ href: "/dashboard/clients", label: tr.nav_clients, icon: Building2 }] : []),
     { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
   ];
 

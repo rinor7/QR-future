@@ -97,6 +97,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     role: (data.role as Role) ?? "admin",
     ownerId: (data.owner_id as string) ?? (data.user_id as string),
     createdAt: data.created_at as string,
+    isPlatformAdmin: (data.is_platform_admin as boolean) ?? false,
   };
 }
 
