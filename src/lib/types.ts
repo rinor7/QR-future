@@ -10,6 +10,9 @@ export interface QRContact {
   updatedAt: string;
   createdBy: string;
 
+  // Internal label (shown in dashboard)
+  qrLabel: string;
+
   // Identity
   firstName: string;
   lastName: string;
@@ -30,8 +33,11 @@ export interface QRContact {
   // Links / Files (up to 4)
   links: ContactLink[];
 
-  // vCard
-  address: string;
+  // Address
+  street: string;
+  streetNr: string;
+  plz: string;
+  city: string;
 
   // Display
   primaryColor: string;

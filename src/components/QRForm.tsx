@@ -8,6 +8,7 @@ import { useLang } from "@/lib/language";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 const DEFAULTS: CreateQRContact = {
+  qrLabel: "",
   firstName: "",
   lastName: "",
   title: "",
@@ -20,7 +21,10 @@ const DEFAULTS: CreateQRContact = {
   instagramUrl: "",
   facebookUrl: "",
   links: [],
-  address: "",
+  street: "",
+  streetNr: "",
+  plz: "",
+  city: "",
   primaryColor: "#2563eb",
   notes: "",
 };
@@ -178,6 +182,18 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
+      {/* QR Code Label */}
+      <Field label={tr.qr_label}>
+        <input
+          type="text"
+          value={form.qrLabel}
+          onChange={(e) => set("qrLabel", e.target.value)}
+          placeholder={tr.qr_label_placeholder}
+          className={input}
+        />
+        <p className="text-xs text-gray-400 mt-1">{tr.qr_label_hint}</p>
+      </Field>
+
       {/* Identity */}
       <Section title={tr.section_identity}>
         <div className="grid grid-cols-2 gap-3">
@@ -287,7 +303,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             type="tel"
             value={form.phone}
             onChange={(e) => set("phone", e.target.value)}
-            placeholder="+43 123 456 789"
+            placeholder="+41 123 456 789"
             className={input}
           />
         </Field>
@@ -296,7 +312,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             type="email"
             value={form.email}
             onChange={(e) => set("email", e.target.value)}
-            placeholder="name@beispiel.at"
+            placeholder="max.mustermann@qr-card.ch"
             className={input}
           />
         </Field>
@@ -305,19 +321,48 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             type="url"
             value={form.website}
             onChange={(e) => set("website", e.target.value)}
-            placeholder="https://www.beispiel.at"
+            placeholder="https://www.qr-card.ch"
             className={input}
           />
         </Field>
-        <Field label={tr.field_address}>
-          <input
-            type="text"
-            value={form.address}
-            onChange={(e) => set("address", e.target.value)}
-            placeholder="Musterstraße 1, 1010 Wien"
-            className={input}
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={tr.field_street}>
+            <input
+              type="text"
+              value={form.street}
+              onChange={(e) => set("street", e.target.value)}
+              placeholder="Bahnhofstrasse"
+              className={input}
+            />
+          </Field>
+          <Field label={tr.field_street_nr}>
+            <input
+              type="text"
+              value={form.streetNr}
+              onChange={(e) => set("streetNr", e.target.value)}
+              placeholder="12"
+              className={input}
+            />
+          </Field>
+          <Field label={tr.field_plz}>
+            <input
+              type="text"
+              value={form.plz}
+              onChange={(e) => set("plz", e.target.value)}
+              placeholder="8001"
+              className={input}
+            />
+          </Field>
+          <Field label={tr.field_city}>
+            <input
+              type="text"
+              value={form.city}
+              onChange={(e) => set("city", e.target.value)}
+              placeholder="Zürich"
+              className={input}
+            />
+          </Field>
+        </div>
       </Section>
 
       {/* Social */}

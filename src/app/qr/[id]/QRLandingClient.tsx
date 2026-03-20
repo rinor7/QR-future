@@ -15,6 +15,14 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+function formatPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (phone.startsWith("+41") && digits.length === 11) {
+    return `+41 ${digits.slice(2, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 9)} ${digits.slice(9, 11)}`;
+  }
+  return phone;
+}
+
 export default function QRLandingClient({ contact }: { contact: QRContact }) {
   const [shared, setShared] = useState(false);
   const color = contact.primaryColor || "#2563eb";
@@ -39,7 +47,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
       contact.phone ? `TEL;TYPE=CELL:${contact.phone}` : "",
       contact.email ? `EMAIL:${contact.email}` : "",
       contact.website ? `URL:${contact.website}` : "",
-      contact.address ? `ADR:;;${contact.address};;;;` : "",
+      (contact.street || contact.city) ? `ADR:;;${contact.street} ${contact.streetNr};${contact.city};;${contact.plz};Switzerland` : "",
       "END:VCARD",
     ]
       .filter(Boolean)
@@ -99,9 +107,10 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
           {contact.company && (
             <p className="text-sm font-semibold mt-0.5" style={{ color }}>{contact.company}</p>
           )}
-          {contact.address && (
+          {(contact.street || contact.city) && (
             <p className="flex items-center justify-center gap-1 text-xs text-gray-400 mt-2">
-              <MapPin className="w-3 h-3" />{contact.address}
+              <MapPin className="w-3 h-3" />
+              {[`${contact.street} ${contact.streetNr}`.trim(), contact.plz, contact.city].filter(Boolean).join(", ")}
             </p>
           )}
         </div>
@@ -122,7 +131,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
               </div>
               <div className="flex-1">
                 <div className="text-xs text-gray-400 font-normal">Anrufen</div>
-                <div className="text-sm font-semibold" style={{ color }}>{contact.phone}</div>
+                <div className="text-sm font-semibold" style={{ color }}>{formatPhone(contact.phone)}</div>
               </div>
             </a>
           )}
