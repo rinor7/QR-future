@@ -33,6 +33,7 @@ export default function Sidebar() {
   const [canManageUsers, setCanManageUsers] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [userRole, setUserRole] = useState<string>("");
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -42,6 +43,7 @@ export default function Sidebar() {
         setCanManageUsers(p.canManageUsers ?? false);
         setIsAdmin(p.role === "admin");
         setIsOwner(p.userId === p.ownerId);
+        setUserRole(p.role);
       }
     });
   }, []);
@@ -112,31 +114,42 @@ export default function Sidebar() {
           </span>
         </button>
         {isOwner ? (
-          <Link
-            href="/dashboard/upgrade"
-            className="flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <span className="text-xs text-gray-400">{tr.plan_label}</span>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
-              {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
-            </span>
-          </Link>
+          <>
+            <Link
+              href="/dashboard/upgrade"
+              className="flex items-center justify-between w-full px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <span className="text-xs text-gray-400">{tr.plan_label}</span>
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
+                {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
+              </span>
+            </Link>
+            {plan === "free" && (
+              <Link
+                href="/dashboard/upgrade"
+                className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors"
+              >
+                <span className="text-orange-500 text-lg leading-none">⏱</span>
+                <span className="text-xs text-orange-600 font-medium">{tr.free_expiry_warning}</span>
+              </Link>
+            )}
+          </>
         ) : (
-          <div className="flex items-center justify-between w-full px-3 py-1.5">
-            <span className="text-xs text-gray-400">{tr.plan_label}</span>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
-              {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
-            </span>
-          </div>
-        )}
-        {isOwner && plan === "free" && (
-          <Link
-            href="/dashboard/upgrade"
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors"
-          >
-            <span className="text-orange-500 text-lg leading-none">⏱</span>
-            <span className="text-xs text-orange-600 font-medium">{tr.free_expiry_warning}</span>
-          </Link>
+          <>
+            <div className="flex items-center justify-between w-full px-3 py-1.5">
+              <span className="text-xs text-gray-400">{tr.role_label}</span>
+              <span className="text-xs font-semibold text-gray-700">
+                {userRole === "admin" ? tr.role_admin : userRole === "writer" ? tr.role_writer : tr.role_reader}
+              </span>
+            </div>
+            <Link
+              href="/dashboard/upgrade"
+              className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <Zap className="w-4 h-4 text-blue-500" />
+              <span className="text-xs text-blue-600 font-medium">{tr.our_plans}</span>
+            </Link>
+          </>
         )}
         <div className="text-xs text-gray-400 text-center py-1">v1.0.0</div>
         <button

@@ -11,7 +11,7 @@ import { useRole } from "@/lib/useRole";
 
 export default function DashboardPage() {
   const { tr } = useLang();
-  const { isAdmin, isReader } = useRole();
+  const { isAdmin, isReader, loading: roleLoading } = useRole();
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-500 mt-1">{tr.dashboard_subtitle}</p>
         </div>
-        {!isReader && (
+        {!roleLoading && !isReader && (
           <Link
             href="/dashboard/create"
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"

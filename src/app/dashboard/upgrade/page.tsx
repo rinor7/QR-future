@@ -54,14 +54,15 @@ export default function UpgradePage() {
   const router = useRouter();
   const [currentPlan, setCurrentPlan] = useState<Plan>("free");
   const [loading, setLoading] = useState<string | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     getUserProfile().then((p) => {
       if (!p) return;
-      if (p.userId !== p.ownerId) { router.replace("/dashboard"); return; }
       setCurrentPlan(p.plan);
+      setIsOwner(p.userId === p.ownerId);
     });
-  }, [router]);
+  }, []);
 
   async function handleUpgrade(priceId: string) {
     setLoading(priceId);
@@ -120,7 +121,7 @@ export default function UpgradePage() {
                 </li>
               </ul>
 
-              {plan.priceId && !isCurrent && (
+              {plan.priceId && !isCurrent && isOwner && (
                 <button
                   onClick={() => handleUpgrade(plan.priceId!)}
                   disabled={loading === plan.priceId}

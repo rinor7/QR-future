@@ -22,6 +22,7 @@ export default function SettingsPage() {
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<Plan>("free");
   const [isOwner, setIsOwner] = useState(false);
+  const [userRole, setUserRole] = useState<string>("");
 
   const [newEmail, setNewEmail] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
@@ -45,6 +46,7 @@ export default function SettingsPage() {
       if (p) {
         setPlan(p.plan);
         setIsOwner(p.userId === p.ownerId);
+        setUserRole(p.role);
       }
     });
   }, [router]);
@@ -129,13 +131,25 @@ export default function SettingsPage() {
               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
                 {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
               </span>
-              {isOwner && (
+              {isOwner ? (
                 <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline">
                   {tr.settings_plan_change}
+                </Link>
+              ) : (
+                <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline">
+                  {tr.our_plans}
                 </Link>
               )}
             </div>
           </div>
+          {!isOwner && (
+            <div>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{tr.role_label}</label>
+              <p className="mt-1 text-sm text-gray-900 font-medium">
+                {userRole === "admin" ? tr.role_admin : userRole === "writer" ? tr.role_writer : tr.role_reader}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
