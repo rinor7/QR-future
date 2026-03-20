@@ -1,6 +1,6 @@
 import { getSupabase } from "./supabase";
 import { getSupabaseBrowser } from "./supabase-browser";
-import { QRContact, CreateQRContact, UserProfile, Plan, PLAN_LIMITS } from "./types";
+import { QRContact, CreateQRContact, ContactLink, UserProfile, Plan, PLAN_LIMITS } from "./types";
 
 function generateId(): string {
   return `qr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -13,7 +13,8 @@ function toContact(row: Record<string, unknown>): QRContact {
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     createdBy: (row.created_by as string) ?? "",
-    name: (row.name as string) ?? "",
+    firstName: (() => { const n = (row.name as string) ?? ""; const i = n.lastIndexOf(" "); return i === -1 ? n : n.slice(0, i); })(),
+    lastName: (() => { const n = (row.name as string) ?? ""; const i = n.lastIndexOf(" "); return i === -1 ? "" : n.slice(i + 1); })(),
     title: (row.title as string) ?? "",
     company: (row.company as string) ?? "",
     logoUrl: (row.logo_url as string) ?? "",
@@ -23,8 +24,11 @@ function toContact(row: Record<string, unknown>): QRContact {
     linkedinUrl: (row.linkedin_url as string) ?? "",
     instagramUrl: (row.instagram_url as string) ?? "",
     facebookUrl: (row.facebook_url as string) ?? "",
-    pdfUrl: (row.pdf_url as string) ?? "",
-    pdfLabel: (row.pdf_label as string) ?? "Dokument öffnen",
+    links: (() => {
+      if (row.links && Array.isArray(row.links)) return row.links as ContactLink[];
+      if (row.pdf_url) return [{ url: row.pdf_url as string, label: (row.pdf_label as string) || "Dokument öffnen", type: "link" as const }];
+      return [];
+    })(),
     address: (row.address as string) ?? "",
     primaryColor: (row.primary_color as string) ?? "#2563eb",
     notes: (row.notes as string) ?? "",
@@ -34,7 +38,9 @@ function toContact(row: Record<string, unknown>): QRContact {
 // Map camelCase app types → snake_case DB columns
 function toRow(data: Partial<CreateQRContact>) {
   return {
-    ...(data.name !== undefined && { name: data.name }),
+    ...((data.firstName !== undefined || data.lastName !== undefined) && {
+      name: `${data.firstName ?? ""} ${data.lastName ?? ""}`.trim(),
+    }),
     ...(data.title !== undefined && { title: data.title }),
     ...(data.company !== undefined && { company: data.company }),
     ...(data.logoUrl !== undefined && { logo_url: data.logoUrl }),
@@ -44,8 +50,7 @@ function toRow(data: Partial<CreateQRContact>) {
     ...(data.linkedinUrl !== undefined && { linkedin_url: data.linkedinUrl }),
     ...(data.instagramUrl !== undefined && { instagram_url: data.instagramUrl }),
     ...(data.facebookUrl !== undefined && { facebook_url: data.facebookUrl }),
-    ...(data.pdfUrl !== undefined && { pdf_url: data.pdfUrl }),
-    ...(data.pdfLabel !== undefined && { pdf_label: data.pdfLabel }),
+    ...(data.links !== undefined && { links: data.links }),
     ...(data.address !== undefined && { address: data.address }),
     ...(data.primaryColor !== undefined && { primary_color: data.primaryColor }),
     ...(data.notes !== undefined && { notes: data.notes }),

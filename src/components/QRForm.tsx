@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, FileText, Plus, Link2 } from "lucide-react";
-import { CreateQRContact } from "@/lib/types";
+import { Upload, FileText, Plus, Link2, X } from "lucide-react";
+import { CreateQRContact, ContactLink } from "@/lib/types";
 import { useLang } from "@/lib/language";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 const DEFAULTS: CreateQRContact = {
-  name: "",
+  firstName: "",
+  lastName: "",
   title: "",
   company: "",
   logoUrl: "",
@@ -18,8 +19,7 @@ const DEFAULTS: CreateQRContact = {
   linkedinUrl: "",
   instagramUrl: "",
   facebookUrl: "",
-  pdfUrl: "",
-  pdfLabel: "Dokument öffnen",
+  links: [],
   address: "",
   primaryColor: "#2563eb",
   notes: "",
@@ -81,10 +81,40 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
   const [userId, setUserId] = useState("");
   const [logoUploading, setLogoUploading] = useState(false);
-  const [pdfUploading, setPdfUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
-  const [pdfError, setPdfError] = useState<string | null>(null);
-  const [pdfMode, setPdfMode] = useState<null | "upload" | "link">(null);
+  const [addMode, setAddMode] = useState<null | "upload" | "link">(null);
+  const [linkUploading, setLinkUploading] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [pendingUrl, setPendingUrl] = useState("");
+  const [pendingLabel, setPendingLabel] = useState("");
+
+  function setLinks(links: ContactLink[]) {
+    setForm((prev) => ({ ...prev, links }));
+  }
+
+  function normalizeUrl(url: string): string {
+    if (!url) return url;
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    return `https://${url}`;
+  }
+
+  function confirmLink() {
+    const url = normalizeUrl(pendingUrl.trim());
+    if (!url) return;
+    const label = pendingLabel.trim() || url;
+    setLinks([...form.links, { url, label, type: "link" }]);
+    setPendingUrl("");
+    setPendingLabel("");
+    setAddMode(null);
+  }
+
+  function removeLink(index: number) {
+    setLinks(form.links.filter((_, i) => i !== index));
+  }
+
+  function updateLinkLabel(index: number, label: string) {
+    setLinks(form.links.map((l, i) => (i === index ? { ...l, label } : l)));
+  }
 
   useEffect(() => {
     getSupabaseBrowser()
@@ -124,22 +154,25 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
     }
   }
 
-  async function handlePdfUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleLinkFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPdfError(null);
+    setLinkError(null);
     if (file.size > MAX_SIZE) {
-      setPdfError(tr.upload_error_size);
+      setLinkError(tr.upload_error_size);
       return;
     }
     try {
-      setPdfUploading(true);
+      setLinkUploading(true);
       const url = await uploadToStorage("files", file, userId);
-      set("pdfUrl", url);
+      const label = pendingLabel.trim() || file.name;
+      setLinks([...form.links, { url, label, type: "file" }]);
+      setPendingLabel("");
+      setAddMode(null);
     } catch {
-      setPdfError(tr.upload_error_failed);
+      setLinkError(tr.upload_error_failed);
     } finally {
-      setPdfUploading(false);
+      setLinkUploading(false);
     }
   }
 
@@ -147,16 +180,27 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
     <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
       {/* Identity */}
       <Section title={tr.section_identity}>
-        <Field label={tr.field_name} required>
-          <input
-            type="text"
-            value={form.name}
-            onChange={(e) => set("name", e.target.value)}
-            placeholder="z.B. Max Mustermann"
-            required
-            className={input}
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={tr.field_first_name} required>
+            <input
+              type="text"
+              value={form.firstName}
+              onChange={(e) => set("firstName", e.target.value)}
+              placeholder="Max"
+              required
+              className={input}
+            />
+          </Field>
+          <Field label={tr.field_last_name}>
+            <input
+              type="text"
+              value={form.lastName}
+              onChange={(e) => set("lastName", e.target.value)}
+              placeholder="Mustermann"
+              className={input}
+            />
+          </Field>
+        </div>
         <Field label={tr.field_title}>
           <input
             type="text"
@@ -232,6 +276,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
               {form.primaryColor}
             </span>
           </div>
+          <p className="text-xs text-gray-400 mt-1">{tr.field_color_hint}</p>
         </Field>
       </Section>
 
@@ -306,114 +351,141 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
         </Field>
       </Section>
 
-      {/* PDF / Link */}
+      {/* PDF / Links */}
       <Section title={tr.section_pdf}>
-        <Field label={tr.field_pdf_url}>
-          <div className="space-y-2">
-            {/* Current file/link */}
-            {form.pdfUrl && (
+        <div className="space-y-3">
+          {/* Existing links */}
+          {form.links.map((link, i) => (
+            <div key={i} className="flex items-center gap-2 p-3 border border-gray-200 rounded-xl bg-gray-50">
+              {link.type === "file" ? (
+                <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              ) : (
+                <Link2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              )}
+              <input
+                type="text"
+                value={link.label}
+                onChange={(e) => updateLinkLabel(i, e.target.value)}
+                className="flex-1 text-sm bg-transparent border-none outline-none text-gray-700 min-w-0"
+              />
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-500 hover:underline shrink-0"
+              >
+                {tr.upload_pdf_open}
+              </a>
+              <button
+                type="button"
+                onClick={() => removeLink(i)}
+                className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+
+          {/* Add picker */}
+          {form.links.length >= 4 ? (
+            <p className="text-xs text-gray-400">{tr.links_max}</p>
+          ) : addMode === null ? (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setAddMode("upload")}
+                className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <Plus className="w-4 h-4 text-gray-400" />
+                {tr.pdf_option_upload}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddMode("link")}
+                className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <Plus className="w-4 h-4 text-gray-400" />
+                {tr.pdf_option_link}
+              </button>
+            </div>
+          ) : addMode === "upload" ? (
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={pendingLabel}
+                onChange={(e) => setPendingLabel(e.target.value)}
+                placeholder={tr.link_label_placeholder}
+                className={input}
+              />
+              <label
+                className={`flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors w-full ${
+                  linkUploading ? "opacity-50 pointer-events-none" : ""
+                }`}
+              >
+                <Upload className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <span className="text-gray-600">
+                  {linkUploading ? tr.upload_uploading : tr.upload_pdf}
+                </span>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  className="sr-only"
+                  onChange={handleLinkFileUpload}
+                />
+              </label>
               <div className="flex items-center gap-2">
-                <a
-                  href={form.pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  {tr.upload_pdf_open}
-                </a>
-                <span className="text-gray-300">·</span>
+                <p className="text-xs text-gray-400 flex-1">{tr.upload_pdf_hint}</p>
                 <button
                   type="button"
-                  onClick={() => { set("pdfUrl", ""); setPdfMode(null); }}
-                  className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                  onClick={() => { setAddMode(null); setPendingLabel(""); setLinkError(null); }}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {tr.upload_remove}
+                  {tr.cancel}
                 </button>
               </div>
-            )}
-
-            {/* Mode picker: show when no URL and no mode selected yet */}
-            {!form.pdfUrl && pdfMode === null && (
+              {linkError && <p className="text-xs text-red-500">{linkError}</p>}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="relative">
+                <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={pendingUrl}
+                  onChange={(e) => setPendingUrl(e.target.value)}
+                  placeholder="beispiel.at/broschüre"
+                  className={`${input} pl-9`}
+                  autoFocus
+                />
+              </div>
+              <input
+                type="text"
+                value={pendingLabel}
+                onChange={(e) => setPendingLabel(e.target.value)}
+                placeholder={tr.link_label_placeholder}
+                className={input}
+              />
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setPdfMode("upload")}
-                  className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                  onClick={confirmLink}
+                  disabled={!pendingUrl.trim()}
+                  className="text-sm px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-40"
                 >
-                  <Plus className="w-4 h-4 text-gray-400" />
-                  {tr.pdf_option_upload}
+                  {tr.link_add}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setPdfMode("link")}
-                  className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                  onClick={() => { setAddMode(null); setPendingUrl(""); setPendingLabel(""); setLinkError(null); }}
+                  className="text-sm px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  <Plus className="w-4 h-4 text-gray-400" />
-                  {tr.pdf_option_link}
+                  {tr.cancel}
                 </button>
               </div>
-            )}
-
-            {/* File upload mode */}
-            {!form.pdfUrl && pdfMode === "upload" && (
-              <>
-                <label
-                  className={`flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors w-full ${
-                    pdfUploading ? "opacity-50 pointer-events-none" : ""
-                  }`}
-                >
-                  <Upload className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                  <span className="text-gray-600">
-                    {pdfUploading ? tr.upload_uploading : tr.upload_pdf}
-                  </span>
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    className="sr-only"
-                    onChange={handlePdfUpload}
-                  />
-                </label>
-                <p className="text-xs text-gray-400">{tr.upload_pdf_hint}</p>
-              </>
-            )}
-
-            {/* Link mode */}
-            {!form.pdfUrl && pdfMode === "link" && (
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="url"
-                    value={form.pdfUrl}
-                    onChange={(e) => set("pdfUrl", e.target.value)}
-                    placeholder="https://..."
-                    className={`${input} pl-9`}
-                    autoFocus
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setPdfMode(null)}
-                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors shrink-0"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-
-            {pdfError && <p className="text-xs text-red-500">{pdfError}</p>}
-          </div>
-        </Field>
-        <Field label={tr.field_pdf_label}>
-          <input
-            type="text"
-            value={form.pdfLabel}
-            onChange={(e) => set("pdfLabel", e.target.value)}
-            placeholder="z.B. Broschüre öffnen"
-            className={input}
-          />
-        </Field>
+              {linkError && <p className="text-xs text-red-500">{linkError}</p>}
+            </div>
+          )}
+        </div>
       </Section>
 
       {/* Notes */}

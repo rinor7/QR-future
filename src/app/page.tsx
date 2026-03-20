@@ -76,7 +76,7 @@ export default function LandingPage() {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <QrCode className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg">QR Platform</span>
+            <span className="font-bold text-lg">QR Plattform</span>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
@@ -95,7 +95,7 @@ export default function LandingPage() {
           <Zap className="w-3 h-3" /> Digitale Visitenkarten leicht gemacht
         </div>
         <h1 className="text-5xl font-extrabold text-gray-900 leading-tight mb-6">
-          QR Codes für Ihre<br />professionelle Identität
+          QR Codes für Ihre<br />professionelle Angaben
         </h1>
         <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-10">
           Erstellen Sie in Sekunden digitale Visitenkarten mit QR-Code. Teilen Sie Kontaktdaten, Website, Social Media und mehr — ohne App.
@@ -113,7 +113,7 @@ export default function LandingPage() {
       {/* Features */}
       <section className="bg-gray-50 py-20">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Warum QR Platform?</h2>
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Warum QR Plattform?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {FEATURES.map(({ icon: Icon, title, desc }) => (
               <div key={title} className="bg-white rounded-2xl border border-gray-200 p-6">
@@ -184,9 +184,9 @@ export default function LandingPage() {
             <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
               <QrCode className="w-3.5 h-3.5 text-white" />
             </div>
-            QR Platform
+            QR Plattform
           </div>
-          <span>© {new Date().getFullYear()} QR Platform. Alle Rechte vorbehalten.</span>
+          <span>© {new Date().getFullYear()} QR Plattform. Alle Rechte vorbehalten.</span>
         </div>
       </footer>
     </div>

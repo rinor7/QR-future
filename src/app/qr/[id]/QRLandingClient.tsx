@@ -21,7 +21,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
 
   function handleShare() {
     if (navigator.share) {
-      navigator.share({ title: contact.name || "Kontakt", url: window.location.href });
+      navigator.share({ title: `${contact.firstName} ${contact.lastName}`.trim() || "Kontakt", url: window.location.href });
     } else {
       navigator.clipboard.writeText(window.location.href);
       setShared(true);
@@ -33,7 +33,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
     const vcard = [
       "BEGIN:VCARD",
       "VERSION:3.0",
-      `FN:${contact.name}`,
+      `FN:${`${contact.firstName} ${contact.lastName}`.trim()}`,
       contact.title ? `TITLE:${contact.title}` : "",
       contact.company ? `ORG:${contact.company}` : "",
       contact.phone ? `TEL;TYPE=CELL:${contact.phone}` : "",
@@ -49,7 +49,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${contact.name || "kontakt"}.vcf`;
+    a.download = `${`${contact.firstName} ${contact.lastName}`.trim() || "kontakt"}.vcf`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -83,15 +83,15 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
               className="logo-fallback w-20 h-20 rounded-2xl items-center justify-center text-white text-3xl font-bold shadow-lg border-4 border-white"
               style={{ backgroundColor: color, display: contact.logoUrl ? "none" : "flex" }}
             >
-              {(contact.name || contact.company || "?")[0].toUpperCase()}
+              {(`${contact.firstName} ${contact.lastName}`.trim() || contact.company || "?")[0].toUpperCase()}
             </div>
           </div>
         </div>
 
         {/* Identity */}
         <div className="pt-14 pb-5 px-6 text-center">
-          {contact.name && (
-            <h1 className="text-xl font-bold text-gray-900 leading-tight">{contact.name}</h1>
+          {(contact.firstName || contact.lastName) && (
+            <h1 className="text-xl font-bold text-gray-900 leading-tight">{`${contact.firstName} ${contact.lastName}`.trim()}</h1>
           )}
           {contact.title && (
             <p className="text-sm text-gray-500 mt-0.5">{contact.title}</p>
@@ -161,9 +161,10 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
             </a>
           )}
 
-          {contact.pdfUrl && (
+          {contact.links && contact.links.map((link, i) => (
             <a
-              href={contact.pdfUrl}
+              key={i}
+              href={link.url}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -173,15 +174,17 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
                 <FileText className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <div className="text-xs text-gray-400 font-normal">Dokument</div>
-                <div className="text-sm font-semibold" style={{ color }}>{contact.pdfLabel || "Öffnen"}</div>
+                <div className="text-xs text-gray-400 font-normal">{link.type === "file" ? "Dokument" : "Link"}</div>
+                <div className="text-sm font-semibold" style={{ color }}>{link.label}</div>
               </div>
-              <div className="flex items-center gap-0.5 text-gray-400 shrink-0">
-                <Download className="w-3 h-3" />
-                <span className="text-xs">PDF</span>
-              </div>
+              {link.type === "file" && (
+                <div className="flex items-center gap-0.5 text-gray-400 shrink-0">
+                  <Download className="w-3 h-3" />
+                  <span className="text-xs">PDF</span>
+                </div>
+              )}
             </a>
-          )}
+          ))}
         </div>
 
         {/* vCard + Share */}

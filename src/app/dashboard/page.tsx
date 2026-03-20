@@ -128,7 +128,7 @@ export default function DashboardPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="font-semibold text-gray-900">{contact.name || "—"}</p>
+                    <p className="font-semibold text-gray-900">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</p>
                     <p className="text-sm text-gray-500">{contact.company || contact.title || ""}</p>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 leading-5">

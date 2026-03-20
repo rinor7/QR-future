@@ -39,7 +39,7 @@ export default function LoginPage() {
           <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mb-4">
             <QrCode className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">QR Platform</h1>
+          <h1 className="text-2xl font-bold text-gray-900">QR Plattform</h1>
           <p className="text-gray-500 text-sm mt-1">Anmelden um fortzufahren</p>
         </div>
 

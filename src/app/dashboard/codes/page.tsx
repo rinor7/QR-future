@@ -8,16 +8,15 @@ import { QRContact, Plan } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
 
-function getExpiryLabel(createdAt: string): { label: string; expired: boolean } {
+function getExpiryInfo(createdAt: string): { hours: number; minutes: number; expired: boolean } {
   const created = new Date(createdAt).getTime();
-  const expiresAt = created + 48 * 60 * 60 * 1000;
-  const now = Date.now();
-  const remaining = expiresAt - now;
-  if (remaining <= 0) return { label: "Abgelaufen", expired: true };
-  const hours = Math.floor(remaining / (60 * 60 * 1000));
-  const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-  if (hours > 0) return { label: `Läuft ab in ${hours}h`, expired: false };
-  return { label: `Läuft ab in ${minutes}min`, expired: false };
+  const remaining = created + 48 * 60 * 60 * 1000 - Date.now();
+  if (remaining <= 0) return { hours: 0, minutes: 0, expired: true };
+  return {
+    hours: Math.floor(remaining / (60 * 60 * 1000)),
+    minutes: Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000)),
+    expired: false,
+  };
 }
 
 export default function CodesPage() {
@@ -67,7 +66,7 @@ export default function CodesPage() {
 
   const filtered = contacts.filter(
     (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      `${c.firstName} ${c.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
       c.company.toLowerCase().includes(search.toLowerCase()) ||
       c.id.toLowerCase().includes(search.toLowerCase())
   );
@@ -115,7 +114,7 @@ export default function CodesPage() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold text-gray-900">{contact.name || tr.unnamed}</h3>
+                  <h3 className="font-semibold text-gray-900">{`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</h3>
                   <p className="text-sm text-gray-500">{contact.company || contact.title || "—"}</p>
                 </div>
                 {contact.logoUrl && (
@@ -133,7 +132,12 @@ export default function CodesPage() {
                   {new Date(contact.createdAt).toLocaleDateString("de-DE")}
                 </p>
                 {plan === "free" && (() => {
-                  const { label, expired } = getExpiryLabel(contact.createdAt);
+                  const { hours, minutes, expired } = getExpiryInfo(contact.createdAt);
+                  const label = expired
+                    ? tr.expiry_expired
+                    : hours > 0
+                    ? `${tr.expiry_hours} ${hours}h`
+                    : `${tr.expiry_hours} ${minutes}${tr.expiry_min}`;
                   return (
                     <p className={`text-xs font-medium mt-0.5 ${expired ? "text-red-400" : "text-orange-400"}`}>
                       {label}
