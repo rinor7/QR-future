@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
-import { getTeamMembers, updateTeamMemberRole, removeTeamMember, getUserProfile } from "@/lib/store";
+import { getTeamMembers, updateTeamMemberRole, getUserProfile } from "@/lib/store";
 import { TeamMember, Role } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { UserPlus, Trash2 } from "lucide-react";
@@ -87,7 +87,11 @@ export default function UsersPage() {
 
   async function handleRemove(memberId: string) {
     if (removingId === memberId) {
-      await removeTeamMember(memberId);
+      await fetch("/api/users/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: memberId }),
+      });
       setMembers((prev) => prev.filter((m) => m.userId !== memberId));
       setRemovingId(null);
     } else {
