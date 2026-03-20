@@ -15,6 +15,7 @@ export default function UsersPage() {
 
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [ownerId, setOwnerId] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   const [inviteEmail, setInviteEmail] = useState("");
@@ -38,6 +39,7 @@ export default function UsersPage() {
     try {
       const [profile, team] = await Promise.all([getUserProfile(), getTeamMembers()]);
       setCurrentUserId(profile?.userId ?? "");
+      setOwnerId(profile?.ownerId ?? "");
       setMembers(team);
     } finally {
       setLoading(false);
@@ -167,7 +169,11 @@ export default function UsersPage() {
                 <tr key={m.userId} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
                   <td className="px-6 py-4 text-gray-800 font-medium">{m.email}</td>
                   <td className="px-6 py-4">
-                    {m.userId === currentUserId ? (
+                    {m.userId === ownerId ? (
+                      <span className="inline-block px-2 py-0.5 rounded-lg bg-purple-50 text-purple-700 text-xs font-semibold">
+                        Owner
+                      </span>
+                    ) : m.userId === currentUserId ? (
                       <span className="inline-block px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold">
                         {roleLabel(m.role)}
                       </span>
@@ -187,7 +193,7 @@ export default function UsersPage() {
                     {new Date(m.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {m.userId !== currentUserId && (
+                    {m.userId !== currentUserId && m.userId !== ownerId && (
                       <button
                         onClick={() => handleRemove(m.userId)}
                         className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
