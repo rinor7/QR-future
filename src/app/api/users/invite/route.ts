@@ -13,19 +13,29 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // Invite user via Supabase Auth
-  const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
+  // Try to invite — if already registered, look them up instead
+  const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
     data: { role, owner_id: ownerId },
   });
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  let userId: string | null = null;
+
+  if (inviteError) {
+    // User already exists — find their ID
+    const { data: listData } = await supabase.auth.admin.listUsers();
+    const existing = listData?.users?.find((u) => u.email === email);
+    if (!existing) {
+      return NextResponse.json({ error: inviteError.message }, { status: 500 });
+    }
+    userId = existing.id;
+  } else {
+    userId = inviteData.user?.id ?? null;
   }
 
-  // Pre-create the profile so the role and owner_id are set immediately
-  if (data.user) {
+  // Upsert profile with correct role + owner_id
+  if (userId) {
     await supabase.from("profiles").upsert({
-      user_id: data.user.id,
+      user_id: userId,
       email,
       role,
       owner_id: ownerId,
