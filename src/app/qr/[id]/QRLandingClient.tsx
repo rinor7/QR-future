@@ -17,8 +17,19 @@ import { useState } from "react";
 
 function formatPhone(phone: string): string {
   const digits = phone.replace(/\D/g, "");
+  // Switzerland +41 + 9 digits → +41 XX XXX XX XX
   if (phone.startsWith("+41") && digits.length === 11) {
     return `+41 ${digits.slice(2, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 9)} ${digits.slice(9, 11)}`;
+  }
+  // Kosovo +383 + 8 digits → +383 XX XXX XXX
+  if (phone.startsWith("+383") && digits.length === 11) {
+    return `+383 ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8, 11)}`;
+  }
+  // Generic: keep + and country code, space-group remaining digits as XX XXX XXX...
+  if (phone.startsWith("+") && digits.length >= 8) {
+    const sub = digits.slice(digits.length >= 11 ? 3 : 2);
+    const groups = sub.match(/.{1,3}/g) ?? [];
+    return `+${digits.slice(0, digits.length - sub.length)} ${groups.join(" ")}`;
   }
   return phone;
 }
