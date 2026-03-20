@@ -53,17 +53,48 @@ export default function CodesPage() {
     setDeleteModal(null);
   }
 
-  function handleDownloadQR(id: string) {
-    const container = document.querySelector(`#qr-${id} svg`) as SVGElement;
-    if (!container) return;
-    const svgData = new XMLSerializer().serializeToString(container);
-    const blob = new Blob([svgData], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `qr-${id}.svg`;
-    a.click();
-    URL.revokeObjectURL(url);
+  function handleDownloadQR(id: string, logoUrl?: string) {
+    const svgEl = document.querySelector(`#qr-${id} svg`) as SVGElement;
+    if (!svgEl) return;
+    const exportSize = 400;
+    const clone = svgEl.cloneNode(true) as SVGElement;
+    clone.setAttribute("width", String(exportSize));
+    clone.setAttribute("height", String(exportSize));
+    const svgData = new XMLSerializer().serializeToString(clone);
+    const svgUrl = URL.createObjectURL(new Blob([svgData], { type: "image/svg+xml;charset=utf-8" }));
+    const canvas = document.createElement("canvas");
+    canvas.width = exportSize;
+    canvas.height = exportSize;
+    const ctx = canvas.getContext("2d")!;
+    const qrImg = new Image();
+    qrImg.onload = () => {
+      ctx.drawImage(qrImg, 0, 0, exportSize, exportSize);
+      URL.revokeObjectURL(svgUrl);
+      const finish = () => {
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.download = `qr-${id}.png`;
+        a.click();
+      };
+      if (logoUrl) {
+        const logoSize = Math.round(exportSize * 0.22);
+        const padding = Math.round(logoSize * 0.1);
+        const offset = (exportSize - logoSize) / 2;
+        const logoImg = new Image();
+        logoImg.crossOrigin = "anonymous";
+        logoImg.onload = () => {
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(offset - padding, offset - padding, logoSize + padding * 2, logoSize + padding * 2);
+          ctx.drawImage(logoImg, offset, offset, logoSize, logoSize);
+          finish();
+        };
+        logoImg.onerror = finish;
+        logoImg.src = logoUrl;
+      } else {
+        finish();
+      }
+    };
+    qrImg.src = svgUrl;
   }
 
   const filtered = contacts.filter(
@@ -187,7 +218,7 @@ export default function CodesPage() {
                   <ExternalLink className="w-4 h-4" />
                 </a>
                 <button
-                  onClick={() => handleDownloadQR(contact.id)}
+                  onClick={() => handleDownloadQR(contact.id, contact.logoUrl)}
                   className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors"
                 >
                   <Download className="w-4 h-4" />
