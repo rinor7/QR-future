@@ -14,7 +14,6 @@ export async function POST(req: NextRequest) {
   );
 
   const { error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
     data: { owner_id: ownerId },
   });
 
