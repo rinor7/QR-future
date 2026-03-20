@@ -83,7 +83,7 @@ export default function EditPage() {
     <div className="p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">{tr.edit_title}</h1>
-        <p className="text-gray-500 mt-1">{contact.name || tr.unnamed}</p>
+        <p className="text-gray-500 mt-1">{`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</p>
       </div>
 
       {justCreated && (

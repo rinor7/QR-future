@@ -11,7 +11,8 @@ export interface QRContact {
   createdBy: string;
 
   // Identity
-  name: string;
+  firstName: string;
+  lastName: string;
   title: string;
   company: string;
   logoUrl: string;

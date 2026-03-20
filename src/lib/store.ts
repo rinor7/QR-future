@@ -13,7 +13,8 @@ function toContact(row: Record<string, unknown>): QRContact {
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     createdBy: (row.created_by as string) ?? "",
-    name: (row.name as string) ?? "",
+    firstName: (() => { const n = (row.name as string) ?? ""; const i = n.lastIndexOf(" "); return i === -1 ? n : n.slice(0, i); })(),
+    lastName: (() => { const n = (row.name as string) ?? ""; const i = n.lastIndexOf(" "); return i === -1 ? "" : n.slice(i + 1); })(),
     title: (row.title as string) ?? "",
     company: (row.company as string) ?? "",
     logoUrl: (row.logo_url as string) ?? "",
@@ -37,7 +38,9 @@ function toContact(row: Record<string, unknown>): QRContact {
 // Map camelCase app types → snake_case DB columns
 function toRow(data: Partial<CreateQRContact>) {
   return {
-    ...(data.name !== undefined && { name: data.name }),
+    ...((data.firstName !== undefined || data.lastName !== undefined) && {
+      name: `${data.firstName ?? ""} ${data.lastName ?? ""}`.trim(),
+    }),
     ...(data.title !== undefined && { title: data.title }),
     ...(data.company !== undefined && { company: data.company }),
     ...(data.logoUrl !== undefined && { logo_url: data.logoUrl }),

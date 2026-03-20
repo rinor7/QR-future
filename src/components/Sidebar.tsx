@@ -53,7 +53,7 @@ export default function Sidebar() {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <QrCode className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold text-lg text-gray-900">QR Platform</span>
+          <span className="font-bold text-lg text-gray-900">QR Plattform</span>
         </div>
       </div>
 
@@ -88,7 +88,7 @@ export default function Sidebar() {
           onClick={toggleLang}
           className="flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
         >
-          <span>Language</span>
+          <span>{tr.nav_language}</span>
           <span className="flex items-center gap-1 text-xs font-semibold">
             <span className={lang === "de" ? "text-blue-600" : "text-gray-400"}>DE</span>
             <span className="text-gray-300">/</span>

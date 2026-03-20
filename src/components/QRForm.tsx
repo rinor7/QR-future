@@ -8,7 +8,8 @@ import { useLang } from "@/lib/language";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 const DEFAULTS: CreateQRContact = {
-  name: "",
+  firstName: "",
+  lastName: "",
   title: "",
   company: "",
   logoUrl: "",
@@ -179,16 +180,27 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
     <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
       {/* Identity */}
       <Section title={tr.section_identity}>
-        <Field label={tr.field_name} required>
-          <input
-            type="text"
-            value={form.name}
-            onChange={(e) => set("name", e.target.value)}
-            placeholder="z.B. Max Mustermann"
-            required
-            className={input}
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={tr.field_first_name} required>
+            <input
+              type="text"
+              value={form.firstName}
+              onChange={(e) => set("firstName", e.target.value)}
+              placeholder="Max"
+              required
+              className={input}
+            />
+          </Field>
+          <Field label={tr.field_last_name}>
+            <input
+              type="text"
+              value={form.lastName}
+              onChange={(e) => set("lastName", e.target.value)}
+              placeholder="Mustermann"
+              className={input}
+            />
+          </Field>
+        </div>
         <Field label={tr.field_title}>
           <input
             type="text"
@@ -264,6 +276,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
               {form.primaryColor}
             </span>
           </div>
+          <p className="text-xs text-gray-400 mt-1">{tr.field_color_hint}</p>
         </Field>
       </Section>
 

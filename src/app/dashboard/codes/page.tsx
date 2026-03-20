@@ -66,7 +66,7 @@ export default function CodesPage() {
 
   const filtered = contacts.filter(
     (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      `${c.firstName} ${c.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
       c.company.toLowerCase().includes(search.toLowerCase()) ||
       c.id.toLowerCase().includes(search.toLowerCase())
   );
@@ -114,7 +114,7 @@ export default function CodesPage() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold text-gray-900">{contact.name || tr.unnamed}</h3>
+                  <h3 className="font-semibold text-gray-900">{`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</h3>
                   <p className="text-sm text-gray-500">{contact.company || contact.title || "—"}</p>
                 </div>
                 {contact.logoUrl && (

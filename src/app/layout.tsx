@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "QR Platform",
-  description: "QR Code Management Platform",
+  title: "QR Plattform",
+  description: "QR-Code-Verwaltungsplattform für digitale Visitenkarten und mehr.",
 };
 
 export default function RootLayout({
