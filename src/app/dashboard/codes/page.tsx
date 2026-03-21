@@ -123,7 +123,10 @@ export default function CodesPage() {
                   {tr.free_plan_upgrade}
                 </Link>
               ) : (
-                <span className="text-sm text-amber-700">{tr.plan_limit_ask_owner}</span>
+                <span className="text-sm text-amber-700">
+                  {tr.plan_limit_ask_owner}{" "}
+                  <Link href="/dashboard/upgrade" className="font-medium underline hover:text-amber-900 transition-colors">{tr.see_plans}</Link>.
+                </span>
               )}
             </div>
           ) : (
