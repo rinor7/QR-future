@@ -438,22 +438,22 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
       {/* Social */}
       <Section title={tr.section_social}>
         <Field label={tr.field_linkedin}>
-          <PrefixInput prefix="linkedin.com/in/" fullPrefix="https://linkedin.com/in/" value={form.linkedinUrl} onChange={(v) => set("linkedinUrl", v)} placeholder="yourname" />
+          <PrefixInput prefix="linkedin.com/in/" fullPrefix="https://linkedin.com/in/" value={form.linkedinUrl} onChange={(v) => set("linkedinUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_instagram}>
-          <PrefixInput prefix="instagram.com/" fullPrefix="https://instagram.com/" value={form.instagramUrl} onChange={(v) => set("instagramUrl", v)} placeholder="yourhandle" />
+          <PrefixInput prefix="instagram.com/" fullPrefix="https://instagram.com/" value={form.instagramUrl} onChange={(v) => set("instagramUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_facebook}>
           <PrefixInput prefix="facebook.com/" fullPrefix="https://facebook.com/" value={form.facebookUrl} onChange={(v) => set("facebookUrl", v)} placeholder="yourpage" />
         </Field>
         <Field label={tr.field_tiktok}>
-          <PrefixInput prefix="tiktok.com/@" fullPrefix="https://tiktok.com/@" value={form.tiktokUrl} onChange={(v) => set("tiktokUrl", v)} placeholder="yourhandle" />
+          <PrefixInput prefix="tiktok.com/@" fullPrefix="https://tiktok.com/@" value={form.tiktokUrl} onChange={(v) => set("tiktokUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_snapchat}>
-          <PrefixInput prefix="snapchat.com/add/" fullPrefix="https://snapchat.com/add/" value={form.snapchatUrl} onChange={(v) => set("snapchatUrl", v)} placeholder="yourname" />
+          <PrefixInput prefix="snapchat.com/add/" fullPrefix="https://snapchat.com/add/" value={form.snapchatUrl} onChange={(v) => set("snapchatUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_x}>
-          <PrefixInput prefix="x.com/" fullPrefix="https://x.com/" value={form.xUrl} onChange={(v) => set("xUrl", v)} placeholder="yourhandle" />
+          <PrefixInput prefix="x.com/" fullPrefix="https://x.com/" value={form.xUrl} onChange={(v) => set("xUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_other_social}>
           <input type="text" value={form.otherSocialUrl} onChange={(e) => set("otherSocialUrl", e.target.value)} placeholder="https://..." className={input} />

@@ -6,6 +6,7 @@ import { Check } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { getUserProfile } from "@/lib/store";
 import { Plan } from "@/lib/types";
+import { useLang } from "@/lib/language";
 
 const PLANS = [
   {
@@ -13,7 +14,6 @@ const PLANS = [
     name: "Free",
     price: "0",
     limit: "1 QR Code",
-    note: "Kein Ablauf",
     priceId: null,
     color: "border-gray-200",
     badge: "bg-gray-100 text-gray-600",
@@ -23,7 +23,6 @@ const PLANS = [
     name: "Star",
     price: "20",
     limit: "10 QR Codes",
-    note: "Kein Ablauf",
     priceId: "price_1TBkP61MPl7fNPWeElDgBGsM",
     color: "border-yellow-300",
     badge: "bg-yellow-100 text-yellow-700",
@@ -33,7 +32,6 @@ const PLANS = [
     name: "Premium",
     price: "60",
     limit: "100 QR Codes",
-    note: "Kein Ablauf",
     priceId: "price_1TBkPQ1MPl7fNPWehoGc86wl",
     color: "border-blue-400",
     badge: "bg-blue-100 text-blue-700",
@@ -42,8 +40,7 @@ const PLANS = [
     id: "platinum" as Plan,
     name: "Platinum",
     price: "200",
-    limit: "Unbegrenzt",
-    note: "Kein Ablauf",
+    limit: null, // uses tr.upgrade_unlimited
     priceId: "price_1TBkPb1MPl7fNPWeD7FeszuB",
     color: "border-purple-400",
     badge: "bg-purple-100 text-purple-700",
@@ -52,6 +49,7 @@ const PLANS = [
 
 export default function UpgradePage() {
   const router = useRouter();
+  const { tr } = useLang();
   const [currentPlan, setCurrentPlan] = useState<Plan>("free");
   const [loading, setLoading] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -84,8 +82,8 @@ export default function UpgradePage() {
   return (
     <div className="p-4 wide:p-8 max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Plan upgraden</h1>
-        <p className="text-gray-500 mt-1">Wählen Sie den passenden Plan für Ihre Bedürfnisse</p>
+        <h1 className="text-3xl font-bold text-gray-900">{tr.upgrade_title}</h1>
+        <p className="text-gray-500 mt-1">{tr.upgrade_subtitle}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -101,23 +99,23 @@ export default function UpgradePage() {
                   {plan.name}
                 </span>
                 {isCurrent && (
-                  <span className="ml-2 text-xs text-blue-600 font-medium">Aktuell</span>
+                  <span className="ml-2 text-xs text-blue-600 font-medium">{tr.upgrade_current}</span>
                 )}
               </div>
 
               <div className="mb-4">
                 <span className="text-3xl font-bold text-gray-900">CHF {plan.price}</span>
-                <span className="text-gray-400 text-sm">/Monat</span>
+                <span className="text-gray-400 text-sm">{tr.upgrade_per_month}</span>
               </div>
 
               <ul className="space-y-2 mb-6 flex-1">
                 <li className="flex items-center gap-2 text-sm text-gray-600">
                   <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                  {plan.limit}
+                  {plan.limit ?? tr.upgrade_unlimited}
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600">
                   <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                  {plan.note}
+                  {tr.upgrade_no_expiry}
                 </li>
               </ul>
 
@@ -127,12 +125,12 @@ export default function UpgradePage() {
                   disabled={loading === plan.priceId}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl font-medium transition-colors text-sm"
                 >
-                  {loading === plan.priceId ? "Wird geladen..." : `${plan.name} wählen`}
+                  {loading === plan.priceId ? tr.upgrade_loading : `${plan.name} ${tr.upgrade_select}`}
                 </button>
               )}
               {isCurrent && (
                 <div className="w-full text-center text-sm text-gray-400 py-2.5">
-                  Ihr aktueller Plan
+                  {tr.upgrade_current_plan}
                 </div>
               )}
             </div>
