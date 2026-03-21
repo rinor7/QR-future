@@ -120,7 +120,7 @@ export default function UsersPage() {
   }
 
   const roleLabel = (role: Role) =>
-    role === "admin" ? tr.role_admin : role === "writer" ? tr.role_writer : tr.role_reader;
+    role === "admin" ? tr.role_admin : role === "writer" ? tr.role_writer : role === "owner" ? tr.role_owner : tr.role_reader;
 
   if (roleLoading || loading) {
     return (
@@ -223,9 +223,9 @@ export default function UsersPage() {
                     <p className="text-gray-500 text-xs">{m.email}</p>
                   </td>
                   <td className="px-6 py-4">
-                    {m.userId === ownerId ? (
+                    {m.userId === ownerId || m.role === "owner" ? (
                       <span className="inline-block px-2 py-0.5 rounded-lg bg-purple-50 text-purple-700 text-xs font-semibold">
-                        Owner
+                        {tr.role_owner}
                       </span>
                     ) : m.userId === currentUserId ? (
                       <span className="inline-block px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold">
@@ -237,6 +237,7 @@ export default function UsersPage() {
                         onChange={(e) => handleRoleChange(m.userId, e.target.value as Role)}
                         className="px-2 py-1 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
+                        <option value="owner">{tr.role_owner}</option>
                         <option value="admin">{tr.role_admin}</option>
                         <option value="writer">{tr.role_writer}</option>
                         <option value="reader">{tr.role_reader}</option>
@@ -247,7 +248,7 @@ export default function UsersPage() {
                     {new Date(m.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {m.userId !== currentUserId && m.userId !== ownerId && (
+                    {m.userId !== currentUserId && m.userId !== ownerId && m.role !== "owner" && (
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleResend(m.userId, m.email)}
