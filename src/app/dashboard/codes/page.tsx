@@ -4,21 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
-import { QRContact, Plan } from "@/lib/types";
+import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
 
-function getExpiryInfo(createdAt: string): { hours: number; minutes: number; expired: boolean } {
-  const created = new Date(createdAt).getTime();
-  const remaining = created + 48 * 60 * 60 * 1000 - Date.now();
-  if (remaining <= 0) return { hours: 0, minutes: 0, expired: true };
-  return {
-    hours: Math.floor(remaining / (60 * 60 * 1000)),
-    minutes: Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000)),
-    expired: false,
-  };
-}
 
 export default function CodesPage() {
   const { tr } = useLang();
@@ -29,12 +19,16 @@ export default function CodesPage() {
   const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [plan, setPlan] = useState<Plan>("free");
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
-    getAllContacts()
-      .then(setContacts)
-      .finally(() => setLoading(false));
-    getUserProfile().then((p) => { if (p) setPlan(p.plan); });
+    Promise.all([getAllContacts(), getUserProfile()]).then(([data, profile]) => {
+      setContacts(data);
+      if (profile) {
+        setPlan(profile.plan);
+        setIsOwner(profile.userId === profile.ownerId);
+      }
+    }).finally(() => setLoading(false));
   }, []);
 
   function getQRUrl(id: string) {
@@ -53,18 +47,58 @@ export default function CodesPage() {
     setDeleteModal(null);
   }
 
-  function handleDownloadQR(id: string) {
-    const container = document.querySelector(`#qr-${id} svg`) as SVGElement;
-    if (!container) return;
-    const svgData = new XMLSerializer().serializeToString(container);
-    const blob = new Blob([svgData], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `qr-${id}.svg`;
-    a.click();
-    URL.revokeObjectURL(url);
+  function handleDownloadQR(id: string, logoUrl?: string, showLogoInQr?: boolean) {
+    if (!showLogoInQr) logoUrl = undefined;
+    const svgEl = document.querySelector(`#qr-${id} svg`) as SVGElement;
+    if (!svgEl) return;
+    const exportSize = 400;
+    const clone = svgEl.cloneNode(true) as SVGElement;
+    clone.setAttribute("width", String(exportSize));
+    clone.setAttribute("height", String(exportSize));
+    const svgData = new XMLSerializer().serializeToString(clone);
+    const svgUrl = URL.createObjectURL(new Blob([svgData], { type: "image/svg+xml;charset=utf-8" }));
+    const canvas = document.createElement("canvas");
+    canvas.width = exportSize;
+    canvas.height = exportSize;
+    const ctx = canvas.getContext("2d")!;
+    const qrImg = new Image();
+    qrImg.onload = () => {
+      ctx.drawImage(qrImg, 0, 0, exportSize, exportSize);
+      URL.revokeObjectURL(svgUrl);
+      const finish = () => {
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.download = `qr-${id}.png`;
+        a.click();
+      };
+      if (logoUrl) {
+        const logoSize = Math.round(exportSize * 0.22);
+        const padding = Math.round(logoSize * 0.1);
+        const offset = (exportSize - logoSize) / 2;
+        const logoImg = new Image();
+        logoImg.crossOrigin = "anonymous";
+        logoImg.onload = () => {
+          const scale = Math.min(logoSize / logoImg.naturalWidth, logoSize / logoImg.naturalHeight);
+          const drawW = logoImg.naturalWidth * scale;
+          const drawH = logoImg.naturalHeight * scale;
+          const drawX = offset + (logoSize - drawW) / 2;
+          const drawY = offset + (logoSize - drawH) / 2;
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(offset - padding, offset - padding, logoSize + padding * 2, logoSize + padding * 2);
+          ctx.drawImage(logoImg, drawX, drawY, drawW, drawH);
+          finish();
+        };
+        logoImg.onerror = finish;
+        logoImg.src = logoUrl;
+      } else {
+        finish();
+      }
+    };
+    qrImg.src = svgUrl;
   }
+
+  const limit = PLAN_LIMITS[plan];
+  const limitReached = limit !== -1 && contacts.length >= limit;
 
   const filtered = contacts.filter(
     (c) =>
@@ -81,13 +115,29 @@ export default function CodesPage() {
           <p className="text-gray-500 mt-1">{contacts.length} {tr.codes_total}</p>
         </div>
         {!isReader && (
-          <Link
-            href="/dashboard/create"
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            {tr.create_qr}
-          </Link>
+          limitReached ? (
+            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
+              <span className="text-sm text-amber-800">{tr.plan_limit_reached} — </span>
+              {isOwner ? (
+                <Link href="/dashboard/upgrade" className="text-sm font-medium text-amber-700 hover:text-amber-900 transition-colors">
+                  {tr.free_plan_upgrade}
+                </Link>
+              ) : (
+                <span className="text-sm text-amber-700">
+                  {tr.plan_limit_ask_owner}{" "}
+                  <Link href="/dashboard/upgrade" className="font-medium underline hover:text-amber-900 transition-colors">{tr.see_plans}</Link>.
+                </span>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/dashboard/create"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              {tr.create_qr}
+            </Link>
+          )
         )}
       </div>
 
@@ -130,31 +180,18 @@ export default function CodesPage() {
                 </div>
                 {contact.logoUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={contact.logoUrl} alt="Logo" className="w-10 h-10 object-contain rounded-lg" />
+                  <img src={contact.logoUrl} alt="Logo" className="w-24 h-24 object-contain rounded-lg" />
                 )}
               </div>
 
               <div id={`qr-${contact.id}`} className="flex justify-center py-2 mt-auto">
-                <QRCodeDisplay value={getQRUrl(contact.id)} size={140} logoUrl={contact.logoUrl} />
+                <QRCodeDisplay value={getQRUrl(contact.id)} size={140} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
               </div>
 
               <div className="text-center">
                 <p className="text-xs text-gray-400 font-mono">
                   {new Date(contact.createdAt).toLocaleDateString("de-DE")}
                 </p>
-                {plan === "free" && (() => {
-                  const { hours, minutes, expired } = getExpiryInfo(contact.createdAt);
-                  const label = expired
-                    ? tr.expiry_expired
-                    : hours > 0
-                    ? `${tr.expiry_hours} ${hours}h`
-                    : `${tr.expiry_hours} ${minutes}${tr.expiry_min}`;
-                  return (
-                    <p className={`text-xs font-medium mt-0.5 ${expired ? "text-red-400" : "text-orange-400"}`}>
-                      {label}
-                    </p>
-                  );
-                })()}
               </div>
 
               {contact.createdBy && (
@@ -187,7 +224,7 @@ export default function CodesPage() {
                   <ExternalLink className="w-4 h-4" />
                 </a>
                 <button
-                  onClick={() => handleDownloadQR(contact.id)}
+                  onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)}
                   className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors"
                 >
                   <Download className="w-4 h-4" />

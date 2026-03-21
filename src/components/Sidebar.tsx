@@ -131,15 +131,6 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
                 {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
               </span>
             </Link>
-            {plan === "free" && (
-              <Link
-                href="/dashboard/upgrade"
-                className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors"
-              >
-                <span className="text-orange-500 text-lg leading-none">⏱</span>
-                <span className="text-xs text-orange-600 font-medium">{tr.free_expiry_warning}</span>
-              </Link>
-            )}
           </>
         ) : (
           <>
@@ -154,7 +145,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
               className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <Zap className="w-4 h-4 text-blue-500" />
-              <span className="text-xs text-blue-600 font-medium">{tr.our_plans}</span>
+              <span className="text-xs text-blue-600 font-medium">{tr.see_plans}</span>
             </Link>
           </>
         )}

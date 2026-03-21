@@ -14,6 +14,7 @@ const DEFAULTS: CreateQRContact = {
   title: "",
   company: "",
   logoUrl: "",
+  showLogoInQr: true,
   phone: "",
   email: "",
   website: "",
@@ -266,67 +267,102 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
           />
         </Field>
 
-        {/* Logo upload */}
-        <Field label={tr.field_logo}>
-          <div className="space-y-2">
-            {form.logoUrl && (
-              <div className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={form.logoUrl} alt="Logo" className="w-12 h-12 object-contain rounded-lg border border-gray-200 bg-gray-50" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                <button type="button" onClick={() => set("logoUrl", "")} className="text-xs text-red-400 hover:text-red-600 transition-colors">{tr.upload_remove}</button>
-              </div>
-            )}
-            <label
-              onDragOver={(e) => { e.preventDefault(); setLogoDragging(true); }}
-              onDragLeave={() => setLogoDragging(false)}
-              onDrop={handleLogoDrop}
-              className={`flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-8 text-sm transition-colors w-full ${
-                logoDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
-              } ${logoUploading ? "opacity-50 pointer-events-none" : ""}`}
-            >
-              <Upload className="w-6 h-6 text-gray-400" />
-              <span className="text-gray-600">{logoUploading ? tr.upload_uploading : tr.upload_logo}</span>
-              <span className="text-xs text-gray-400">drag & drop {tr.upload_logo_hint}</span>
-              <input type="file" accept="image/*" className="sr-only" onChange={handleLogoUpload} />
-            </label>
-            {logoError && <p className="text-xs text-red-500">{logoError}</p>}
-          </div>
-        </Field>
+        {/* Design: Background + Color + Logo */}
+        <div className="border border-gray-100 rounded-xl p-4 bg-gray-50 space-y-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Design</p>
 
-        <Field label={tr.field_color}>
-          <div className="flex items-center gap-3">
-            <input type="color" value={form.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer" />
-            <span className="text-sm text-gray-500 font-mono">{form.primaryColor}</span>
-          </div>
-          <p className="text-xs text-gray-400 mt-1">{tr.field_color_hint}</p>
-        </Field>
-
-        {/* Background image upload */}
-        <Field label={tr.upload_bg}>
-          <div className="space-y-2">
-            {form.bgImageUrl && (
-              <div className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={form.bgImageUrl} alt="BG" className="w-16 h-10 object-cover rounded-lg border border-gray-200" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                <button type="button" onClick={() => set("bgImageUrl", "")} className="text-xs text-red-400 hover:text-red-600 transition-colors">{tr.upload_remove}</button>
+          {/* Background image: preview left (30%), drop zone right (70%) */}
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.upload_bg}</p>
+            <div className="flex gap-3 items-stretch">
+              {/* Preview / placeholder */}
+              <div className="w-[30%] shrink-0">
+                {form.bgImageUrl ? (
+                  <div className="relative h-full min-h-[80px]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={form.bgImageUrl} alt="BG" className="w-full h-full object-cover rounded-xl border border-gray-200" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    <button type="button" onClick={() => set("bgImageUrl", "")} className="absolute top-1 right-1 bg-white/80 hover:bg-white text-red-400 hover:text-red-600 text-xs px-1.5 py-0.5 rounded-lg transition-colors shadow-sm">{tr.upload_remove}</button>
+                  </div>
+                ) : (
+                  <div className="h-full min-h-[80px] bg-white border border-gray-200 rounded-xl flex items-center justify-center">
+                    <span className="text-2xl opacity-20">🖼</span>
+                  </div>
+                )}
               </div>
-            )}
-            <label
-              onDragOver={(e) => { e.preventDefault(); setBgDragging(true); }}
-              onDragLeave={() => setBgDragging(false)}
-              onDrop={handleBgDrop}
-              className={`flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-8 text-sm transition-colors w-full ${
-                bgDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
-              } ${bgUploading ? "opacity-50 pointer-events-none" : ""}`}
-            >
-              <Upload className="w-6 h-6 text-gray-400" />
-              <span className="text-gray-600">{bgUploading ? tr.upload_uploading : tr.upload_bg}</span>
-              <span className="text-xs text-gray-400">drag & drop · {tr.upload_bg_hint}</span>
-              <input type="file" accept="image/*" className="sr-only" onChange={handleBgUpload} />
-            </label>
-            {bgError && <p className="text-xs text-red-500">{bgError}</p>}
+              {/* Drop zone */}
+              <label
+                onDragOver={(e) => { e.preventDefault(); setBgDragging(true); }}
+                onDragLeave={() => setBgDragging(false)}
+                onDrop={handleBgDrop}
+                className={`flex-1 flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-6 text-sm transition-colors ${
+                  bgDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
+                } ${bgUploading ? "opacity-50 pointer-events-none" : ""}`}
+              >
+                <Upload className="w-5 h-5 text-gray-400" />
+                <span className="text-gray-500 text-xs text-center">{bgUploading ? tr.upload_uploading : tr.upload_bg}</span>
+                <span className="text-gray-400 text-xs text-center">{tr.upload_bg_hint}</span>
+                <input type="file" accept="image/*" className="sr-only" onChange={handleBgUpload} />
+              </label>
+            </div>
+            {bgError && <p className="text-xs text-red-500 mt-1">{bgError}</p>}
           </div>
-        </Field>
+
+          {/* Logo: drop zone left (70%), preview right (30%) */}
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.field_logo}</p>
+            <div className="flex gap-3 items-stretch">
+              {/* Drop zone */}
+              <label
+                onDragOver={(e) => { e.preventDefault(); setLogoDragging(true); }}
+                onDragLeave={() => setLogoDragging(false)}
+                onDrop={handleLogoDrop}
+                className={`flex-1 flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-6 text-sm transition-colors ${
+                  logoDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
+                } ${logoUploading ? "opacity-50 pointer-events-none" : ""}`}
+              >
+                <Upload className="w-5 h-5 text-gray-400" />
+                <span className="text-gray-500 text-xs text-center">{logoUploading ? tr.upload_uploading : tr.upload_logo}</span>
+                <span className="text-gray-400 text-xs text-center">{tr.upload_logo_hint}</span>
+                <input type="file" accept="image/*" className="sr-only" onChange={handleLogoUpload} />
+              </label>
+              {/* Preview / placeholder */}
+              <div className="w-[30%] shrink-0">
+                {form.logoUrl ? (
+                  <div className="relative h-full min-h-[80px]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={form.logoUrl} alt="Logo" className="w-full h-full object-contain rounded-xl border border-gray-200 bg-white" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    <button type="button" onClick={() => set("logoUrl", "")} className="absolute top-1 right-1 bg-white/80 hover:bg-white text-red-400 hover:text-red-600 text-xs px-1.5 py-0.5 rounded-lg transition-colors shadow-sm">{tr.upload_remove}</button>
+                  </div>
+                ) : (
+                  <div className="h-full min-h-[80px] bg-white border border-gray-200 rounded-xl flex items-center justify-center">
+                    <span className="text-2xl opacity-20">🏷</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            {logoError && <p className="text-xs text-red-500 mt-1">{logoError}</p>}
+          </div>
+
+          {/* Accent color + Logo toggle in one row 50/50 */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.field_color}</p>
+              <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2.5">
+                <input type="color" value={form.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} className="w-8 h-8 rounded-md border-0 cursor-pointer bg-transparent shrink-0" />
+                <span className="text-xs text-gray-500 font-mono">{form.primaryColor}</span>
+              </div>
+            </div>
+            <div className="flex flex-col justify-center">
+              <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.qr_logo_in_center}</p>
+              <div
+                onClick={() => setForm((prev) => ({ ...prev, showLogoInQr: !prev.showLogoInQr }))}
+                className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer shrink-0 ${form.showLogoInQr ? "bg-blue-600" : "bg-gray-200"}`}
+              >
+                <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.showLogoInQr ? "translate-x-4" : "translate-x-0.5"}`} />
+              </div>
+            </div>
+          </div>
+        </div>
       </Section>
 
       {/* Contact */}
@@ -402,39 +438,25 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
       {/* Social */}
       <Section title={tr.section_social}>
         <Field label={tr.field_linkedin}>
-          <input
-            type="text"
-            value={form.linkedinUrl}
-            onChange={(e) => set("linkedinUrl", e.target.value)}
-            onBlur={(e) => { if (e.target.value) set("linkedinUrl", normalizeUrl(e.target.value.trim())); }}
-            placeholder="linkedin.com/in/..."
-            className={input}
-          />
+          <PrefixInput prefix="linkedin.com/in/" fullPrefix="https://linkedin.com/in/" value={form.linkedinUrl} onChange={(v) => set("linkedinUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_instagram}>
-          <input
-            type="text"
-            value={form.instagramUrl}
-            onChange={(e) => set("instagramUrl", e.target.value)}
-            onBlur={(e) => { if (e.target.value) set("instagramUrl", normalizeUrl(e.target.value.trim())); }}
-            placeholder="instagram.com/..."
-            className={input}
-          />
+          <PrefixInput prefix="instagram.com/" fullPrefix="https://instagram.com/" value={form.instagramUrl} onChange={(v) => set("instagramUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_facebook}>
-          <input type="text" value={form.facebookUrl} onChange={(e) => set("facebookUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("facebookUrl", normalizeUrl(e.target.value.trim())); }} placeholder="facebook.com/..." className={input} />
+          <PrefixInput prefix="facebook.com/" fullPrefix="https://facebook.com/" value={form.facebookUrl} onChange={(v) => set("facebookUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_tiktok}>
-          <input type="text" value={form.tiktokUrl} onChange={(e) => set("tiktokUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("tiktokUrl", normalizeUrl(e.target.value.trim())); }} placeholder="tiktok.com/@..." className={input} />
+          <PrefixInput prefix="tiktok.com/@" fullPrefix="https://tiktok.com/@" value={form.tiktokUrl} onChange={(v) => set("tiktokUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_snapchat}>
-          <input type="text" value={form.snapchatUrl} onChange={(e) => set("snapchatUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("snapchatUrl", normalizeUrl(e.target.value.trim())); }} placeholder="snapchat.com/add/..." className={input} />
+          <PrefixInput prefix="snapchat.com/add/" fullPrefix="https://snapchat.com/add/" value={form.snapchatUrl} onChange={(v) => set("snapchatUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_x}>
-          <input type="text" value={form.xUrl} onChange={(e) => set("xUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("xUrl", normalizeUrl(e.target.value.trim())); }} placeholder="x.com/..." className={input} />
+          <PrefixInput prefix="x.com/" fullPrefix="https://x.com/" value={form.xUrl} onChange={(v) => set("xUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_other_social}>
-          <input type="text" value={form.otherSocialUrl} onChange={(e) => set("otherSocialUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("otherSocialUrl", normalizeUrl(e.target.value.trim())); }} placeholder="https://..." className={input} />
+          <input type="text" value={form.otherSocialUrl} onChange={(e) => set("otherSocialUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("otherSocialUrl", normalizeUrl(e.target.value.trim())); }} placeholder="example.com" className={input} />
         </Field>
       </Section>
 
@@ -649,3 +671,44 @@ function Field({
 
 const input =
   "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400";
+
+function PrefixInput({
+  prefix,
+  fullPrefix,
+  value,
+  onChange,
+  placeholder,
+}: {
+  prefix: string;
+  fullPrefix: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  // Extract just the handle/slug from the stored full URL
+  function getSuffix(full: string): string {
+    if (!full) return "";
+    if (full.startsWith(fullPrefix)) return full.slice(fullPrefix.length);
+    // Fallback for old manually-entered values
+    const variants = [fullPrefix, fullPrefix.replace("https://", "http://"), fullPrefix.replace("https://", "")];
+    for (const v of variants) {
+      if (full.startsWith(v)) return full.slice(v.length);
+    }
+    return full;
+  }
+
+  return (
+    <div className="flex items-stretch border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
+      <span className="flex items-center text-xs text-gray-400 bg-gray-50 px-3 border-r border-gray-200 whitespace-nowrap shrink-0 select-none">
+        {prefix}
+      </span>
+      <input
+        type="text"
+        value={getSuffix(value)}
+        onChange={(e) => onChange(e.target.value ? fullPrefix + e.target.value.trim() : "")}
+        placeholder={placeholder}
+        className="flex-1 px-3 py-2.5 text-sm focus:outline-none bg-white placeholder:text-gray-400"
+      />
+    </div>
+  );
+}

@@ -51,16 +51,53 @@ export default function EditPage() {
   }
 
   function handleDownloadQR() {
-    const svg = document.querySelector("#qr-preview svg") as SVGElement;
-    if (!svg) return;
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const blob = new Blob([svgData], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `qr-${id}.svg`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const svgEl = document.querySelector("#qr-preview svg") as SVGElement;
+    if (!svgEl) return;
+    const exportSize = 400;
+    const clone = svgEl.cloneNode(true) as SVGElement;
+    clone.setAttribute("width", String(exportSize));
+    clone.setAttribute("height", String(exportSize));
+    const svgData = new XMLSerializer().serializeToString(clone);
+    const svgUrl = URL.createObjectURL(new Blob([svgData], { type: "image/svg+xml;charset=utf-8" }));
+    const canvas = document.createElement("canvas");
+    canvas.width = exportSize;
+    canvas.height = exportSize;
+    const ctx = canvas.getContext("2d")!;
+    const qrImg = new Image();
+    qrImg.onload = () => {
+      ctx.drawImage(qrImg, 0, 0, exportSize, exportSize);
+      URL.revokeObjectURL(svgUrl);
+      const finish = () => {
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.download = `qr-${id}.png`;
+        a.click();
+      };
+      const logoUrl = contact?.logoUrl;
+      if (logoUrl) {
+        const logoSize = Math.round(exportSize * 0.22);
+        const padding = Math.round(logoSize * 0.1);
+        const offset = (exportSize - logoSize) / 2;
+        const logoImg = new Image();
+        logoImg.crossOrigin = "anonymous";
+        logoImg.onload = () => {
+          const scale = Math.min(logoSize / logoImg.naturalWidth, logoSize / logoImg.naturalHeight);
+          const drawW = logoImg.naturalWidth * scale;
+          const drawH = logoImg.naturalHeight * scale;
+          const drawX = offset + (logoSize - drawW) / 2;
+          const drawY = offset + (logoSize - drawH) / 2;
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(offset - padding, offset - padding, logoSize + padding * 2, logoSize + padding * 2);
+          ctx.drawImage(logoImg, drawX, drawY, drawW, drawH);
+          finish();
+        };
+        logoImg.onerror = finish;
+        logoImg.src = logoUrl;
+      } else {
+        finish();
+      }
+    };
+    qrImg.src = svgUrl;
   }
 
   async function handleSubmit(data: CreateQRContact) {

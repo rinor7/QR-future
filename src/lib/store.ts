@@ -41,6 +41,7 @@ function toContact(row: Record<string, unknown>): QRContact {
     primaryColor: (row.primary_color as string) ?? "#2563eb",
     bgImageUrl: (row.bg_image_url as string) ?? "",
     notes: (row.notes as string) ?? "",
+    showLogoInQr: (row.show_logo_in_qr as boolean) ?? true,
   };
 }
 
@@ -72,6 +73,7 @@ function toRow(data: Partial<CreateQRContact>) {
     ...(data.primaryColor !== undefined && { primary_color: data.primaryColor }),
     ...(data.bgImageUrl !== undefined && { bg_image_url: data.bgImageUrl }),
     ...(data.notes !== undefined && { notes: data.notes }),
+    ...(data.showLogoInQr !== undefined && { show_logo_in_qr: data.showLogoInQr }),
   };
 }
 
@@ -93,18 +95,8 @@ export async function getUserProfile(): Promise<UserProfile | null> {
   const isPlatformAdmin = (data.is_platform_admin as boolean) ?? false;
   const ownerId = (data.owner_id as string) ?? (data.user_id as string);
 
-  // canManageUsers: true only for platform admin OR team members whose org owner is platform admin
-  // Regular clients (owner_id === user_id, not platform admin) always get false
-  let canManageUsers = isPlatformAdmin;
-  const isTeamMember = ownerId !== (data.user_id as string);
-  if (!isPlatformAdmin && isTeamMember) {
-    const { data: ownerData } = await supabase
-      .from("profiles")
-      .select("is_platform_admin")
-      .eq("user_id", ownerId)
-      .single();
-    canManageUsers = (ownerData?.is_platform_admin as boolean) ?? false;
-  }
+  // Every org owner and their team can manage users — role === 'admin' check on the page controls actual access
+  const canManageUsers = true;
 
   return {
     userId: data.user_id as string,
@@ -197,9 +189,13 @@ export async function getContactCount(): Promise<number> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return 0;
 
+  const profile = await getUserProfile();
+  if (!profile) return 0;
+
   const { count, error } = await supabase
     .from("contacts")
-    .select("id", { count: "exact", head: true });
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", profile.ownerId);
 
   if (error) return 0;
   return count ?? 0;
