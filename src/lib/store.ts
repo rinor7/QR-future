@@ -42,6 +42,7 @@ function toContact(row: Record<string, unknown>): QRContact {
     bgImageUrl: (row.bg_image_url as string) ?? "",
     notes: (row.notes as string) ?? "",
     showLogoInQr: (row.show_logo_in_qr as boolean) ?? true,
+    isActive: (row.is_active as boolean) ?? true,
   };
 }
 
@@ -245,6 +246,10 @@ export async function createContact(input: CreateQRContact): Promise<QRContact> 
     .single();
 
   if (error) throw new Error(error.message);
+
+  // Track activity for inactivity notifications
+  await supabase.from("profiles").update({ last_activity_at: new Date().toISOString() }).eq("user_id", profile?.ownerId ?? user.id);
+
   return toContact(data);
 }
 
@@ -261,6 +266,14 @@ export async function updateContact(
     .single();
 
   if (error) throw new Error(error.message);
+
+  // Track activity for inactivity notifications
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const profile = await getUserProfile();
+    await supabase.from("profiles").update({ last_activity_at: new Date().toISOString() }).eq("user_id", profile?.ownerId ?? user.id);
+  }
+
   return toContact(data);
 }
 

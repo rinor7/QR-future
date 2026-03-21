@@ -33,6 +33,7 @@ const DEFAULTS: CreateQRContact = {
   primaryColor: "#2563eb",
   bgImageUrl: "",
   notes: "",
+  isActive: true,
 };
 
 const MAX_SIZE = 14 * 1024 * 1024; // 14 MB

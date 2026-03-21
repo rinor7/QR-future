@@ -5,7 +5,7 @@ import { useLang } from "@/lib/language";
 import { getUserProfile } from "@/lib/store";
 import { ClientAccount, Plan, PLAN_LABELS } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { Trash2, Users } from "lucide-react";
+import { Trash2, Users, AlertTriangle } from "lucide-react";
 
 const PLAN_COLORS: Record<Plan, string> = {
   free: "bg-gray-100 text-gray-600",
@@ -67,6 +67,13 @@ export default function ClientsPage() {
     }
   }
 
+  const INACTIVITY_DAYS = 1;
+  const inactiveClients = clients.filter((c) => {
+    if (!c.lastActivityAt) return true; // never had activity
+    const daysSince = (Date.now() - new Date(c.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24);
+    return daysSince > INACTIVITY_DAYS;
+  });
+
   // Stats
   const planCounts = clients.reduce<Record<Plan, number>>(
     (acc, c) => { acc[c.plan] = (acc[c.plan] ?? 0) + 1; return acc; },
@@ -104,6 +111,34 @@ export default function ClientsPage() {
           </div>
         ))}
       </div>
+
+      {/* Inactivity notification */}
+      {inactiveClients.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+            <h2 className="text-sm font-semibold text-amber-800">{tr.clients_inactive_title} ({inactiveClients.length})</h2>
+          </div>
+          <p className="text-xs text-amber-700 mb-4">{tr.clients_inactive_body}</p>
+          <div className="flex flex-col gap-2">
+            {inactiveClients.map((c) => (
+              <div key={c.userId} className="flex items-center justify-between bg-white rounded-xl border border-amber-100 px-4 py-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold shrink-0">
+                    {c.email[0].toUpperCase()}
+                  </div>
+                  <span className="text-sm text-gray-800 font-medium">{c.email}</span>
+                </div>
+                <span className="text-xs text-gray-400">
+                  {c.lastActivityAt
+                    ? `${tr.clients_last_active}: ${new Date(c.lastActivityAt).toLocaleDateString()}`
+                    : tr.clients_never_active}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
