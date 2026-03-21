@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { QrCode, Plus, Pencil, Trash2, ExternalLink, Copy, Check } from "lucide-react";
-import { getAllContacts, deleteContact } from "@/lib/store";
-import { QRContact } from "@/lib/types";
+import { QrCode, Plus, Pencil, Trash2, ExternalLink, Copy, Check, Zap } from "lucide-react";
+import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
+import { QRContact, Plan } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
@@ -16,11 +16,17 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [plan, setPlan] = useState<Plan>("free");
+  const [isOwner, setIsOwner] = useState(false);
 
   async function load() {
     try {
-      const data = await getAllContacts();
+      const [data, profile] = await Promise.all([getAllContacts(), getUserProfile()]);
       setContacts(data);
+      if (profile) {
+        setPlan(profile.plan);
+        setIsOwner(profile.userId === profile.ownerId);
+      }
     } finally {
       setLoading(false);
     }
@@ -67,6 +73,19 @@ export default function DashboardPage() {
           </Link>
         )}
       </div>
+
+      {/* Free plan banner */}
+      {!loading && plan === "free" && isOwner && (
+        <div className="flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 mb-6">
+          <div className="flex items-center gap-2 text-amber-800 text-sm">
+            <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+            {tr.free_plan_banner}
+          </div>
+          <Link href="/dashboard/upgrade" className="text-sm font-medium text-amber-700 hover:text-amber-900 whitespace-nowrap transition-colors">
+            {tr.free_plan_upgrade}
+          </Link>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">

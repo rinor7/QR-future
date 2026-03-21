@@ -41,6 +41,7 @@ function toContact(row: Record<string, unknown>): QRContact {
     primaryColor: (row.primary_color as string) ?? "#2563eb",
     bgImageUrl: (row.bg_image_url as string) ?? "",
     notes: (row.notes as string) ?? "",
+    showLogoInQr: (row.show_logo_in_qr as boolean) ?? true,
   };
 }
 
@@ -72,6 +73,7 @@ function toRow(data: Partial<CreateQRContact>) {
     ...(data.primaryColor !== undefined && { primary_color: data.primaryColor }),
     ...(data.bgImageUrl !== undefined && { bg_image_url: data.bgImageUrl }),
     ...(data.notes !== undefined && { notes: data.notes }),
+    ...(data.showLogoInQr !== undefined && { show_logo_in_qr: data.showLogoInQr }),
   };
 }
 

@@ -47,6 +47,7 @@ export interface QRContact {
   primaryColor: string;
   bgImageUrl: string;
   notes: string;
+  showLogoInQr: boolean;
 }
 
 export type CreateQRContact = Omit<QRContact, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>;
@@ -55,7 +56,7 @@ export type CreateQRContact = Omit<QRContact, 'id' | 'createdAt' | 'updatedAt' |
 export type Plan = 'free' | 'star' | 'premium' | 'platinum';
 
 export const PLAN_LIMITS: Record<Plan, number> = {
-  free: 2,
+  free: 1,
   star: 10,
   premium: 100,
   platinum: -1, // unlimited

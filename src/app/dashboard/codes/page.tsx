@@ -3,22 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download } from "lucide-react";
-import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
-import { QRContact, Plan } from "@/lib/types";
+import { getAllContacts, deleteContact } from "@/lib/store";
+import { QRContact } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
 
-function getExpiryInfo(createdAt: string): { hours: number; minutes: number; expired: boolean } {
-  const created = new Date(createdAt).getTime();
-  const remaining = created + 48 * 60 * 60 * 1000 - Date.now();
-  if (remaining <= 0) return { hours: 0, minutes: 0, expired: true };
-  return {
-    hours: Math.floor(remaining / (60 * 60 * 1000)),
-    minutes: Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000)),
-    expired: false,
-  };
-}
 
 export default function CodesPage() {
   const { tr } = useLang();
@@ -28,13 +18,11 @@ export default function CodesPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [plan, setPlan] = useState<Plan>("free");
 
   useEffect(() => {
     getAllContacts()
       .then(setContacts)
       .finally(() => setLoading(false));
-    getUserProfile().then((p) => { if (p) setPlan(p.plan); });
   }, []);
 
   function getQRUrl(id: string) {
@@ -53,7 +41,8 @@ export default function CodesPage() {
     setDeleteModal(null);
   }
 
-  function handleDownloadQR(id: string, logoUrl?: string) {
+  function handleDownloadQR(id: string, logoUrl?: string, showLogoInQr?: boolean) {
+    if (!showLogoInQr) logoUrl = undefined;
     const svgEl = document.querySelector(`#qr-${id} svg`) as SVGElement;
     if (!svgEl) return;
     const exportSize = 400;
@@ -171,26 +160,13 @@ export default function CodesPage() {
               </div>
 
               <div id={`qr-${contact.id}`} className="flex justify-center py-2 mt-auto">
-                <QRCodeDisplay value={getQRUrl(contact.id)} size={140} logoUrl={contact.logoUrl} />
+                <QRCodeDisplay value={getQRUrl(contact.id)} size={140} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
               </div>
 
               <div className="text-center">
                 <p className="text-xs text-gray-400 font-mono">
                   {new Date(contact.createdAt).toLocaleDateString("de-DE")}
                 </p>
-                {plan === "free" && (() => {
-                  const { hours, minutes, expired } = getExpiryInfo(contact.createdAt);
-                  const label = expired
-                    ? tr.expiry_expired
-                    : hours > 0
-                    ? `${tr.expiry_hours} ${hours}h`
-                    : `${tr.expiry_hours} ${minutes}${tr.expiry_min}`;
-                  return (
-                    <p className={`text-xs font-medium mt-0.5 ${expired ? "text-red-400" : "text-orange-400"}`}>
-                      {label}
-                    </p>
-                  );
-                })()}
               </div>
 
               {contact.createdBy && (
@@ -223,7 +199,7 @@ export default function CodesPage() {
                   <ExternalLink className="w-4 h-4" />
                 </a>
                 <button
-                  onClick={() => handleDownloadQR(contact.id, contact.logoUrl)}
+                  onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)}
                   className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors"
                 >
                   <Download className="w-4 h-4" />

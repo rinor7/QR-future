@@ -14,6 +14,7 @@ const DEFAULTS: CreateQRContact = {
   title: "",
   company: "",
   logoUrl: "",
+  showLogoInQr: true,
   phone: "",
   email: "",
   website: "",
@@ -327,6 +328,17 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             {logoError && <p className="text-xs text-red-500">{logoError}</p>}
           </div>
         </Field>
+
+        {/* Show logo in QR toggle */}
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <div
+            onClick={() => setForm((prev) => ({ ...prev, showLogoInQr: !prev.showLogoInQr }))}
+            className={`relative w-10 h-6 rounded-full transition-colors ${form.showLogoInQr ? "bg-blue-600" : "bg-gray-200"}`}
+          >
+            <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.showLogoInQr ? "translate-x-4" : "translate-x-0.5"}`} />
+          </div>
+          <span className="text-sm text-gray-700">{tr.qr_logo_in_center}</span>
+        </label>
       </Section>
 
       {/* Contact */}
