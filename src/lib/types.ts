@@ -70,7 +70,7 @@ export const PLAN_LABELS: Record<Plan, string> = {
   platinum: 'Platinum',
 };
 
-export type Role = 'admin' | 'writer' | 'reader';
+export type Role = 'admin' | 'writer' | 'reader' | 'owner';
 
 export interface UserProfile {
   userId: string;

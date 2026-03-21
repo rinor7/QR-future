@@ -157,6 +157,7 @@ export const t = {
     role_admin: "Admin",
     role_writer: "Bearbeiter",
     role_reader: "Leser",
+    role_owner: "Owner",
     role_label: "Rolle",
     our_plans: "Unsere Pläne",
     // Users page
@@ -345,6 +346,7 @@ export const t = {
     role_admin: "Admin",
     role_writer: "Writer",
     role_reader: "Reader",
+    role_owner: "Owner",
     role_label: "Role",
     our_plans: "Our Plans",
     // Users page
