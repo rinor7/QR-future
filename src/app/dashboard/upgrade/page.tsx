@@ -64,19 +64,30 @@ export default function UpgradePage() {
 
   async function handleUpgrade(priceId: string) {
     setLoading(priceId);
-    const supabase = getSupabaseBrowser();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push("/login"); return; }
+    try {
+      const supabase = getSupabaseBrowser();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push("/login"); return; }
 
-    const res = await fetch("/api/stripe/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ priceId, userId: user.id, userEmail: user.email }),
-    });
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId, userId: user.id, userEmail: user.email }),
+      });
 
-    const { url } = await res.json();
-    if (url) window.location.href = url;
-    else setLoading(null);
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error("Stripe error:", data.error);
+        alert(data.error || "Something went wrong. Please try again.");
+        setLoading(null);
+      }
+    } catch (err) {
+      console.error("Checkout failed:", err);
+      alert("Something went wrong. Please try again.");
+      setLoading(null);
+    }
   }
 
   return (
