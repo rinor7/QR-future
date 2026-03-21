@@ -83,9 +83,14 @@ export default function CodesPage() {
         const logoImg = new Image();
         logoImg.crossOrigin = "anonymous";
         logoImg.onload = () => {
+          const scale = Math.min(logoSize / logoImg.naturalWidth, logoSize / logoImg.naturalHeight);
+          const drawW = logoImg.naturalWidth * scale;
+          const drawH = logoImg.naturalHeight * scale;
+          const drawX = offset + (logoSize - drawW) / 2;
+          const drawY = offset + (logoSize - drawH) / 2;
           ctx.fillStyle = "#ffffff";
           ctx.fillRect(offset - padding, offset - padding, logoSize + padding * 2, logoSize + padding * 2);
-          ctx.drawImage(logoImg, offset, offset, logoSize, logoSize);
+          ctx.drawImage(logoImg, drawX, drawY, drawW, drawH);
           finish();
         };
         logoImg.onerror = finish;
