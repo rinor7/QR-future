@@ -42,6 +42,7 @@ function toContact(row: Record<string, unknown>): QRContact {
     bgImageUrl: (row.bg_image_url as string) ?? "",
     notes: (row.notes as string) ?? "",
     showLogoInQr: (row.show_logo_in_qr as boolean) ?? true,
+    isActive: (row.is_active as boolean) ?? true,
   };
 }
 

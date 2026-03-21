@@ -48,6 +48,7 @@ export interface QRContact {
   bgImageUrl: string;
   notes: string;
   showLogoInQr: boolean;
+  isActive: boolean;
 }
 
 export type CreateQRContact = Omit<QRContact, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>;

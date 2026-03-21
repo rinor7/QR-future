@@ -164,8 +164,13 @@ export default function CodesPage() {
           {filtered.map((contact) => (
             <div
               key={contact.id}
-              className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col gap-4 hover:shadow-md transition-shadow"
+              className={`bg-white rounded-2xl border p-6 flex flex-col gap-4 hover:shadow-md transition-shadow ${contact.isActive === false ? "border-amber-200 opacity-75" : "border-gray-200"}`}
             >
+              {contact.isActive === false && (
+                <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 text-xs font-medium text-amber-700 w-fit">
+                  ⏸ Paused — upgrade plan to reactivate
+                </div>
+              )}
               <div className="flex items-start justify-between">
                 <div>
                   {contact.qrLabel && (
