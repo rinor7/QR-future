@@ -267,78 +267,87 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
           />
         </Field>
 
-        {/* Background image upload */}
-        <Field label={tr.upload_bg}>
-          <div className="space-y-2">
-            {form.bgImageUrl && (
-              <div className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={form.bgImageUrl} alt="BG" className="w-16 h-10 object-cover rounded-lg border border-gray-200" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                <button type="button" onClick={() => set("bgImageUrl", "")} className="text-xs text-red-400 hover:text-red-600 transition-colors">{tr.upload_remove}</button>
+        {/* Design: Background + Color + Logo */}
+        <div className="border border-gray-100 rounded-xl p-4 bg-gray-50 space-y-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Design</p>
+
+          {/* Background image */}
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.upload_bg}</p>
+            <div className="space-y-2">
+              {form.bgImageUrl && (
+                <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={form.bgImageUrl} alt="BG" className="w-16 h-10 object-cover rounded-lg border border-gray-200" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  <button type="button" onClick={() => set("bgImageUrl", "")} className="text-xs text-red-400 hover:text-red-600 transition-colors">{tr.upload_remove}</button>
+                </div>
+              )}
+              <label
+                onDragOver={(e) => { e.preventDefault(); setBgDragging(true); }}
+                onDragLeave={() => setBgDragging(false)}
+                onDrop={handleBgDrop}
+                className={`flex items-center gap-3 cursor-pointer border border-dashed rounded-xl px-4 py-3 text-sm transition-colors w-full ${
+                  bgDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
+                } ${bgUploading ? "opacity-50 pointer-events-none" : ""}`}
+              >
+                <Upload className="w-4 h-4 text-gray-400 shrink-0" />
+                <span className="text-gray-500 text-xs">{bgUploading ? tr.upload_uploading : `${tr.upload_bg} · ${tr.upload_bg_hint}`}</span>
+                <input type="file" accept="image/*" className="sr-only" onChange={handleBgUpload} />
+              </label>
+              {bgError && <p className="text-xs text-red-500">{bgError}</p>}
+            </div>
+          </div>
+
+          {/* Accent color + Logo side by side */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Accent color */}
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.field_color}</p>
+              <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2">
+                <input type="color" value={form.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} className="w-8 h-8 rounded-md border-0 cursor-pointer bg-transparent" />
+                <span className="text-xs text-gray-500 font-mono">{form.primaryColor}</span>
               </div>
-            )}
-            <label
-              onDragOver={(e) => { e.preventDefault(); setBgDragging(true); }}
-              onDragLeave={() => setBgDragging(false)}
-              onDrop={handleBgDrop}
-              className={`flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-8 text-sm transition-colors w-full ${
-                bgDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
-              } ${bgUploading ? "opacity-50 pointer-events-none" : ""}`}
+              <p className="text-xs text-gray-400 mt-1">{tr.field_color_hint}</p>
+            </div>
+
+            {/* Logo */}
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.field_logo}</p>
+              {form.logoUrl ? (
+                <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={form.logoUrl} alt="Logo" className="w-8 h-8 object-contain rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  <button type="button" onClick={() => set("logoUrl", "")} className="text-xs text-red-400 hover:text-red-600 transition-colors">{tr.upload_remove}</button>
+                </div>
+              ) : (
+                <label
+                  onDragOver={(e) => { e.preventDefault(); setLogoDragging(true); }}
+                  onDragLeave={() => setLogoDragging(false)}
+                  onDrop={handleLogoDrop}
+                  className={`flex items-center gap-2 cursor-pointer border border-dashed rounded-xl px-3 py-2 text-sm transition-colors w-full ${
+                    logoDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
+                  } ${logoUploading ? "opacity-50 pointer-events-none" : ""}`}
+                >
+                  <Upload className="w-4 h-4 text-gray-400 shrink-0" />
+                  <span className="text-gray-500 text-xs">{logoUploading ? tr.upload_uploading : tr.upload_logo}</span>
+                  <input type="file" accept="image/*" className="sr-only" onChange={handleLogoUpload} />
+                </label>
+              )}
+              {logoError && <p className="text-xs text-red-500 mt-1">{logoError}</p>}
+            </div>
+          </div>
+
+          {/* Show logo in QR toggle */}
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <div
+              onClick={() => setForm((prev) => ({ ...prev, showLogoInQr: !prev.showLogoInQr }))}
+              className={`relative w-10 h-6 rounded-full transition-colors shrink-0 ${form.showLogoInQr ? "bg-blue-600" : "bg-gray-200"}`}
             >
-              <Upload className="w-6 h-6 text-gray-400" />
-              <span className="text-gray-600">{bgUploading ? tr.upload_uploading : tr.upload_bg}</span>
-              <span className="text-xs text-gray-400">drag & drop · {tr.upload_bg_hint}</span>
-              <input type="file" accept="image/*" className="sr-only" onChange={handleBgUpload} />
-            </label>
-            {bgError && <p className="text-xs text-red-500">{bgError}</p>}
-          </div>
-        </Field>
-
-        <Field label={tr.field_color}>
-          <div className="flex items-center gap-3">
-            <input type="color" value={form.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer" />
-            <span className="text-sm text-gray-500 font-mono">{form.primaryColor}</span>
-          </div>
-          <p className="text-xs text-gray-400 mt-1">{tr.field_color_hint}</p>
-        </Field>
-
-        {/* Logo upload */}
-        <Field label={tr.field_logo}>
-          <div className="space-y-2">
-            {form.logoUrl && (
-              <div className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={form.logoUrl} alt="Logo" className="w-12 h-12 object-contain rounded-lg border border-gray-200 bg-gray-50" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                <button type="button" onClick={() => set("logoUrl", "")} className="text-xs text-red-400 hover:text-red-600 transition-colors">{tr.upload_remove}</button>
-              </div>
-            )}
-            <label
-              onDragOver={(e) => { e.preventDefault(); setLogoDragging(true); }}
-              onDragLeave={() => setLogoDragging(false)}
-              onDrop={handleLogoDrop}
-              className={`flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-8 text-sm transition-colors w-full ${
-                logoDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
-              } ${logoUploading ? "opacity-50 pointer-events-none" : ""}`}
-            >
-              <Upload className="w-6 h-6 text-gray-400" />
-              <span className="text-gray-600">{logoUploading ? tr.upload_uploading : tr.upload_logo}</span>
-              <span className="text-xs text-gray-400">drag & drop {tr.upload_logo_hint}</span>
-              <input type="file" accept="image/*" className="sr-only" onChange={handleLogoUpload} />
-            </label>
-            {logoError && <p className="text-xs text-red-500">{logoError}</p>}
-          </div>
-        </Field>
-
-        {/* Show logo in QR toggle */}
-        <label className="flex items-center gap-3 cursor-pointer select-none">
-          <div
-            onClick={() => setForm((prev) => ({ ...prev, showLogoInQr: !prev.showLogoInQr }))}
-            className={`relative w-10 h-6 rounded-full transition-colors ${form.showLogoInQr ? "bg-blue-600" : "bg-gray-200"}`}
-          >
-            <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.showLogoInQr ? "translate-x-4" : "translate-x-0.5"}`} />
-          </div>
-          <span className="text-sm text-gray-700">{tr.qr_logo_in_center}</span>
-        </label>
+              <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.showLogoInQr ? "translate-x-4" : "translate-x-0.5"}`} />
+            </div>
+            <span className="text-sm text-gray-700">{tr.qr_logo_in_center}</span>
+          </label>
+        </div>
       </Section>
 
       {/* Contact */}

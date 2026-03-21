@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { QrCode, Plus, Pencil, Trash2, ExternalLink, Copy, Check, Zap } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
-import { QRContact, Plan } from "@/lib/types";
+import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
@@ -63,15 +63,26 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-500 mt-1">{tr.dashboard_subtitle}</p>
         </div>
-        {!roleLoading && !isReader && (
-          <Link
-            href="/dashboard/create"
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            {tr.create_qr}
-          </Link>
-        )}
+        {!roleLoading && !isReader && (() => {
+          const limit = PLAN_LIMITS[plan];
+          const limitReached = isOwner && limit !== -1 && contacts.length >= limit;
+          return limitReached ? (
+            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
+              <span className="text-sm text-amber-800">{tr.plan_limit_reached} — </span>
+              <Link href="/dashboard/upgrade" className="text-sm font-medium text-amber-700 hover:text-amber-900 transition-colors">
+                {tr.free_plan_upgrade}
+              </Link>
+            </div>
+          ) : (
+            <Link
+              href="/dashboard/create"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              {tr.create_qr}
+            </Link>
+          );
+        })()}
       </div>
 
       {/* Free plan banner */}
