@@ -180,7 +180,7 @@ export default function CodesPage() {
                 </div>
                 {contact.logoUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={contact.logoUrl} alt="Logo" className="w-10 h-10 object-contain rounded-lg" />
+                  <img src={contact.logoUrl} alt="Logo" className="w-24 h-24 object-contain rounded-lg" />
                 )}
               </div>
 

@@ -444,7 +444,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
           <PrefixInput prefix="instagram.com/" fullPrefix="https://instagram.com/" value={form.instagramUrl} onChange={(v) => set("instagramUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_facebook}>
-          <PrefixInput prefix="facebook.com/" fullPrefix="https://facebook.com/" value={form.facebookUrl} onChange={(v) => set("facebookUrl", v)} placeholder="yourpage" />
+          <PrefixInput prefix="facebook.com/" fullPrefix="https://facebook.com/" value={form.facebookUrl} onChange={(v) => set("facebookUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_tiktok}>
           <PrefixInput prefix="tiktok.com/@" fullPrefix="https://tiktok.com/@" value={form.tiktokUrl} onChange={(v) => set("tiktokUrl", v)} placeholder={tr.social_placeholder} />
