@@ -89,6 +89,7 @@ export interface ClientAccount {
   plan: Plan;
   createdAt: string;
   qrCount: number;
+  lastActivityAt?: string;
 }
 
 export interface TeamMember {

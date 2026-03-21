@@ -188,6 +188,10 @@ export const t = {
     clients_delete: "Konto löschen",
     clients_delete_confirm: "Wirklich löschen?",
     clients_stat_total: "Kunden gesamt",
+    clients_inactive_title: "Inaktive Kunden",
+    clients_inactive_body: "Diese Kunden haben in den letzten 1 Tag(en) keine QR Codes erstellt oder bearbeitet.",
+    clients_last_active: "Zuletzt aktiv",
+    clients_never_active: "Noch keine Aktivität",
   },
   en: {
     // Sidebar
@@ -372,6 +376,10 @@ export const t = {
     clients_delete: "Delete account",
     clients_delete_confirm: "Really delete?",
     clients_stat_total: "Total clients",
+    clients_inactive_title: "Inactive clients",
+    clients_inactive_body: "These clients have not created or updated any QR codes in the last 1 day(s).",
+    clients_last_active: "Last active",
+    clients_never_active: "No activity yet",
   },
 };
 
