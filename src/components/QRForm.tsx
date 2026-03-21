@@ -438,39 +438,25 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
       {/* Social */}
       <Section title={tr.section_social}>
         <Field label={tr.field_linkedin}>
-          <input
-            type="text"
-            value={form.linkedinUrl}
-            onChange={(e) => set("linkedinUrl", e.target.value)}
-            onBlur={(e) => { if (e.target.value) set("linkedinUrl", normalizeUrl(e.target.value.trim())); }}
-            placeholder="linkedin.com/in/..."
-            className={input}
-          />
+          <PrefixInput prefix="linkedin.com/in/" fullPrefix="https://linkedin.com/in/" value={form.linkedinUrl} onChange={(v) => set("linkedinUrl", v)} placeholder="yourname" />
         </Field>
         <Field label={tr.field_instagram}>
-          <input
-            type="text"
-            value={form.instagramUrl}
-            onChange={(e) => set("instagramUrl", e.target.value)}
-            onBlur={(e) => { if (e.target.value) set("instagramUrl", normalizeUrl(e.target.value.trim())); }}
-            placeholder="instagram.com/..."
-            className={input}
-          />
+          <PrefixInput prefix="instagram.com/" fullPrefix="https://instagram.com/" value={form.instagramUrl} onChange={(v) => set("instagramUrl", v)} placeholder="yourhandle" />
         </Field>
         <Field label={tr.field_facebook}>
-          <input type="text" value={form.facebookUrl} onChange={(e) => set("facebookUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("facebookUrl", normalizeUrl(e.target.value.trim())); }} placeholder="facebook.com/..." className={input} />
+          <PrefixInput prefix="facebook.com/" fullPrefix="https://facebook.com/" value={form.facebookUrl} onChange={(v) => set("facebookUrl", v)} placeholder="yourpage" />
         </Field>
         <Field label={tr.field_tiktok}>
-          <input type="text" value={form.tiktokUrl} onChange={(e) => set("tiktokUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("tiktokUrl", normalizeUrl(e.target.value.trim())); }} placeholder="tiktok.com/@..." className={input} />
+          <PrefixInput prefix="tiktok.com/@" fullPrefix="https://tiktok.com/@" value={form.tiktokUrl} onChange={(v) => set("tiktokUrl", v)} placeholder="yourhandle" />
         </Field>
         <Field label={tr.field_snapchat}>
-          <input type="text" value={form.snapchatUrl} onChange={(e) => set("snapchatUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("snapchatUrl", normalizeUrl(e.target.value.trim())); }} placeholder="snapchat.com/add/..." className={input} />
+          <PrefixInput prefix="snapchat.com/add/" fullPrefix="https://snapchat.com/add/" value={form.snapchatUrl} onChange={(v) => set("snapchatUrl", v)} placeholder="yourname" />
         </Field>
         <Field label={tr.field_x}>
-          <input type="text" value={form.xUrl} onChange={(e) => set("xUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("xUrl", normalizeUrl(e.target.value.trim())); }} placeholder="x.com/..." className={input} />
+          <PrefixInput prefix="x.com/" fullPrefix="https://x.com/" value={form.xUrl} onChange={(v) => set("xUrl", v)} placeholder="yourhandle" />
         </Field>
         <Field label={tr.field_other_social}>
-          <input type="text" value={form.otherSocialUrl} onChange={(e) => set("otherSocialUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("otherSocialUrl", normalizeUrl(e.target.value.trim())); }} placeholder="https://..." className={input} />
+          <input type="text" value={form.otherSocialUrl} onChange={(e) => set("otherSocialUrl", e.target.value)} placeholder="https://..." className={input} />
         </Field>
       </Section>
 
@@ -685,3 +671,44 @@ function Field({
 
 const input =
   "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400";
+
+function PrefixInput({
+  prefix,
+  fullPrefix,
+  value,
+  onChange,
+  placeholder,
+}: {
+  prefix: string;
+  fullPrefix: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  // Extract just the handle/slug from the stored full URL
+  function getSuffix(full: string): string {
+    if (!full) return "";
+    if (full.startsWith(fullPrefix)) return full.slice(fullPrefix.length);
+    // Fallback for old manually-entered values
+    const variants = [fullPrefix, fullPrefix.replace("https://", "http://"), fullPrefix.replace("https://", "")];
+    for (const v of variants) {
+      if (full.startsWith(v)) return full.slice(v.length);
+    }
+    return full;
+  }
+
+  return (
+    <div className="flex items-stretch border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
+      <span className="flex items-center text-xs text-gray-400 bg-gray-50 px-3 border-r border-gray-200 whitespace-nowrap shrink-0 select-none">
+        {prefix}
+      </span>
+      <input
+        type="text"
+        value={getSuffix(value)}
+        onChange={(e) => onChange(e.target.value ? fullPrefix + e.target.value.trim() : "")}
+        placeholder={placeholder}
+        className="flex-1 px-3 py-2.5 text-sm focus:outline-none bg-white placeholder:text-gray-400"
+      />
+    </div>
+  );
+}
