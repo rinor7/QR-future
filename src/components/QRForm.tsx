@@ -456,7 +456,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
           <PrefixInput prefix="x.com/" fullPrefix="https://x.com/" value={form.xUrl} onChange={(v) => set("xUrl", v)} placeholder={tr.social_placeholder} />
         </Field>
         <Field label={tr.field_other_social}>
-          <input type="text" value={form.otherSocialUrl} onChange={(e) => set("otherSocialUrl", e.target.value)} placeholder="https://..." className={input} />
+          <input type="text" value={form.otherSocialUrl} onChange={(e) => set("otherSocialUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("otherSocialUrl", normalizeUrl(e.target.value.trim())); }} placeholder="example.com" className={input} />
         </Field>
       </Section>
 
