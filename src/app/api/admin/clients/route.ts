@@ -33,7 +33,7 @@ export async function GET() {
   // Fetch all profiles
   const { data: profiles, error } = await supabase
     .from("profiles")
-    .select("user_id, email, plan, created_at, owner_id, last_activity_at")
+    .select("user_id, email, plan, created_at, owner_id, last_activity_at, is_platform_admin")
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -50,7 +50,7 @@ export async function GET() {
 
   // Only org owners (user_id = owner_id), excluding the platform admin
   const clients = (profiles ?? [])
-    .filter((p) => p.user_id === p.owner_id && p.user_id !== user.id)
+    .filter((p) => p.user_id === p.owner_id && p.user_id !== user.id && !p.is_platform_admin)
     .map((p) => ({
       userId: p.user_id,
       email: p.email,
