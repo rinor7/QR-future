@@ -22,6 +22,10 @@ export const t = {
     plan_settings_feature_placeholder: "z.B. Unbegrenzte QR Codes",
     plan_settings_save: "Speichern",
     plan_settings_saved: "Gespeichert!",
+    plan_settings_edit: "Bearbeiten",
+    plan_settings_cancel: "Abbrechen",
+    plan_settings_stripe_warning: "⚠️ Preisänderungen werden NICHT automatisch in Stripe übernommen. Bitte den Preis auch im Stripe-Dashboard manuell aktualisieren.",
+    plan_settings_stripe_confirm: "Verstanden, trotzdem speichern",
     logout: "Abmelden",
     // Dashboard page
     dashboard_subtitle: "Verwalten Sie Ihre QR Codes",
@@ -271,6 +275,10 @@ export const t = {
     plan_settings_feature_placeholder: "e.g. Unlimited QR Codes",
     plan_settings_save: "Save",
     plan_settings_saved: "Saved!",
+    plan_settings_edit: "Edit",
+    plan_settings_cancel: "Cancel",
+    plan_settings_stripe_warning: "⚠️ Price changes are NOT automatically applied in Stripe. Please also update the price manually in the Stripe Dashboard.",
+    plan_settings_stripe_confirm: "Understood, save anyway",
     logout: "Logout",
     // Dashboard page
     dashboard_subtitle: "Manage your QR codes",
