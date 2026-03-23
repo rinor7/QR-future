@@ -13,6 +13,7 @@ const DEFAULTS: CreateQRContact = {
   lastName: "",
   title: "",
   company: "",
+  description: "",
   logoUrl: "",
   showLogoInQr: true,
   phone: "",
@@ -85,12 +86,36 @@ interface Props {
   initial?: Partial<CreateQRContact>;
   onSubmit: (data: CreateQRContact) => void;
   submitLabel: string;
+  saved?: boolean;
+  onFormChange?: (data: CreateQRContact) => void;
 }
 
-export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
+export default function QRForm({ initial, onSubmit, submitLabel, saved, onFormChange }: Props) {
   const router = useRouter();
   const { tr } = useLang();
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
+
+  // Track which optional fields are manually opened
+  const [openFields, setOpenFields] = useState<Set<string>>(() => {
+    const open = new Set<string>();
+    const optionals = ["title", "company", "description", "phone", "email", "website"];
+    optionals.forEach((f) => {
+      if ((initial as Record<string, string>)?.[f]) open.add(f);
+    });
+    return open;
+  });
+  const [activeSocial, setActiveSocial] = useState<string | null>(() => {
+    const socials = ["linkedinUrl", "instagramUrl", "facebookUrl", "tiktokUrl", "snapchatUrl", "xUrl", "otherSocialUrl"];
+    return socials.find((s) => (initial as Record<string, string>)?.[s]) ?? null;
+  });
+
+  function isFieldOpen(field: string) {
+    return openFields.has(field) || !!(form[field as keyof CreateQRContact]);
+  }
+  function openField(field: string) {
+    setOpenFields((prev) => { const next = new Set(prev); next.add(field); return next; });
+  }
+
   const [userId, setUserId] = useState("");
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
@@ -141,7 +166,11 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
   }, []);
 
   function set(field: keyof CreateQRContact, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      onFormChange?.(next);
+      return next;
+    });
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -250,24 +279,58 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             />
           </Field>
         </div>
-        <Field label={tr.field_title}>
-          <input
-            type="text"
-            value={form.title}
-            onChange={(e) => set("title", e.target.value)}
-            placeholder="z.B. Geschäftsführer"
-            className={input}
-          />
-        </Field>
-        <Field label={tr.field_company}>
-          <input
-            type="text"
-            value={form.company}
-            onChange={(e) => set("company", e.target.value)}
-            placeholder="z.B. Builtech Gruppe"
-            className={input}
-          />
-        </Field>
+
+        {/* Expandable: Title */}
+        {isFieldOpen("title") ? (
+          <Field label={tr.field_title}>
+            <input
+              type="text"
+              value={form.title}
+              onChange={(e) => set("title", e.target.value)}
+              placeholder="z.B. Geschäftsführer"
+              className={input}
+              autoFocus
+            />
+          </Field>
+        ) : (
+          <button type="button" onClick={() => openField("title")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> {tr.field_title}
+          </button>
+        )}
+
+        {/* Expandable: Company */}
+        {isFieldOpen("company") ? (
+          <Field label={tr.field_company}>
+            <input
+              type="text"
+              value={form.company}
+              onChange={(e) => set("company", e.target.value)}
+              placeholder="z.B. Builtech Gruppe"
+              className={input}
+            />
+          </Field>
+        ) : (
+          <button type="button" onClick={() => openField("company")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> {tr.field_company}
+          </button>
+        )}
+
+        {/* Expandable: Description */}
+        {isFieldOpen("description") ? (
+          <Field label={tr.field_description}>
+            <textarea
+              value={(form as unknown as Record<string, string>).description ?? ""}
+              onChange={(e) => set("description" as keyof CreateQRContact, e.target.value)}
+              placeholder="Kurze Beschreibung oder Slogan…"
+              rows={2}
+              className={`${input} resize-none`}
+            />
+          </Field>
+        ) : (
+          <button type="button" onClick={() => openField("description")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> {tr.field_description}
+          </button>
+        )}
 
         {/* Design: Background + Color + Logo */}
         <div className="border border-gray-100 rounded-xl p-4 bg-gray-50 space-y-4">
@@ -357,7 +420,7 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             <div className="flex flex-col justify-center">
               <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.qr_logo_in_center}</p>
               <div
-                onClick={() => setForm((prev) => ({ ...prev, showLogoInQr: !prev.showLogoInQr }))}
+                onClick={() => setForm((prev) => { const next = { ...prev, showLogoInQr: !prev.showLogoInQr }; onFormChange?.(next); return next; })}
                 className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer shrink-0 ${form.showLogoInQr ? "bg-blue-600" : "bg-gray-200"}`}
               >
                 <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.showLogoInQr ? "translate-x-4" : "translate-x-0.5"}`} />
@@ -481,27 +544,56 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
 
       {/* Social */}
       <Section title={tr.section_social}>
-        <Field label={tr.field_linkedin}>
-          <PrefixInput prefix="linkedin.com/in/" fullPrefix="https://linkedin.com/in/" value={form.linkedinUrl} onChange={(v) => set("linkedinUrl", v)} placeholder={tr.social_placeholder} />
-        </Field>
-        <Field label={tr.field_instagram}>
-          <PrefixInput prefix="instagram.com/" fullPrefix="https://instagram.com/" value={form.instagramUrl} onChange={(v) => set("instagramUrl", v)} placeholder={tr.social_placeholder} />
-        </Field>
-        <Field label={tr.field_facebook}>
-          <PrefixInput prefix="facebook.com/" fullPrefix="https://facebook.com/" value={form.facebookUrl} onChange={(v) => set("facebookUrl", v)} placeholder={tr.social_placeholder} />
-        </Field>
-        <Field label={tr.field_tiktok}>
-          <PrefixInput prefix="tiktok.com/@" fullPrefix="https://tiktok.com/@" value={form.tiktokUrl} onChange={(v) => set("tiktokUrl", v)} placeholder={tr.social_placeholder} />
-        </Field>
-        <Field label={tr.field_snapchat}>
-          <PrefixInput prefix="snapchat.com/add/" fullPrefix="https://snapchat.com/add/" value={form.snapchatUrl} onChange={(v) => set("snapchatUrl", v)} placeholder={tr.social_placeholder} />
-        </Field>
-        <Field label={tr.field_x}>
-          <PrefixInput prefix="x.com/" fullPrefix="https://x.com/" value={form.xUrl} onChange={(v) => set("xUrl", v)} placeholder={tr.social_placeholder} />
-        </Field>
-        <Field label={tr.field_other_social}>
-          <input type="text" value={form.otherSocialUrl} onChange={(e) => set("otherSocialUrl", e.target.value)} onBlur={(e) => { if (e.target.value) set("otherSocialUrl", normalizeUrl(e.target.value.trim())); }} placeholder="example.com" className={input} />
-        </Field>
+        <div className="flex flex-wrap gap-2">
+          {([
+            { key: "linkedinUrl", label: "LinkedIn", prefix: "linkedin.com/in/", fullPrefix: "https://linkedin.com/in/" },
+            { key: "instagramUrl", label: "Instagram", prefix: "instagram.com/", fullPrefix: "https://instagram.com/" },
+            { key: "facebookUrl", label: "Facebook", prefix: "facebook.com/", fullPrefix: "https://facebook.com/" },
+            { key: "tiktokUrl", label: "TikTok", prefix: "tiktok.com/@", fullPrefix: "https://tiktok.com/@" },
+            { key: "snapchatUrl", label: "Snapchat", prefix: "snapchat.com/add/", fullPrefix: "https://snapchat.com/add/" },
+            { key: "xUrl", label: "X / Twitter", prefix: "x.com/", fullPrefix: "https://x.com/" },
+            { key: "otherSocialUrl", label: tr.field_other_social, prefix: null, fullPrefix: null },
+          ] as { key: keyof CreateQRContact; label: string; prefix: string | null; fullPrefix: string | null }[]).map((s) => {
+            const hasValue = !!(form[s.key] as string);
+            const isActive = activeSocial === s.key;
+            return (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => setActiveSocial(isActive ? null : s.key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
+                  hasValue ? "bg-blue-50 border-blue-200 text-blue-700"
+                  : isActive ? "bg-gray-100 border-gray-300 text-gray-700"
+                  : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                }`}
+              >
+                {hasValue
+                  ? <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                  : <Plus className="w-3.5 h-3.5 shrink-0" />}
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+        {activeSocial && (() => {
+          const s = [
+            { key: "linkedinUrl", prefix: "linkedin.com/in/", fullPrefix: "https://linkedin.com/in/" },
+            { key: "instagramUrl", prefix: "instagram.com/", fullPrefix: "https://instagram.com/" },
+            { key: "facebookUrl", prefix: "facebook.com/", fullPrefix: "https://facebook.com/" },
+            { key: "tiktokUrl", prefix: "tiktok.com/@", fullPrefix: "https://tiktok.com/@" },
+            { key: "snapchatUrl", prefix: "snapchat.com/add/", fullPrefix: "https://snapchat.com/add/" },
+            { key: "xUrl", prefix: "x.com/", fullPrefix: "https://x.com/" },
+          ].find((x) => x.key === activeSocial);
+          return (
+            <div className="mt-2">
+              {s ? (
+                <PrefixInput prefix={s.prefix} fullPrefix={s.fullPrefix} value={form[activeSocial as keyof CreateQRContact] as string} onChange={(v) => set(activeSocial as keyof CreateQRContact, v)} placeholder={tr.social_placeholder} />
+              ) : (
+                <input type="text" value={form[activeSocial as keyof CreateQRContact] as string} onChange={(e) => set(activeSocial as keyof CreateQRContact, e.target.value)} onBlur={(e) => { if (e.target.value) set(activeSocial as keyof CreateQRContact, normalizeUrl(e.target.value.trim())); }} placeholder="example.com" className={input} autoFocus />
+              )}
+            </div>
+          );
+        })()}
       </Section>
 
       {/* PDF / Links */}
@@ -669,6 +761,14 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
         >
           {tr.cancel}
         </button>
+        {saved && (
+          <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            {tr.saved}
+          </span>
+        )}
       </div>
     </form>
   );

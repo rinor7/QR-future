@@ -18,6 +18,7 @@ export interface QRContact {
   lastName: string;
   title: string;
   company: string;
+  description?: string;
   logoUrl: string;
 
   // Contact
