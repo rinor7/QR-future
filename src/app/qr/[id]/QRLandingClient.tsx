@@ -12,6 +12,7 @@ import {
   Download,
   Mail,
   MapPin,
+  Check,
 } from "lucide-react";
 
 function XBrandIcon({ className }: { className?: string }) {
@@ -184,6 +185,15 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
               ? "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%)"
               : "radial-gradient(circle at 80% 20%, white 0%, transparent 60%)"
           }} />
+          {/* Share icon — top right */}
+          <button
+            onClick={handleShare}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+            style={{ backgroundColor: "rgba(255,255,255,0.25)", color: "#fff" }}
+            title={shared ? "Kopiert!" : "Teilen"}
+          >
+            {shared ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+          </button>
           {/* Avatar */}
           <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
             {contact.logoUrl ? (
@@ -288,19 +298,15 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
           ))}
         </div>
 
-        {/* vCard + Share */}
-        <div className="px-5 pb-4 flex gap-2.5">
-          {isTouchDevice && (
-            <button onClick={handleVCard} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 transition-colors" style={{ borderColor: th.borderColor(color), color: th.btnText(color) }}>
+        {/* vCard — mobile only */}
+        {isTouchDevice && (
+          <div className="px-5 pb-4">
+            <button onClick={handleVCard} className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 transition-colors" style={{ borderColor: th.borderColor(color), color: th.btnText(color) }}>
               <Download className="w-4 h-4" />
               Kontakt speichern
             </button>
-          )}
-          <button onClick={handleShare} className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 transition-colors ${isTouchDevice ? "flex-1" : "w-full"}`} style={{ borderColor: th.borderColor(color), color: th.btnText(color) }}>
-            <Share2 className="w-4 h-4" />
-            {shared ? "Kopiert!" : "Teilen"}
-          </button>
-        </div>
+          </div>
+        )}
 
         {/* Social media icons */}
         {(contact.linkedinUrl || contact.instagramUrl || contact.facebookUrl || contact.tiktokUrl || contact.snapchatUrl || contact.xUrl || contact.otherSocialUrl) && (
