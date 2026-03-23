@@ -77,7 +77,7 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-500 mt-1">{tr.dashboard_subtitle}</p>
         </div>
-        {!roleLoading && !isReader && (() => {
+        {!loading && !roleLoading && !isReader && (() => {
           const limit = PLAN_LIMITS[plan];
           const limitReached = limit !== -1 && contacts.length >= limit;
           return limitReached ? (

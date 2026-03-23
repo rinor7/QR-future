@@ -36,6 +36,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
   const [isOwner, setIsOwner] = useState(false);
   const [userRole, setUserRole] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -48,6 +49,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
         setUserRole(p.role);
         setUserEmail(p.email ?? "");
       }
+      setProfileLoaded(true);
     });
   }, []);
 
@@ -122,7 +124,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
             <span className={lang === "en" ? "text-blue-600" : "text-gray-400"}>EN</span>
           </span>
         </button>
-        {isOwner ? (
+        {profileLoaded && (isOwner ? (
           <>
             <Link
               href="/dashboard/upgrade"
@@ -150,7 +152,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
               <span className="text-xs text-blue-600 font-medium">{tr.see_plans}</span>
             </Link>
           </>
-        )}
+        ))}
         {/* Account info + logout */}
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group" onClick={handleLogout}>
           <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
