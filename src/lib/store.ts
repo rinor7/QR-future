@@ -43,6 +43,7 @@ function toContact(row: Record<string, unknown>): QRContact {
     notes: (row.notes as string) ?? "",
     showLogoInQr: (row.show_logo_in_qr as boolean) ?? true,
     isActive: (row.is_active as boolean) ?? true,
+    theme: ((row.theme as string) ?? "classic") as "classic" | "dark" | "minimal",
   };
 }
 
@@ -75,6 +76,7 @@ function toRow(data: Partial<CreateQRContact>) {
     ...(data.bgImageUrl !== undefined && { bg_image_url: data.bgImageUrl }),
     ...(data.notes !== undefined && { notes: data.notes }),
     ...(data.showLogoInQr !== undefined && { show_logo_in_qr: data.showLogoInQr }),
+    ...(data.theme !== undefined && { theme: data.theme }),
   };
 }
 

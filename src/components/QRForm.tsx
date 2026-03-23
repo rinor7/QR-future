@@ -34,6 +34,7 @@ const DEFAULTS: CreateQRContact = {
   bgImageUrl: "",
   notes: "",
   isActive: true,
+  theme: "classic",
 };
 
 const MAX_SIZE = 14 * 1024 * 1024; // 14 MB
@@ -361,6 +362,36 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
               >
                 <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.showLogoInQr ? "translate-x-4" : "translate-x-0.5"}`} />
               </div>
+            </div>
+          </div>
+
+          {/* Theme picker */}
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">{tr.field_theme}</p>
+            <div className="grid grid-cols-3 gap-3">
+              {(["classic", "dark", "minimal"] as const).map((t) => {
+                const labels: Record<string, string> = { classic: tr.theme_classic, dark: tr.theme_dark, minimal: tr.theme_minimal };
+                const previews: Record<string, string> = {
+                  classic: "bg-white border-2 border-gray-200",
+                  dark: "bg-gray-900 border-2 border-gray-700",
+                  minimal: "bg-gray-50 border-2 border-gray-200",
+                };
+                const selected = form.theme === t;
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => set("theme", t)}
+                    className={`relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${selected ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}
+                  >
+                    <div className={`w-full h-10 rounded-lg ${previews[t]}`}>
+                      <div className={`h-3 w-full rounded-t-lg ${t === "dark" ? "bg-gray-700" : t === "minimal" ? "bg-gray-200" : "bg-blue-500"}`} />
+                    </div>
+                    <span className="text-xs font-medium text-gray-700">{labels[t]}</span>
+                    {selected && <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

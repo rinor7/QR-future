@@ -18,6 +18,8 @@ export const t = {
     dashboard_subtitle: "Verwalten Sie Ihre QR Codes",
     create_qr: "QR Code erstellen",
     stat_total: "Gesamt QR Codes",
+    stat_active: "Aktiv",
+    stat_paused: "Pausiert",
     stat_phone: "Mit Telefon",
     stat_website: "Mit Website",
     all_codes: "Alle QR Codes",
@@ -193,6 +195,34 @@ export const t = {
     clients_inactive_body: "Diese Kunden haben in den letzten 1 Tag(en) keine QR Codes erstellt oder bearbeitet.",
     clients_last_active: "Zuletzt aktiv",
     clients_never_active: "Noch keine Aktivität",
+    // Paused QR page
+    qr_paused_title: "QR Code pausiert",
+    qr_paused_body: "Dieser QR Code ist derzeit pausiert. Der Inhaber muss seinen Plan upgraden, um ihn zu reaktivieren.",
+    // Onboarding
+    onboarding_title: "Willkommen! 👋",
+    onboarding_subtitle: "In 3 einfachen Schritten loslegen:",
+    onboarding_step1: "Erstellen Sie Ihren ersten QR Code",
+    onboarding_step2: "Teilen Sie den Link oder drucken Sie den QR Code",
+    onboarding_step3: "Bearbeiten Sie Ihre Daten jederzeit — der QR Code bleibt gleich",
+    onboarding_dismiss: "Verstanden, loslegen!",
+    // Scan analytics
+    scans_total: "Scans gesamt",
+    scans_label: "Scans",
+    scans_today: "Heute",
+    scans_last7: "Letzte 7 Tage",
+    // Theme
+    field_theme: "Karten-Design",
+    theme_classic: "Classic",
+    theme_dark: "Dark",
+    theme_minimal: "Minimal",
+    // Codes filter
+    filter_all: "Alle",
+    filter_active: "Aktiv",
+    filter_paused: "Pausiert",
+    qr_paused_badge: "Pausiert — Plan upgraden zum Reaktivieren",
+    sort_newest: "Neueste zuerst",
+    sort_oldest: "Älteste zuerst",
+    sort_name: "Name A–Z",
   },
   en: {
     // Sidebar
@@ -207,6 +237,8 @@ export const t = {
     dashboard_subtitle: "Manage your QR codes",
     create_qr: "Create QR Code",
     stat_total: "Total QR Codes",
+    stat_active: "Active",
+    stat_paused: "Paused",
     stat_phone: "With Phone",
     stat_website: "With Website",
     all_codes: "All QR Codes",
@@ -382,6 +414,34 @@ export const t = {
     clients_inactive_body: "These clients have not created or updated any QR codes in the last 1 day(s).",
     clients_last_active: "Last active",
     clients_never_active: "No activity yet",
+    // Paused QR page
+    qr_paused_title: "QR Code paused",
+    qr_paused_body: "This QR code is currently paused. The owner needs to upgrade their plan to reactivate it.",
+    // Onboarding
+    onboarding_title: "Welcome! 👋",
+    onboarding_subtitle: "Get started in 3 simple steps:",
+    onboarding_step1: "Create your first QR code",
+    onboarding_step2: "Share the link or print the QR code",
+    onboarding_step3: "Edit your details anytime — the QR code stays the same",
+    onboarding_dismiss: "Got it, let's go!",
+    // Scan analytics
+    scans_total: "Total scans",
+    scans_label: "Scans",
+    scans_today: "Today",
+    scans_last7: "Last 7 days",
+    // Theme
+    field_theme: "Card Design",
+    theme_classic: "Classic",
+    theme_dark: "Dark",
+    theme_minimal: "Minimal",
+    // Codes filter
+    filter_all: "All",
+    filter_active: "Active",
+    filter_paused: "Paused",
+    qr_paused_badge: "Paused — upgrade plan to reactivate",
+    sort_newest: "Newest first",
+    sort_oldest: "Oldest first",
+    sort_name: "Name A–Z",
   },
 };
 

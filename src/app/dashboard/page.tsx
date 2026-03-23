@@ -18,6 +18,9 @@ export default function DashboardPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [plan, setPlan] = useState<Plan>("free");
   const [isOwner, setIsOwner] = useState(false);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(true);
+  const [scanTotal, setScanTotal] = useState(0);
+  const [scanLast7, setScanLast7] = useState<{ date: string; count: number }[]>([]);
 
   async function load() {
     try {
@@ -32,7 +35,18 @@ export default function DashboardPage() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const dismissed = localStorage.getItem("onboarding_dismissed");
+    if (!dismissed) setOnboardingDismissed(false);
+    fetch("/api/scan/stats")
+      .then((r) => r.json())
+      .then(({ total, last7 }) => {
+        if (total !== undefined) setScanTotal(total);
+        if (last7) setScanLast7(last7);
+      })
+      .catch(() => {});
+  }, []);
 
   function getQRUrl(id: string) {
     return `${window.location.origin}/qr/${id}`;
@@ -105,8 +119,33 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Onboarding banner */}
+      {!loading && !onboardingDismissed && contacts.length === 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-6">
+          <h2 className="text-base font-bold text-blue-900 mb-1">{tr.onboarding_title}</h2>
+          <p className="text-sm text-blue-700 mb-4">{tr.onboarding_subtitle}</p>
+          <ol className="space-y-2 mb-5">
+            {[tr.onboarding_step1, tr.onboarding_step2, tr.onboarding_step3].map((step, i) => (
+              <li key={i} className="flex items-start gap-3 text-sm text-blue-800">
+                <span className="w-5 h-5 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">{i + 1}</span>
+                {step}
+              </li>
+            ))}
+          </ol>
+          <button
+            onClick={() => {
+              localStorage.setItem("onboarding_dismissed", "1");
+              setOnboardingDismissed(true);
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
+          >
+            {tr.onboarding_dismiss}
+          </button>
+        </div>
+      )}
+
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-8">
         <StatCard
           label={tr.stat_total}
           value={contacts.length}
@@ -114,18 +153,32 @@ export default function DashboardPage() {
           bg="bg-blue-50"
         />
         <StatCard
-          label={tr.stat_phone}
-          value={contacts.filter((c) => c.phone).length}
-          icon={<span className="text-2xl">📞</span>}
+          label={tr.stat_active}
+          value={contacts.filter((c) => c.isActive !== false).length}
+          icon={<span className="text-2xl">✅</span>}
           bg="bg-green-50"
         />
         <StatCard
-          label={tr.stat_website}
-          value={contacts.filter((c) => c.website).length}
-          icon={<span className="text-2xl">🌐</span>}
-          bg="bg-purple-50"
+          label={tr.stat_paused}
+          value={contacts.filter((c) => c.isActive === false).length}
+          icon={<span className="text-2xl">⏸️</span>}
+          bg="bg-amber-50"
+        />
+        <StatCard
+          label={tr.scans_total}
+          value={scanTotal}
+          icon={<span className="text-2xl">👁️</span>}
+          bg="bg-orange-50"
         />
       </div>
+
+      {/* Scan chart */}
+      {scanLast7.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">{tr.scans_last7}</h2>
+          <ScanChart data={scanLast7} label={tr.scans_label} />
+        </div>
+      )}
 
       {/* QR Codes list */}
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden overflow-x-auto">
@@ -257,6 +310,31 @@ function StatCard({
       <div className={`w-14 h-14 ${bg} rounded-xl flex items-center justify-center`}>
         {icon}
       </div>
+    </div>
+  );
+}
+
+function ScanChart({ data, label }: { data: { date: string; count: number }[]; label: string }) {
+  const max = Math.max(...data.map((d) => d.count), 1);
+  const chartH = 80;
+  return (
+    <div className="flex items-end gap-2 h-24">
+      {data.map((d) => {
+        const barH = Math.max((d.count / max) * chartH, d.count > 0 ? 4 : 2);
+        const dayLabel = new Date(d.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "short" });
+        return (
+          <div key={d.date} className="flex flex-col items-center gap-1 flex-1 group relative">
+            <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-1.5 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              {d.count} {label}
+            </div>
+            <div
+              className="w-full rounded-t-md bg-blue-500 transition-all"
+              style={{ height: barH }}
+            />
+            <span className="text-xs text-gray-400">{dayLabel}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
