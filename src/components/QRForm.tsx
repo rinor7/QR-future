@@ -474,34 +474,33 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, onFormCh
 
       {/* Contact */}
       <Section title={tr.section_contact}>
-        <Field label={tr.field_phone}>
-          <input
-            type="tel"
-            value={form.phone}
-            onChange={(e) => set("phone", e.target.value)}
-            placeholder="+41 123 456 789"
-            className={input}
-          />
-        </Field>
-        <Field label={tr.field_email}>
-          <input
-            type="email"
-            value={form.email}
-            onChange={(e) => set("email", e.target.value)}
-            placeholder="max.mustermann@qr-card.ch"
-            className={input}
-          />
-        </Field>
-        <Field label={tr.field_website}>
-          <input
-            type="text"
-            value={form.website}
-            onChange={(e) => set("website", e.target.value)}
-            onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }}
-            placeholder="www.qr-card.ch"
-            className={input}
-          />
-        </Field>
+        {isFieldOpen("phone") ? (
+          <Field label={tr.field_phone}>
+            <input type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+41 123 456 789" className={input} autoFocus />
+          </Field>
+        ) : (
+          <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> {tr.field_phone}
+          </button>
+        )}
+        {isFieldOpen("email") ? (
+          <Field label={tr.field_email}>
+            <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="max@qr-card.ch" className={input} />
+          </Field>
+        ) : (
+          <button type="button" onClick={() => openField("email")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> {tr.field_email}
+          </button>
+        )}
+        {isFieldOpen("website") ? (
+          <Field label={tr.field_website}>
+            <input type="text" value={form.website} onChange={(e) => set("website", e.target.value)} onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }} placeholder="www.qr-card.ch" className={input} />
+          </Field>
+        ) : (
+          <button type="button" onClick={() => openField("website")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> {tr.field_website}
+          </button>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <Field label={tr.field_street}>
             <input
