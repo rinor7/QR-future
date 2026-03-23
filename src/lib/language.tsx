@@ -266,6 +266,9 @@ export const t = {
     sort_name: "Name A–Z",
     export_csv: "CSV exportieren",
     contact_support: "Support kontaktieren",
+    settings_support_email_title: "Kontakt-E-Mail",
+    settings_support_email_hint: "Wird Team-Mitgliedern bei Fehlern angezeigt.",
+    settings_support_email_btn: "Speichern",
   },
   en: {
     // Sidebar
@@ -528,6 +531,9 @@ export const t = {
     sort_name: "Name A–Z",
     export_csv: "Export CSV",
     contact_support: "Contact support",
+    settings_support_email_title: "Contact Email",
+    settings_support_email_hint: "Shown to team members when a save error occurs.",
+    settings_support_email_btn: "Save",
   },
 };
 

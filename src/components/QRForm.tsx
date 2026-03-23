@@ -88,10 +88,11 @@ interface Props {
   submitLabel: string;
   saved?: boolean;
   error?: string | null;
+  supportEmail?: string;
   onFormChange?: (data: CreateQRContact) => void;
 }
 
-export default function QRForm({ initial, onSubmit, submitLabel, saved, error, onFormChange }: Props) {
+export default function QRForm({ initial, onSubmit, submitLabel, saved, error, supportEmail, onFormChange }: Props) {
   const router = useRouter();
   const { tr } = useLang();
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
@@ -294,8 +295,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, error, o
             />
           </Field>
         ) : (
-          <button type="button" onClick={() => openField("title")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
-            <Plus className="w-4 h-4" /> {tr.field_title}
+          <button type="button" onClick={() => openField("title")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+            <Plus className="w-3.5 h-3.5" /> {tr.field_title}
           </button>
         )}
 
@@ -311,8 +312,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, error, o
             />
           </Field>
         ) : (
-          <button type="button" onClick={() => openField("company")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
-            <Plus className="w-4 h-4" /> {tr.field_company}
+          <button type="button" onClick={() => openField("company")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+            <Plus className="w-3.5 h-3.5" /> {tr.field_company}
           </button>
         )}
 
@@ -328,8 +329,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, error, o
             />
           </Field>
         ) : (
-          <button type="button" onClick={() => openField("description")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
-            <Plus className="w-4 h-4" /> {tr.field_description}
+          <button type="button" onClick={() => openField("description")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+            <Plus className="w-3.5 h-3.5" /> {tr.field_description}
           </button>
         )}
 
@@ -480,8 +481,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, error, o
             <input type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+41 123 456 789" className={input} autoFocus />
           </Field>
         ) : (
-          <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
-            <Plus className="w-4 h-4" /> {tr.field_phone}
+          <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+            <Plus className="w-3.5 h-3.5" /> {tr.field_phone}
           </button>
         )}
         {isFieldOpen("email") ? (
@@ -489,8 +490,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, error, o
             <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="max@qr-card.ch" className={input} />
           </Field>
         ) : (
-          <button type="button" onClick={() => openField("email")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
-            <Plus className="w-4 h-4" /> {tr.field_email}
+          <button type="button" onClick={() => openField("email")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+            <Plus className="w-3.5 h-3.5" /> {tr.field_email}
           </button>
         )}
         {isFieldOpen("website") ? (
@@ -498,8 +499,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, error, o
             <input type="text" value={form.website} onChange={(e) => set("website", e.target.value)} onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }} placeholder="www.qr-card.ch" className={input} />
           </Field>
         ) : (
-          <button type="button" onClick={() => openField("website")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
-            <Plus className="w-4 h-4" /> {tr.field_website}
+          <button type="button" onClick={() => openField("website")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+            <Plus className="w-3.5 h-3.5" /> {tr.field_website}
           </button>
         )}
         <div className="grid grid-cols-2 gap-3">
@@ -773,12 +774,11 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, error, o
       {error && (
         <div className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
           {error}{" "}
-          <a
-            href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@qr-card.ch"}`}
-            className="underline font-medium hover:text-red-800"
-          >
-            {tr.contact_support ?? "Support kontaktieren"}
-          </a>
+          {supportEmail && (
+            <a href={`mailto:${supportEmail}`} className="underline font-medium hover:text-red-800">
+              {tr.contact_support}
+            </a>
+          )}
         </div>
       )}
     </form>
