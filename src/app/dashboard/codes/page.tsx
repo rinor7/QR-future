@@ -168,6 +168,14 @@ export default function CodesPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 min-w-[200px] max-w-md border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
         />
+        <a
+          href="/api/scan/export"
+          download="scan-data.csv"
+          className="flex items-center gap-1.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors"
+        >
+          <Download className="w-4 h-4" />
+          {tr.export_csv}
+        </a>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "paused")}
