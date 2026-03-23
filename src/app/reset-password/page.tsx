@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { QrCode } from "lucide-react";
@@ -11,6 +11,25 @@ export default function ResetPasswordPage() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [sessionError, setSessionError] = useState(false);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowser();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setSessionReady(true);
+      } else {
+        // Wait briefly for session to propagate, then check again
+        setTimeout(() => {
+          supabase.auth.getSession().then(({ data: { session: s } }) => {
+            if (s) setSessionReady(true);
+            else setSessionError(true);
+          });
+        }, 1000);
+      }
+    });
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,6 +55,28 @@ export default function ResetPasswordPage() {
     }
 
     router.push("/dashboard");
+  }
+
+  if (!sessionReady && !sessionError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
+
+  if (sessionError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-sm bg-white rounded-2xl border border-gray-200 p-8 text-center space-y-4">
+          <p className="text-sm font-medium text-red-600">Link ungültig oder abgelaufen.</p>
+          <p className="text-sm text-gray-500">Bitte fordern Sie einen neuen Reset-Link an.</p>
+          <a href="/forgot-password" className="block text-sm text-blue-600 hover:underline">
+            Neuen Link anfordern
+          </a>
+        </div>
+      </div>
+    );
   }
 
   return (
