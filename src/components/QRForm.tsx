@@ -13,6 +13,7 @@ const DEFAULTS: CreateQRContact = {
   lastName: "",
   title: "",
   company: "",
+  description: "",
   logoUrl: "",
   showLogoInQr: true,
   phone: "",
@@ -93,6 +94,28 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, onFormCh
   const router = useRouter();
   const { tr } = useLang();
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
+
+  // Track which optional fields are manually opened
+  const [openFields, setOpenFields] = useState<Set<string>>(() => {
+    const open = new Set<string>();
+    const optionals = ["title", "company", "description", "phone", "email", "website"];
+    optionals.forEach((f) => {
+      if ((initial as Record<string, string>)?.[f]) open.add(f);
+    });
+    return open;
+  });
+  const [activeSocial, setActiveSocial] = useState<string | null>(() => {
+    const socials = ["linkedinUrl", "instagramUrl", "facebookUrl", "tiktokUrl", "snapchatUrl", "xUrl", "otherSocialUrl"];
+    return socials.find((s) => (initial as Record<string, string>)?.[s]) ?? null;
+  });
+
+  function isFieldOpen(field: string) {
+    return openFields.has(field) || !!(form[field as keyof CreateQRContact]);
+  }
+  function openField(field: string) {
+    setOpenFields((prev) => { const next = new Set(prev); next.add(field); return next; });
+  }
+
   const [userId, setUserId] = useState("");
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
@@ -256,24 +279,58 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, onFormCh
             />
           </Field>
         </div>
-        <Field label={tr.field_title}>
-          <input
-            type="text"
-            value={form.title}
-            onChange={(e) => set("title", e.target.value)}
-            placeholder="z.B. Geschäftsführer"
-            className={input}
-          />
-        </Field>
-        <Field label={tr.field_company}>
-          <input
-            type="text"
-            value={form.company}
-            onChange={(e) => set("company", e.target.value)}
-            placeholder="z.B. Builtech Gruppe"
-            className={input}
-          />
-        </Field>
+
+        {/* Expandable: Title */}
+        {isFieldOpen("title") ? (
+          <Field label={tr.field_title}>
+            <input
+              type="text"
+              value={form.title}
+              onChange={(e) => set("title", e.target.value)}
+              placeholder="z.B. Geschäftsführer"
+              className={input}
+              autoFocus
+            />
+          </Field>
+        ) : (
+          <button type="button" onClick={() => openField("title")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> {tr.field_title}
+          </button>
+        )}
+
+        {/* Expandable: Company */}
+        {isFieldOpen("company") ? (
+          <Field label={tr.field_company}>
+            <input
+              type="text"
+              value={form.company}
+              onChange={(e) => set("company", e.target.value)}
+              placeholder="z.B. Builtech Gruppe"
+              className={input}
+            />
+          </Field>
+        ) : (
+          <button type="button" onClick={() => openField("company")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> {tr.field_company}
+          </button>
+        )}
+
+        {/* Expandable: Description */}
+        {isFieldOpen("description") ? (
+          <Field label={tr.field_description}>
+            <textarea
+              value={(form as unknown as Record<string, string>).description ?? ""}
+              onChange={(e) => set("description" as keyof CreateQRContact, e.target.value)}
+              placeholder="Kurze Beschreibung oder Slogan…"
+              rows={2}
+              className={`${input} resize-none`}
+            />
+          </Field>
+        ) : (
+          <button type="button" onClick={() => openField("description")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> {tr.field_description}
+          </button>
+        )}
 
         {/* Design: Background + Color + Logo */}
         <div className="border border-gray-100 rounded-xl p-4 bg-gray-50 space-y-4">

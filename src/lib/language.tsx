@@ -250,6 +250,7 @@ export const t = {
     scans_label: "Scans",
     scans_today: "Heute",
     scans_last7: "Letzte 7 Tage",
+    field_description: "Beschreibung",
     // Theme
     field_theme: "Karten-Design",
     theme_classic: "Classic",
@@ -510,6 +511,7 @@ export const t = {
     scans_label: "Scans",
     scans_today: "Today",
     scans_last7: "Last 7 days",
+    field_description: "Description",
     // Theme
     field_theme: "Card Design",
     theme_classic: "Classic",
