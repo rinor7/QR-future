@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { QrCode, Plus, Pencil, Trash2, ExternalLink, Copy, Check, Zap } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
@@ -11,6 +12,7 @@ import { useRole } from "@/lib/useRole";
 
 export default function DashboardPage() {
   const { tr } = useLang();
+  const router = useRouter();
   const { isAdmin, isReader, loading: roleLoading } = useRole();
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +38,9 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
+    getUserProfile().then((p) => {
+      if (p?.isPlatformAdmin) { router.replace("/dashboard/clients"); return; }
+    });
     load();
     const dismissed = localStorage.getItem("onboarding_dismissed");
     if (!dismissed) setOnboardingDismissed(false);

@@ -12,6 +12,8 @@ import {
   Users,
   Building2,
   X,
+  CreditCard,
+  SlidersHorizontal,
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { useLang } from "@/lib/language";
@@ -53,13 +55,19 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
     });
   }, []);
 
-  const nav = [
-    { href: "/dashboard", label: tr.nav_dashboard, icon: LayoutDashboard },
-    { href: "/dashboard/codes", label: tr.nav_codes, icon: QrCode },
-    ...(canManageUsers && isAdmin ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
-    ...(isPlatformAdmin ? [{ href: "/dashboard/clients", label: tr.nav_clients, icon: Building2 }] : []),
-    { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
-  ];
+  const nav = isPlatformAdmin
+    ? [
+        { href: "/dashboard/clients", label: tr.nav_clients, icon: Building2 },
+        { href: "/dashboard/plan-settings", label: tr.nav_plan_settings, icon: SlidersHorizontal },
+        { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
+      ]
+    : [
+        { href: "/dashboard", label: tr.nav_dashboard, icon: LayoutDashboard },
+        { href: "/dashboard/codes", label: tr.nav_codes, icon: QrCode },
+        ...(canManageUsers && isAdmin ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
+        ...(isOwner ? [{ href: "/dashboard/upgrade", label: tr.nav_plans, icon: CreditCard }] : []),
+        { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
+      ];
 
   async function handleLogout() {
     const supabase = getSupabaseBrowser();
@@ -124,7 +132,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
             <span className={lang === "en" ? "text-blue-600" : "text-gray-400"}>EN</span>
           </span>
         </button>
-        {profileLoaded && (isOwner ? (
+        {profileLoaded && !isPlatformAdmin && (isOwner ? (
           <>
             <Link
               href="/dashboard/upgrade"
