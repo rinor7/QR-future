@@ -176,7 +176,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Support Email — only for org owners and platform admin */}
-      {(isOwner || isPlatformAdmin) && (
+      {isPlatformAdmin && (
         <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-1">{tr.settings_support_email_title ?? "Platform Contact Email"}</h2>
           <p className="text-sm text-gray-400 mb-4">{tr.settings_support_email_hint ?? "Shown to team members when a save error occurs."}</p>

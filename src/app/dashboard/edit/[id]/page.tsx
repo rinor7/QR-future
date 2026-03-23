@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
-import { getContact, updateContact, getUserProfile } from "@/lib/store";
+import { getContact, updateContact } from "@/lib/store";
 import { QRContact, CreateQRContact } from "@/lib/types";
 import QRForm from "@/components/QRForm";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
@@ -32,7 +32,7 @@ export default function EditPage() {
   }, [isReader, roleLoading, router]);
 
   useEffect(() => {
-    getUserProfile().then((p) => { if (p?.supportEmail) setSupportEmail(p.supportEmail); });
+    fetch("/api/platform/support-email").then((r) => r.json()).then(({ supportEmail: s }) => { if (s) setSupportEmail(s); });
     getContact(id).then((c) => {
       if (!c) {
         router.push("/dashboard");
