@@ -12,6 +12,8 @@ import {
   Users,
   Building2,
   X,
+  CreditCard,
+  SlidersHorizontal,
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { useLang } from "@/lib/language";
@@ -35,6 +37,8 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [userRole, setUserRole] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -45,17 +49,25 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
         setIsAdmin(p.role === "admin");
         setIsOwner(p.userId === p.ownerId);
         setUserRole(p.role);
+        setUserEmail(p.email ?? "");
       }
+      setProfileLoaded(true);
     });
   }, []);
 
-  const nav = [
-    { href: "/dashboard", label: tr.nav_dashboard, icon: LayoutDashboard },
-    { href: "/dashboard/codes", label: tr.nav_codes, icon: QrCode },
-    ...(canManageUsers && isAdmin ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
-    ...(isPlatformAdmin ? [{ href: "/dashboard/clients", label: tr.nav_clients, icon: Building2 }] : []),
-    { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
-  ];
+  const nav = isPlatformAdmin
+    ? [
+        { href: "/dashboard/clients", label: tr.nav_clients, icon: Building2 },
+        { href: "/dashboard/plan-settings", label: tr.nav_plan_settings, icon: SlidersHorizontal },
+        { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
+      ]
+    : [
+        { href: "/dashboard", label: tr.nav_dashboard, icon: LayoutDashboard },
+        { href: "/dashboard/codes", label: tr.nav_codes, icon: QrCode },
+        ...(canManageUsers && isAdmin ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
+        ...(isOwner ? [{ href: "/dashboard/upgrade", label: tr.nav_plans, icon: CreditCard }] : []),
+        { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
+      ];
 
   async function handleLogout() {
     const supabase = getSupabaseBrowser();
@@ -120,7 +132,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
             <span className={lang === "en" ? "text-blue-600" : "text-gray-400"}>EN</span>
           </span>
         </button>
-        {isOwner ? (
+        {profileLoaded && !isPlatformAdmin && (isOwner ? (
           <>
             <Link
               href="/dashboard/upgrade"
@@ -148,15 +160,20 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
               <span className="text-xs text-blue-600 font-medium">{tr.see_plans}</span>
             </Link>
           </>
-        )}
-        <div className="text-xs text-gray-400 text-center py-1">v1.0.0</div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 w-full transition-colors"
-        >
-          <LogOut className="w-5 h-5" />
-          {tr.logout}
-        </button>
+        ))}
+        {/* Account info + logout */}
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group" onClick={handleLogout}>
+          <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
+            {userEmail ? userEmail[0].toUpperCase() : "?"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-gray-700 truncate">{userEmail}</p>
+            <p className="text-xs text-gray-400">
+              {isPlatformAdmin ? "Platform Admin" : isOwner ? tr.role_owner : userRole === "admin" ? tr.role_admin : userRole === "writer" ? tr.role_writer : tr.role_reader}
+            </p>
+          </div>
+          <LogOut className="w-4 h-4 text-gray-400 group-hover:text-red-500 transition-colors shrink-0" />
+        </div>
       </div>
     </aside>
   );

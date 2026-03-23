@@ -42,7 +42,7 @@ function FacebookIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function formatPhone(phone: string): string {
   const digits = phone.replace(/\D/g, "");
@@ -63,9 +63,69 @@ function formatPhone(phone: string): string {
   return phone;
 }
 
+const THEMES = {
+  classic: {
+    page: "bg-[#f1f5f9]",
+    card: "bg-white",
+    text: "text-gray-900",
+    subtext: "text-gray-500",
+    divider: "border-gray-100",
+    btnBg: (color: string) => `${color}15`,
+    btnText: (color: string) => color,
+    iconBg: (color: string) => color,
+    iconText: "#fff",
+    socialBg: (color: string) => `${color}15`,
+    socialText: (color: string) => color,
+    borderColor: (color: string) => color,
+    actionLabelColor: "text-gray-400",
+  },
+  dark: {
+    page: "bg-gray-950",
+    card: "bg-gray-900",
+    text: "text-white",
+    subtext: "text-gray-400",
+    divider: "border-gray-700",
+    btnBg: () => "rgba(255,255,255,0.08)",
+    btnText: () => "#fff",
+    iconBg: (color: string) => color,
+    iconText: "#fff",
+    socialBg: () => "rgba(255,255,255,0.1)",
+    socialText: () => "#fff",
+    borderColor: () => "rgba(255,255,255,0.3)",
+    actionLabelColor: "text-gray-500",
+  },
+  minimal: {
+    page: "bg-white",
+    card: "bg-white shadow-none border border-gray-200",
+    text: "text-gray-900",
+    subtext: "text-gray-500",
+    divider: "border-gray-100",
+    btnBg: () => "#f9fafb",
+    btnText: () => "#374151",
+    iconBg: () => "#e5e7eb",
+    iconText: "#374151",
+    socialBg: () => "#f3f4f6",
+    socialText: () => "#374151",
+    borderColor: () => "#d1d5db",
+    actionLabelColor: "text-gray-400",
+  },
+} as const;
+
 export default function QRLandingClient({ contact }: { contact: QRContact }) {
   const [shared, setShared] = useState(false);
   const color = contact.primaryColor || "#2563eb";
+  const th = THEMES[contact.theme ?? "classic"];
+
+  useEffect(() => {
+    const key = `scanned_${contact.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    fetch("/api/scan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contactId: contact.id }),
+    }).catch(() => {});
+  }, [contact.id]);
 
   function handleShare() {
     if (navigator.share) {
@@ -103,8 +163,8 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#f1f5f9" }}>
-      <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+    <div className={`min-h-screen flex items-center justify-center p-4 ${th.page}`}>
+      <div className={`w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden ${th.card}`}>
 
         {/* Header with gradient or bg image */}
         <div
@@ -147,16 +207,16 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
         {/* Identity */}
         <div className="pt-14 pb-5 px-6 text-center">
           {(contact.firstName || contact.lastName) && (
-            <h1 className="text-xl font-bold text-gray-900 leading-tight">{`${contact.firstName} ${contact.lastName}`.trim()}</h1>
+            <h1 className={`text-xl font-bold leading-tight ${th.text}`}>{`${contact.firstName} ${contact.lastName}`.trim()}</h1>
           )}
           {contact.title && (
-            <p className="text-sm text-gray-500 mt-0.5">{contact.title}</p>
+            <p className={`text-sm mt-0.5 ${th.subtext}`}>{contact.title}</p>
           )}
           {contact.company && (
             <p className="text-sm font-semibold mt-0.5" style={{ color }}>{contact.company}</p>
           )}
           {(contact.street || contact.city) && (
-            <p className="flex items-center justify-center gap-1 text-xs text-gray-400 mt-2">
+            <p className={`flex items-center justify-center gap-1 text-xs mt-2 ${th.subtext}`}>
               <MapPin className="w-3 h-3" />
               {[`${contact.street} ${contact.streetNr}`.trim(), contact.plz, contact.city].filter(Boolean).join(", ")}
             </p>
@@ -164,78 +224,54 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
         </div>
 
         {/* Divider */}
-        <div className="mx-6 border-t border-gray-100 mb-4" />
+        <div className={`mx-6 border-t mb-4 ${th.divider}`} />
 
         {/* Action buttons */}
         <div className="px-5 space-y-2.5 pb-4">
           {contact.phone && (
-            <a
-              href={`tel:${contact.phone}`}
-              className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style={{ backgroundColor: `${color}15`, color }}
-            >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: color }}>
+            <a href={`tel:${contact.phone}`} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <Phone className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <div className="text-xs text-gray-400 font-normal">Anrufen</div>
-                <div className="text-sm font-semibold" style={{ color }}>{formatPhone(contact.phone)}</div>
+                <div className={`text-xs font-normal ${th.actionLabelColor}`}>Anrufen</div>
+                <div className="text-sm font-semibold">{formatPhone(contact.phone)}</div>
               </div>
             </a>
           )}
-
           {contact.email && (
-            <a
-              href={`mailto:${contact.email}`}
-              className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style={{ backgroundColor: `${color}15`, color }}
-            >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: color }}>
+            <a href={`mailto:${contact.email}`} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <Mail className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <div className="text-xs text-gray-400 font-normal">E-Mail</div>
-                <div className="text-sm font-semibold truncate" style={{ color }}>{contact.email}</div>
+                <div className={`text-xs font-normal ${th.actionLabelColor}`}>E-Mail</div>
+                <div className="text-sm font-semibold truncate">{contact.email}</div>
               </div>
             </a>
           )}
-
           {contact.website && (
-            <a
-              href={contact.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style={{ backgroundColor: `${color}15`, color }}
-            >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: color }}>
+            <a href={contact.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <Globe className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <div className="text-xs text-gray-400 font-normal">Webseite</div>
-                <div className="text-sm font-semibold truncate" style={{ color }}>{contact.website.replace(/^https?:\/\//, "")}</div>
+                <div className={`text-xs font-normal ${th.actionLabelColor}`}>Webseite</div>
+                <div className="text-sm font-semibold truncate">{contact.website.replace(/^https?:\/\//, "")}</div>
               </div>
             </a>
           )}
-
           {contact.links && contact.links.map((link, i) => (
-            <a
-              key={i}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style={{ backgroundColor: `${color}15`, color }}
-            >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: color }}>
+            <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <FileText className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <div className="text-xs text-gray-400 font-normal">{link.type === "file" ? "Dokument" : "Link"}</div>
-                <div className="text-sm font-semibold" style={{ color }}>{link.label}</div>
+                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{link.type === "file" ? "Dokument" : "Link"}</div>
+                <div className="text-sm font-semibold">{link.label}</div>
               </div>
               {link.type === "file" && (
-                <div className="flex items-center gap-0.5 text-gray-400 shrink-0">
+                <div className={`flex items-center gap-0.5 shrink-0 ${th.subtext}`}>
                   <Download className="w-3 h-3" />
                   <span className="text-xs">PDF</span>
                 </div>
@@ -246,19 +282,11 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
 
         {/* vCard + Share */}
         <div className="px-5 pb-4 flex gap-2.5">
-          <button
-            onClick={handleVCard}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 hover:bg-gray-50 transition-colors"
-            style={{ borderColor: color, color }}
-          >
+          <button onClick={handleVCard} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 transition-colors" style={{ borderColor: th.borderColor(color), color: th.btnText(color) }}>
             <Download className="w-4 h-4" />
             vCard
           </button>
-          <button
-            onClick={handleShare}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 hover:bg-gray-50 transition-colors"
-            style={{ borderColor: color, color }}
-          >
+          <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 transition-colors" style={{ borderColor: th.borderColor(color), color: th.btnText(color) }}>
             <Share2 className="w-4 h-4" />
             {shared ? "Kopiert!" : "Teilen"}
           </button>
@@ -268,37 +296,37 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
         {(contact.linkedinUrl || contact.instagramUrl || contact.facebookUrl || contact.tiktokUrl || contact.snapchatUrl || contact.xUrl || contact.otherSocialUrl) && (
           <div className="px-5 pb-6 flex items-center justify-center flex-wrap gap-3">
             {contact.linkedinUrl && (
-              <a href={contact.linkedinUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="LinkedIn">
+              <a href={contact.linkedinUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="LinkedIn">
                 <LinkedInIcon className="w-4 h-4" />
               </a>
             )}
             {contact.instagramUrl && (
-              <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="Instagram">
+              <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Instagram">
                 <InstagramIcon className="w-4 h-4" />
               </a>
             )}
             {contact.facebookUrl && (
-              <a href={contact.facebookUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="Facebook">
+              <a href={contact.facebookUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Facebook">
                 <FacebookIcon className="w-4 h-4" />
               </a>
             )}
             {contact.tiktokUrl && (
-              <a href={contact.tiktokUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="TikTok">
+              <a href={contact.tiktokUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="TikTok">
                 <Music2 className="w-4 h-4" />
               </a>
             )}
             {contact.snapchatUrl && (
-              <a href={contact.snapchatUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="Snapchat">
+              <a href={contact.snapchatUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Snapchat">
                 <Ghost className="w-4 h-4" />
               </a>
             )}
             {contact.xUrl && (
-              <a href={contact.xUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="X">
+              <a href={contact.xUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="X">
                 <XBrandIcon className="w-4 h-4" />
               </a>
             )}
             {contact.otherSocialUrl && (
-              <a href={contact.otherSocialUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: `${color}15`, color }} title="Link">
+              <a href={contact.otherSocialUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Link">
                 <Link2 className="w-4 h-4" />
               </a>
             )}

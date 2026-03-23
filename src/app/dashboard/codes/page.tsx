@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download } from "lucide-react";
+import { Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download, BarChart2 } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
@@ -18,8 +18,11 @@ export default function CodesPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "paused">("all");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name">("newest");
   const [plan, setPlan] = useState<Plan>("free");
   const [isOwner, setIsOwner] = useState(false);
+  const [scanCounts, setScanCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     Promise.all([getAllContacts(), getUserProfile()]).then(([data, profile]) => {
@@ -29,6 +32,11 @@ export default function CodesPage() {
         setIsOwner(profile.userId === profile.ownerId);
       }
     }).finally(() => setLoading(false));
+
+    fetch("/api/scan/counts")
+      .then((r) => r.json())
+      .then(({ counts }) => { if (counts) setScanCounts(counts); })
+      .catch(() => {});
   }, []);
 
   function getQRUrl(id: string) {
@@ -100,12 +108,23 @@ export default function CodesPage() {
   const limit = PLAN_LIMITS[plan];
   const limitReached = limit !== -1 && contacts.length >= limit;
 
-  const filtered = contacts.filter(
-    (c) =>
-      `${c.firstName} ${c.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
-      c.company.toLowerCase().includes(search.toLowerCase()) ||
-      c.id.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = contacts
+    .filter((c) => {
+      const matchesSearch =
+        `${c.firstName} ${c.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
+        c.company.toLowerCase().includes(search.toLowerCase()) ||
+        c.id.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" && c.isActive !== false) ||
+        (statusFilter === "paused" && c.isActive === false);
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      if (sortBy === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      if (sortBy === "name") return `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   return (
     <div className="p-4 wide:p-8">
@@ -114,7 +133,7 @@ export default function CodesPage() {
           <h1 className="text-3xl font-bold text-gray-900">QR Codes</h1>
           <p className="text-gray-500 mt-1">{contacts.length} {tr.codes_total}</p>
         </div>
-        {!isReader && (
+        {!loading && !isReader && (
           limitReached ? (
             <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
               <span className="text-sm text-amber-800">{tr.plan_limit_reached} — </span>
@@ -141,14 +160,32 @@ export default function CodesPage() {
         )}
       </div>
 
-      <div className="mb-6">
+      <div className="flex flex-wrap items-center gap-3 mb-6">
         <input
           type="text"
           placeholder={tr.search_placeholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-md border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+          className="flex-1 min-w-[200px] max-w-md border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
         />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "paused")}
+          className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
+        >
+          <option value="all">{tr.filter_all}</option>
+          <option value="active">{tr.filter_active}</option>
+          <option value="paused">{tr.filter_paused}</option>
+        </select>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as "newest" | "oldest" | "name")}
+          className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
+        >
+          <option value="newest">{tr.sort_newest}</option>
+          <option value="oldest">{tr.sort_oldest}</option>
+          <option value="name">{tr.sort_name}</option>
+        </select>
       </div>
 
       {loading ? (
@@ -168,7 +205,7 @@ export default function CodesPage() {
             >
               {contact.isActive === false && (
                 <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 text-xs font-medium text-amber-700 w-fit">
-                  ⏸ Paused — upgrade plan to reactivate
+                  ⏸ {tr.qr_paused_badge}
                 </div>
               )}
               <div className="flex items-start justify-between">
@@ -193,10 +230,12 @@ export default function CodesPage() {
                 <QRCodeDisplay value={getQRUrl(contact.id)} size={140} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
               </div>
 
-              <div className="text-center">
-                <p className="text-xs text-gray-400 font-mono">
-                  {new Date(contact.createdAt).toLocaleDateString("de-DE")}
-                </p>
+              <div className="flex items-center justify-between text-xs text-gray-400">
+                <span className="font-mono">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</span>
+                <span className="flex items-center gap-1">
+                  <BarChart2 className="w-3.5 h-3.5" />
+                  {scanCounts[contact.id] ?? 0} {tr.scans_label}
+                </span>
               </div>
 
               {contact.createdBy && (
