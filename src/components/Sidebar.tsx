@@ -33,7 +33,6 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
   const { tr, lang, toggleLang } = useLang();
   const [plan, setPlan] = useState<Plan>("free");
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
-  const [canManageUsers, setCanManageUsers] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [userRole, setUserRole] = useState<string>("");
@@ -45,7 +44,6 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
       if (p) {
         setPlan(p.plan);
         setIsPlatformAdmin(p.isPlatformAdmin ?? false);
-        setCanManageUsers(p.canManageUsers ?? false);
         setIsAdmin(p.role === "admin");
         setIsOwner(p.userId === p.ownerId);
         setUserRole(p.role);
