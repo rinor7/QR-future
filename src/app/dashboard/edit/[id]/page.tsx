@@ -77,7 +77,7 @@ export default function EditPage() {
       };
       const logoUrl = previewLogoUrl;
       if (logoUrl) {
-        const logoSize = Math.round(exportSize * 0.28);
+        const logoSize = Math.round(exportSize * 0.32);
         const padding = Math.round(logoSize * 0.1);
         const offset = (exportSize - logoSize) / 2;
         const logoImg = new Image();
@@ -136,12 +136,6 @@ export default function EditPage() {
           {tr.edit_success}
         </div>
       )}
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">
-          {error}
-        </div>
-      )}
-
       <div className="flex gap-8">
         <div className="flex-1">
           <QRForm
@@ -149,6 +143,7 @@ export default function EditPage() {
             onSubmit={handleSubmit}
             submitLabel={tr.save}
             saved={saved}
+            error={error}
             onFormChange={(f) => setPreviewLogoUrl(f.showLogoInQr !== false ? f.logoUrl || undefined : undefined)}
           />
         </div>

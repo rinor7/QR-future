@@ -87,10 +87,11 @@ interface Props {
   onSubmit: (data: CreateQRContact) => void;
   submitLabel: string;
   saved?: boolean;
+  error?: string | null;
   onFormChange?: (data: CreateQRContact) => void;
 }
 
-export default function QRForm({ initial, onSubmit, submitLabel, saved, onFormChange }: Props) {
+export default function QRForm({ initial, onSubmit, submitLabel, saved, error, onFormChange }: Props) {
   const router = useRouter();
   const { tr } = useLang();
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
@@ -474,34 +475,33 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, onFormCh
 
       {/* Contact */}
       <Section title={tr.section_contact}>
-        <Field label={tr.field_phone}>
-          <input
-            type="tel"
-            value={form.phone}
-            onChange={(e) => set("phone", e.target.value)}
-            placeholder="+41 123 456 789"
-            className={input}
-          />
-        </Field>
-        <Field label={tr.field_email}>
-          <input
-            type="email"
-            value={form.email}
-            onChange={(e) => set("email", e.target.value)}
-            placeholder="max.mustermann@qr-card.ch"
-            className={input}
-          />
-        </Field>
-        <Field label={tr.field_website}>
-          <input
-            type="text"
-            value={form.website}
-            onChange={(e) => set("website", e.target.value)}
-            onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }}
-            placeholder="www.qr-card.ch"
-            className={input}
-          />
-        </Field>
+        {isFieldOpen("phone") ? (
+          <Field label={tr.field_phone}>
+            <input type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+41 123 456 789" className={input} autoFocus />
+          </Field>
+        ) : (
+          <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> {tr.field_phone}
+          </button>
+        )}
+        {isFieldOpen("email") ? (
+          <Field label={tr.field_email}>
+            <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="max@qr-card.ch" className={input} />
+          </Field>
+        ) : (
+          <button type="button" onClick={() => openField("email")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> {tr.field_email}
+          </button>
+        )}
+        {isFieldOpen("website") ? (
+          <Field label={tr.field_website}>
+            <input type="text" value={form.website} onChange={(e) => set("website", e.target.value)} onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }} placeholder="www.qr-card.ch" className={input} />
+          </Field>
+        ) : (
+          <button type="button" onClick={() => openField("website")} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> {tr.field_website}
+          </button>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <Field label={tr.field_street}>
             <input
@@ -770,6 +770,17 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, onFormCh
           </span>
         )}
       </div>
+      {error && (
+        <div className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          {error}{" "}
+          <a
+            href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@qr-card.ch"}`}
+            className="underline font-medium hover:text-red-800"
+          >
+            {tr.contact_support ?? "Support kontaktieren"}
+          </a>
+        </div>
+      )}
     </form>
   );
 }

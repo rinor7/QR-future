@@ -215,6 +215,9 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
           {contact.company && (
             <p className="text-sm font-semibold mt-0.5" style={{ color }}>{contact.company}</p>
           )}
+          {contact.description && (
+            <p className={`text-sm mt-1 ${th.subtext}`}>{contact.description}</p>
+          )}
           {(contact.street || contact.city) && (
             <p className={`flex items-center justify-center gap-1 text-xs mt-2 ${th.subtext}`}>
               <MapPin className="w-3 h-3" />

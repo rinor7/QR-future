@@ -265,6 +265,7 @@ export const t = {
     sort_oldest: "Älteste zuerst",
     sort_name: "Name A–Z",
     export_csv: "CSV exportieren",
+    contact_support: "Support kontaktieren",
   },
   en: {
     // Sidebar
@@ -526,6 +527,7 @@ export const t = {
     sort_oldest: "Oldest first",
     sort_name: "Name A–Z",
     export_csv: "Export CSV",
+    contact_support: "Contact support",
   },
 };
 
