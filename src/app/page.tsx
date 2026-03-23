@@ -1,52 +1,22 @@
 import Link from "next/link";
 import { QrCode, Check, Zap, Shield, Globe } from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
 
-const PLANS = [
-  {
-    name: "Free",
-    price: "0",
-    limit: "2 QR Codes",
-    note: "48h Auto-Löschung",
-    badge: "bg-gray-100 text-gray-600",
-    border: "border-gray-200",
-    cta: "Kostenlos starten",
-    href: "/register",
-    highlight: false,
-  },
-  {
-    name: "Star",
-    price: "20",
-    limit: "10 QR Codes",
-    note: "Kein Ablauf",
-    badge: "bg-yellow-100 text-yellow-700",
-    border: "border-yellow-300",
-    cta: "Star wählen",
-    href: "/register",
-    highlight: false,
-  },
-  {
-    name: "Premium",
-    price: "60",
-    limit: "100 QR Codes",
-    note: "Kein Ablauf",
-    badge: "bg-blue-100 text-blue-700",
-    border: "border-blue-400",
-    cta: "Premium wählen",
-    href: "/register",
-    highlight: true,
-  },
-  {
-    name: "Platinum",
-    price: "200",
-    limit: "Unbegrenzt",
-    note: "Kein Ablauf",
-    badge: "bg-purple-100 text-purple-700",
-    border: "border-purple-400",
-    cta: "Platinum wählen",
-    href: "/register",
-    highlight: false,
-  },
-];
+const PLAN_ORDER = ["free", "star", "premium", "platinum"];
+
+const PLAN_STYLE: Record<string, { badge: string; border: string; highlight: boolean }> = {
+  free:     { badge: "bg-gray-100 text-gray-600",     border: "border-gray-200",   highlight: false },
+  star:     { badge: "bg-yellow-100 text-yellow-700", border: "border-yellow-300", highlight: false },
+  premium:  { badge: "bg-blue-100 text-blue-700",     border: "border-blue-400",   highlight: true  },
+  platinum: { badge: "bg-purple-100 text-purple-700", border: "border-purple-400", highlight: false },
+};
+
+const PLAN_CTA: Record<string, string> = {
+  free:     "Kostenlos starten",
+  star:     "Star wählen",
+  premium:  "Premium wählen",
+  platinum: "Platinum wählen",
+};
 
 const FEATURES = [
   {
@@ -66,7 +36,25 @@ const FEATURES = [
   },
 ];
 
-export default function LandingPage() {
+async function getPlanConfigs() {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const { data } = await supabase.from("plan_config").select("plan, price, features");
+    if (!data) return null;
+    return PLAN_ORDER
+      .map((p) => data.find((d) => d.plan === p))
+      .filter(Boolean) as { plan: string; price: number; features: string[] }[];
+  } catch {
+    return null;
+  }
+}
+
+export default async function LandingPage() {
+  const plans = await getPlanConfigs();
+
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* Nav */}
@@ -134,45 +122,52 @@ export default function LandingPage() {
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">Einfache Preisgestaltung</h2>
           <p className="text-center text-gray-500 mb-12">Starten Sie kostenlos — upgraden Sie wenn Sie bereit sind.</p>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {PLANS.map((plan) => (
-              <div
-                key={plan.name}
-                className={`bg-white rounded-2xl border-2 p-6 flex flex-col ${plan.border} ${plan.highlight ? "ring-2 ring-blue-500 shadow-lg" : ""}`}
-              >
-                {plan.highlight && (
-                  <div className="text-center mb-3">
-                    <span className="text-xs font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">Beliebteste</span>
-                  </div>
-                )}
-                <div className="mb-4">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${plan.badge}`}>{plan.name}</span>
-                </div>
-                <div className="mb-4">
-                  <span className="text-3xl font-bold text-gray-900">CHF {plan.price}</span>
-                  <span className="text-gray-400 text-sm">/Monat</span>
-                </div>
-                <ul className="space-y-2 mb-6 flex-1">
-                  <li className="flex items-center gap-2 text-sm text-gray-600">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    {plan.limit}
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-gray-600">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    {plan.note}
-                  </li>
-                </ul>
-                <Link
-                  href={plan.href}
-                  className={`w-full text-center py-2.5 rounded-xl font-medium text-sm transition-colors ${
-                    plan.highlight
-                      ? "bg-blue-600 hover:bg-blue-700 text-white"
-                      : "border border-gray-200 hover:bg-gray-50 text-gray-700"
-                  }`}
+            {(plans ?? []).map((plan) => {
+              const style = PLAN_STYLE[plan.plan] ?? PLAN_STYLE.free;
+              const planName = plan.plan.charAt(0).toUpperCase() + plan.plan.slice(1);
+              return (
+                <div
+                  key={plan.plan}
+                  className={`bg-white rounded-2xl border-2 p-6 flex flex-col ${style.border} ${style.highlight ? "ring-2 ring-blue-500 shadow-lg" : ""}`}
                 >
-                  {plan.cta}
-                </Link>
-              </div>
-            ))}
+                  {style.highlight && (
+                    <div className="text-center mb-3">
+                      <span className="text-xs font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">Beliebteste</span>
+                    </div>
+                  )}
+                  <div className="mb-4">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${style.badge}`}>{planName}</span>
+                  </div>
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold text-gray-900">CHF {plan.price}</span>
+                    <span className="text-gray-400 text-sm">/Monat</span>
+                  </div>
+                  <ul className="space-y-2 mb-6 flex-1">
+                    {plan.features.length > 0 ? plan.features.map((f, i) => (
+                      <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        {f}
+                      </li>
+                    )) : (
+                      <li className="flex items-center gap-2 text-sm text-gray-600">
+                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        Kein Ablauf
+                      </li>
+                    )}
+                  </ul>
+                  <Link
+                    href="/register"
+                    className={`w-full text-center py-2.5 rounded-xl font-medium text-sm transition-colors ${
+                      style.highlight
+                        ? "bg-blue-600 hover:bg-blue-700 text-white"
+                        : "border border-gray-200 hover:bg-gray-50 text-gray-700"
+                    }`}
+                  >
+                    {PLAN_CTA[plan.plan] ?? `${planName} wählen`}
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

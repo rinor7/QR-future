@@ -89,8 +89,9 @@ export default function PlanSettingsPage() {
 
   function requestSave() {
     if (!draft) return;
-    // Warn about Stripe for paid plans
-    if (draft.plan !== "free") {
+    const original = configs.find((c) => c.plan === draft.plan);
+    const priceChanged = original && original.price !== draft.price;
+    if (draft.plan !== "free" && priceChanged) {
       setStripeWarning(true);
     } else {
       doSave();
@@ -244,17 +245,15 @@ export default function PlanSettingsPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-5">
             <div>
-              <h2 className="text-base font-bold text-gray-900 mb-1">Stripe manuell aktualisieren</h2>
-              <p className="text-sm text-gray-500">
-                Preise in dieser App und in Stripe sind <strong>nicht verknüpft</strong>. Eine Preisänderung hier aktualisiert nur die Anzeige für neue Kunden — Stripe bleibt unverändert.
-              </p>
+              <h2 className="text-base font-bold text-gray-900 mb-1">{tr.plan_settings_stripe_title}</h2>
+              <p className="text-sm text-gray-500">{tr.plan_settings_stripe_body}</p>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-1.5 text-sm text-amber-800">
-              <p className="font-semibold">Nach dem Speichern bitte in Stripe:</p>
+              <p className="font-semibold">{tr.plan_settings_stripe_steps}</p>
               <ol className="list-decimal list-inside space-y-1 text-amber-700">
-                <li>Neuen Preis für das Produkt erstellen</li>
-                <li>Alten Preis archivieren</li>
-                <li>Neuen Preis-ID im Code hinterlegen</li>
+                <li>{tr.plan_settings_stripe_step1}</li>
+                <li>{tr.plan_settings_stripe_step2}</li>
+                <li>{tr.plan_settings_stripe_step3}</li>
               </ol>
             </div>
             <div className="flex gap-3">
