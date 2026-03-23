@@ -51,7 +51,7 @@ export default function DashboardPage() {
         if (last7) setScanLast7(last7);
       })
       .catch(() => {});
-  }, []);
+  }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function getQRUrl(id: string) {
     return `${window.location.origin}/qr/${id}`;

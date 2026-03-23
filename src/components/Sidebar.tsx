@@ -33,7 +33,6 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
   const { tr, lang, toggleLang } = useLang();
   const [plan, setPlan] = useState<Plan>("free");
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
-  const [canManageUsers, setCanManageUsers] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [userRole, setUserRole] = useState<string>("");
@@ -45,7 +44,6 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
       if (p) {
         setPlan(p.plan);
         setIsPlatformAdmin(p.isPlatformAdmin ?? false);
-        setCanManageUsers(p.canManageUsers ?? false);
         setIsAdmin(p.role === "admin");
         setIsOwner(p.userId === p.ownerId);
         setUserRole(p.role);
@@ -64,7 +62,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
     : [
         { href: "/dashboard", label: tr.nav_dashboard, icon: LayoutDashboard },
         { href: "/dashboard/codes", label: tr.nav_codes, icon: QrCode },
-        ...(canManageUsers && isAdmin ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
+        ...(isOwner || isAdmin ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
         ...(isOwner ? [{ href: "/dashboard/upgrade", label: tr.nav_plans, icon: CreditCard }] : []),
         { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
       ];

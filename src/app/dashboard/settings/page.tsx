@@ -22,6 +22,7 @@ export default function SettingsPage() {
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<Plan>("free");
   const [isOwner, setIsOwner] = useState(false);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [userRole, setUserRole] = useState<string>("");
 
   const [newEmail, setNewEmail] = useState("");
@@ -46,6 +47,7 @@ export default function SettingsPage() {
       if (p) {
         setPlan(p.plan);
         setIsOwner(p.userId === p.ownerId);
+        setIsPlatformAdmin(p.isPlatformAdmin ?? false);
         setUserRole(p.role);
       }
     });
@@ -125,7 +127,7 @@ export default function SettingsPage() {
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">E-Mail</label>
             <p className="mt-1 text-sm text-gray-900 font-medium">{email}</p>
           </div>
-          {isOwner ? (
+          {isPlatformAdmin ? null : isOwner ? (
             <div>
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Plan</label>
               <div className="mt-1 flex items-center gap-3">
