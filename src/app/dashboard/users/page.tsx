@@ -32,7 +32,7 @@ export default function UsersPage() {
   useEffect(() => {
     if (roleLoading) return;
     getUserProfile().then((p) => {
-      if (!p?.canManageUsers || p?.role !== "admin") {
+      if (!p || (p.role !== "owner" && p.role !== "admin")) {
         router.replace("/dashboard");
         return;
       }
