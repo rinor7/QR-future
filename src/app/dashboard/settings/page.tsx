@@ -27,7 +27,8 @@ export default function SettingsPage() {
 
   const [supportEmail, setSupportEmail] = useState("");
   const [supportEmailLoading, setSupportEmailLoading] = useState(false);
-  const [supportEmailSuccess, setSupportEmailSuccess] = useState(false);
+  const [supportEmailSaved, setSupportEmailSaved] = useState(false);
+  const [editingSupport, setEditingSupport] = useState(false);
 
   const [newEmail, setNewEmail] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
@@ -54,6 +55,7 @@ export default function SettingsPage() {
         setIsPlatformAdmin(p.isPlatformAdmin ?? false);
         setUserRole(p.role);
         setSupportEmail(p.supportEmail ?? "");
+        setSupportEmailSaved(!!p.supportEmail);
       }
     });
   }, [router]);
@@ -65,8 +67,8 @@ export default function SettingsPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await supabase.from("profiles").update({ support_email: supportEmail }).eq("user_id", user.id);
-      setSupportEmailSuccess(true);
-      setTimeout(() => setSupportEmailSuccess(false), 2500);
+      setSupportEmailSaved(true);
+      setEditingSupport(false);
     }
     setSupportEmailLoading(false);
   }
@@ -180,25 +182,47 @@ export default function SettingsPage() {
         <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-1">{tr.settings_support_email_title ?? "Platform Contact Email"}</h2>
           <p className="text-sm text-gray-400 mb-4">{tr.settings_support_email_hint ?? "Shown to team members when a save error occurs."}</p>
-          <form onSubmit={handleSaveSupportEmail} className="flex gap-3 items-end">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={supportEmail}
-                onChange={(e) => setSupportEmail(e.target.value)}
-                placeholder="support@yourcompany.com"
-                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+          {supportEmailSaved && !editingSupport ? (
+            <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+              <div>
+                <p className="text-xs text-gray-400 mb-0.5">Email</p>
+                <p className="text-sm font-medium text-gray-600">{supportEmail}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingSupport(true)}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              >
+                {tr.edit}
+              </button>
             </div>
-            <button
-              type="submit"
-              disabled={supportEmailLoading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-5 py-2.5 rounded-xl font-medium transition-colors text-sm whitespace-nowrap"
-            >
-              {supportEmailSuccess ? "✓ Saved" : supportEmailLoading ? "..." : tr.settings_support_email_btn ?? "Save"}
-            </button>
-          </form>
+          ) : (
+            <form onSubmit={handleSaveSupportEmail} className="flex gap-3 items-end">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={supportEmail}
+                  onChange={(e) => setSupportEmail(e.target.value)}
+                  placeholder="support@yourcompany.com"
+                  autoFocus
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={supportEmailLoading}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-5 py-2.5 rounded-xl font-medium transition-colors text-sm whitespace-nowrap"
+              >
+                {supportEmailLoading ? "..." : tr.settings_support_email_btn}
+              </button>
+              {editingSupport && (
+                <button type="button" onClick={() => setEditingSupport(false)} className="text-sm text-gray-400 hover:text-gray-600 px-3 py-2.5">
+                  {tr.cancel}
+                </button>
+              )}
+            </form>
+          )}
         </div>
       )}
 

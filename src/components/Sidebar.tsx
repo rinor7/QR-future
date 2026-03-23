@@ -74,19 +74,21 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
     router.refresh();
   }
 
+  const dark = isPlatformAdmin;
+
   return (
-    <aside className={`w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 fixed top-0 left-0 h-screen z-50 transition-transform duration-300 ease-in-out wide:sticky wide:top-0 wide:h-screen wide:translate-x-0 wide:overflow-y-auto ${open ? "translate-x-0" : "-translate-x-full"}`}>
+    <aside className={`w-64 flex flex-col shrink-0 fixed top-0 left-0 h-screen z-50 transition-transform duration-300 ease-in-out wide:sticky wide:top-0 wide:h-screen wide:translate-x-0 wide:overflow-y-auto ${open ? "translate-x-0" : "-translate-x-full"} ${dark ? "bg-gray-900 border-r border-gray-700" : "bg-white border-r border-gray-200"}`}>
       {/* Logo */}
-      <div className="h-16 flex items-center px-6 border-b border-gray-200">
+      <div className={`h-16 flex items-center px-6 border-b ${dark ? "border-gray-700" : "border-gray-200"}`}>
         <div className="flex items-center gap-2 flex-1">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <QrCode className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold text-lg text-gray-900">QR Plattform</span>
+          <span className={`font-bold text-lg ${dark ? "text-white" : "text-gray-900"}`}>QR Plattform</span>
         </div>
         <button
           onClick={onClose}
-          className="wide:hidden p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          className={`wide:hidden p-1.5 rounded-lg transition-colors ${dark ? "text-gray-400 hover:text-gray-200 hover:bg-gray-800" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"}`}
         >
           <X className="w-5 h-5" />
         </button>
@@ -105,7 +107,11 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
               href={href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 active
-                  ? "bg-blue-600 text-white"
+                  ? dark
+                    ? "bg-blue-600 text-white"
+                    : "bg-blue-600 text-white"
+                  : dark
+                  ? "text-gray-400 hover:bg-gray-800 hover:text-white"
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               }`}
             >
@@ -117,17 +123,17 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
       </nav>
 
       {/* Footer */}
-      <div className="p-3 border-t border-gray-200 space-y-1">
+      <div className={`p-3 border-t space-y-1 ${dark ? "border-gray-700" : "border-gray-200"}`}>
         {/* Language toggle */}
         <button
           onClick={toggleLang}
-          className="flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+          className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors ${dark ? "text-gray-400 hover:bg-gray-800 hover:text-white" : "text-gray-600 hover:bg-gray-100"}`}
         >
           <span>{tr.nav_language}</span>
           <span className="flex items-center gap-1 text-xs font-semibold">
-            <span className={lang === "de" ? "text-blue-600" : "text-gray-400"}>DE</span>
-            <span className="text-gray-300">/</span>
-            <span className={lang === "en" ? "text-blue-600" : "text-gray-400"}>EN</span>
+            <span className={lang === "de" ? "text-blue-400" : dark ? "text-gray-600" : "text-gray-400"}>DE</span>
+            <span className={dark ? "text-gray-600" : "text-gray-300"}>/</span>
+            <span className={lang === "en" ? "text-blue-400" : dark ? "text-gray-600" : "text-gray-400"}>EN</span>
           </span>
         </button>
         {profileLoaded && !isPlatformAdmin && (isOwner ? (
@@ -160,17 +166,20 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
           </>
         ))}
         {/* Account info + logout */}
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group" onClick={handleLogout}>
-          <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
+        <div
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer group ${dark ? "hover:bg-gray-800" : "hover:bg-gray-100"}`}
+          onClick={handleLogout}
+        >
+          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${dark ? "bg-gray-700 text-gray-200" : "bg-blue-100 text-blue-700"}`}>
             {userEmail ? userEmail[0].toUpperCase() : "?"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-gray-700 truncate">{userEmail}</p>
-            <p className="text-xs text-gray-400">
+            <p className={`text-xs font-medium truncate ${dark ? "text-gray-200" : "text-gray-700"}`}>{userEmail}</p>
+            <p className={`text-xs ${dark ? "text-gray-500" : "text-gray-400"}`}>
               {isPlatformAdmin ? "Platform Admin" : isOwner ? tr.role_owner : userRole === "admin" ? tr.role_admin : userRole === "writer" ? tr.role_writer : tr.role_reader}
             </p>
           </div>
-          <LogOut className="w-4 h-4 text-gray-400 group-hover:text-red-500 transition-colors shrink-0" />
+          <LogOut className="w-4 h-4 text-gray-400 group-hover:text-red-400 transition-colors shrink-0" />
         </div>
       </div>
     </aside>

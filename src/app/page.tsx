@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { QrCode, Check, Zap, Shield, Globe } from "lucide-react";
+import { QrCode, Check, Zap, Shield, Globe, ScanLine, Pencil } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
+import FAQSection from "./FAQSection";
 
 const PLAN_ORDER = ["free", "star", "premium", "platinum"];
 
@@ -116,6 +117,51 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* How it works */}
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">So funktioniert&apos;s</h2>
+          <p className="text-center text-gray-500 mb-16">In 3 einfachen Schritten zur digitalen Visitenkarte.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 relative">
+            {/* connector lines (desktop only) */}
+            <div className="hidden md:block absolute top-8 left-1/3 right-1/3 h-px bg-gray-200" />
+            {[
+              {
+                icon: QrCode,
+                step: "01",
+                title: "QR-Code erstellen",
+                desc: "Tragen Sie Ihre Kontaktdaten, Logo und Social-Media-Links ein. In wenigen Sekunden ist Ihr QR-Code fertig.",
+              },
+              {
+                icon: ScanLine,
+                step: "02",
+                title: "Drucken oder teilen",
+                desc: "Laden Sie Ihren QR-Code als PNG herunter und drucken ihn auf Visitenkarten, Flyer oder wohin Sie möchten.",
+              },
+              {
+                icon: Pencil,
+                step: "03",
+                title: "Jederzeit bearbeiten",
+                desc: "Ändern Sie Ihre Daten wann immer Sie wollen — der gedruckte QR-Code leitet immer auf die aktuellen Infos weiter.",
+              },
+            ].map(({ icon: Icon, step, title, desc }) => (
+              <div key={step} className="flex flex-col items-center text-center">
+                <div className="relative mb-5">
+                  <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-md">
+                    <Icon className="w-7 h-7 text-white" />
+                  </div>
+                  <span className="absolute -top-2 -right-2 w-6 h-6 bg-white border-2 border-blue-600 rounded-full text-[10px] font-bold text-blue-600 flex items-center justify-center">
+                    {step}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed max-w-xs">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Pricing */}
       <section className="py-20">
         <div className="max-w-6xl mx-auto px-6">
@@ -171,6 +217,8 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+
+      <FAQSection />
 
       {/* Footer */}
       <footer className="border-t border-gray-100 py-8">
