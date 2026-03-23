@@ -136,12 +136,6 @@ export default function EditPage() {
           {tr.edit_success}
         </div>
       )}
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">
-          {error}
-        </div>
-      )}
-
       <div className="flex gap-8">
         <div className="flex-1">
           <QRForm
@@ -149,6 +143,7 @@ export default function EditPage() {
             onSubmit={handleSubmit}
             submitLabel={tr.save}
             saved={saved}
+            error={error}
             onFormChange={(f) => setPreviewLogoUrl(f.showLogoInQr !== false ? f.logoUrl || undefined : undefined)}
           />
         </div>

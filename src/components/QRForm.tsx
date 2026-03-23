@@ -87,10 +87,11 @@ interface Props {
   onSubmit: (data: CreateQRContact) => void;
   submitLabel: string;
   saved?: boolean;
+  error?: string | null;
   onFormChange?: (data: CreateQRContact) => void;
 }
 
-export default function QRForm({ initial, onSubmit, submitLabel, saved, onFormChange }: Props) {
+export default function QRForm({ initial, onSubmit, submitLabel, saved, error, onFormChange }: Props) {
   const router = useRouter();
   const { tr } = useLang();
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
@@ -769,6 +770,17 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, onFormCh
           </span>
         )}
       </div>
+      {error && (
+        <div className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          {error}{" "}
+          <a
+            href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@qr-card.ch"}`}
+            className="underline font-medium hover:text-red-800"
+          >
+            {tr.contact_support ?? "Support kontaktieren"}
+          </a>
+        </div>
+      )}
     </form>
   );
 }
