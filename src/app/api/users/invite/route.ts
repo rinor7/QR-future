@@ -14,6 +14,16 @@ export async function POST(req: NextRequest) {
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
 
+  // Block invites into a platform admin's account
+  const { data: ownerProfile } = await supabase
+    .from("profiles")
+    .select("is_platform_admin")
+    .eq("user_id", ownerId)
+    .single();
+  if (ownerProfile?.is_platform_admin) {
+    return NextResponse.json({ error: "Platform admin accounts cannot have team members." }, { status: 403 });
+  }
+
   const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
     data: { role, owner_id: ownerId },
   });
