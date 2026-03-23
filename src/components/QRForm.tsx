@@ -86,9 +86,10 @@ interface Props {
   onSubmit: (data: CreateQRContact) => void;
   submitLabel: string;
   saved?: boolean;
+  onFormChange?: (data: CreateQRContact) => void;
 }
 
-export default function QRForm({ initial, onSubmit, submitLabel, saved }: Props) {
+export default function QRForm({ initial, onSubmit, submitLabel, saved, onFormChange }: Props) {
   const router = useRouter();
   const { tr } = useLang();
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
@@ -142,7 +143,11 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved }: Props)
   }, []);
 
   function set(field: keyof CreateQRContact, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      onFormChange?.(next);
+      return next;
+    });
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -358,7 +363,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved }: Props)
             <div className="flex flex-col justify-center">
               <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.qr_logo_in_center}</p>
               <div
-                onClick={() => setForm((prev) => ({ ...prev, showLogoInQr: !prev.showLogoInQr }))}
+                onClick={() => setForm((prev) => { const next = { ...prev, showLogoInQr: !prev.showLogoInQr }; onFormChange?.(next); return next; })}
                 className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer shrink-0 ${form.showLogoInQr ? "bg-blue-600" : "bg-gray-200"}`}
               >
                 <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.showLogoInQr ? "translate-x-4" : "translate-x-0.5"}`} />
