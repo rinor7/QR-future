@@ -62,6 +62,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
     : [
         { href: "/dashboard", label: tr.nav_dashboard, icon: LayoutDashboard },
         { href: "/dashboard/codes", label: tr.nav_codes, icon: QrCode },
+        ...(isOwner || isAdmin ? [{ href: "/dashboard/users", label: tr.nav_users, icon: Users }] : []),
         ...(isOwner ? [{ href: "/dashboard/upgrade", label: tr.nav_plans, icon: CreditCard }] : []),
         { href: "/dashboard/settings", label: tr.nav_settings, icon: Settings },
       ];

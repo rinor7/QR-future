@@ -32,9 +32,11 @@ export default function UsersPage() {
   useEffect(() => {
     if (roleLoading) return;
     getUserProfile().then((p) => {
-      // Team management is disabled — redirect everyone away
-      router.replace("/dashboard");
-      return;
+      // Only org owners and org admins can manage team (not platform admin)
+      if (!p || p.isPlatformAdmin || (p.role !== "owner" && p.role !== "admin")) {
+        router.replace("/dashboard");
+        return;
+      }
       load();
     });
   }, [roleLoading, router]);
