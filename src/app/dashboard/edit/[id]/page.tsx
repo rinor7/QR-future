@@ -77,7 +77,7 @@ export default function EditPage() {
       };
       const logoUrl = previewLogoUrl;
       if (logoUrl) {
-        const logoSize = Math.round(exportSize * 0.28);
+        const logoSize = Math.round(exportSize * 0.32);
         const padding = Math.round(logoSize * 0.1);
         const offset = (exportSize - logoSize) / 2;
         const logoImg = new Image();
