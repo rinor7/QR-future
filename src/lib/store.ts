@@ -103,6 +103,13 @@ export async function getUserProfile(): Promise<UserProfile | null> {
   // Every org owner and their team can manage users — role === 'admin' check on the page controls actual access
   const canManageUsers = true;
 
+  // Get support email — from own profile if owner, from owner's profile if team member
+  let supportEmail: string | undefined = (data.support_email as string) || undefined;
+  if (ownerId !== user.id) {
+    const { data: ownerData } = await supabase.from("profiles").select("support_email").eq("user_id", ownerId).single();
+    supportEmail = (ownerData?.support_email as string) || undefined;
+  }
+
   return {
     userId: data.user_id as string,
     email: data.email as string,
@@ -112,6 +119,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     createdAt: data.created_at as string,
     isPlatformAdmin,
     canManageUsers,
+    supportEmail,
   };
 }
 

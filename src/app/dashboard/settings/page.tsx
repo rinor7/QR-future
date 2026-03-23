@@ -25,6 +25,10 @@ export default function SettingsPage() {
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [userRole, setUserRole] = useState<string>("");
 
+  const [supportEmail, setSupportEmail] = useState("");
+  const [supportEmailLoading, setSupportEmailLoading] = useState(false);
+  const [supportEmailSuccess, setSupportEmailSuccess] = useState(false);
+
   const [newEmail, setNewEmail] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -49,9 +53,23 @@ export default function SettingsPage() {
         setIsOwner(p.userId === p.ownerId);
         setIsPlatformAdmin(p.isPlatformAdmin ?? false);
         setUserRole(p.role);
+        setSupportEmail(p.supportEmail ?? "");
       }
     });
   }, [router]);
+
+  async function handleSaveSupportEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setSupportEmailLoading(true);
+    const supabase = getSupabaseBrowser();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("profiles").update({ support_email: supportEmail }).eq("user_id", user.id);
+      setSupportEmailSuccess(true);
+      setTimeout(() => setSupportEmailSuccess(false), 2500);
+    }
+    setSupportEmailLoading(false);
+  }
 
   async function handleChangeEmail(e: React.FormEvent) {
     e.preventDefault();
@@ -156,6 +174,33 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+
+      {/* Support Email — only for org owners and platform admin */}
+      {(isOwner || isPlatformAdmin) && (
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">{tr.settings_support_email_title ?? "Platform Contact Email"}</h2>
+          <p className="text-sm text-gray-400 mb-4">{tr.settings_support_email_hint ?? "Shown to team members when a save error occurs."}</p>
+          <form onSubmit={handleSaveSupportEmail} className="flex gap-3 items-end">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                value={supportEmail}
+                onChange={(e) => setSupportEmail(e.target.value)}
+                placeholder="support@yourcompany.com"
+                className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={supportEmailLoading}
+              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-5 py-2.5 rounded-xl font-medium transition-colors text-sm whitespace-nowrap"
+            >
+              {supportEmailSuccess ? "✓ Saved" : supportEmailLoading ? "..." : tr.settings_support_email_btn ?? "Save"}
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* Change Email */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">

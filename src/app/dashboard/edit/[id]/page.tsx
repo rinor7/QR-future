@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
-import { getContact, updateContact } from "@/lib/store";
+import { getContact, updateContact, getUserProfile } from "@/lib/store";
 import { QRContact, CreateQRContact } from "@/lib/types";
 import QRForm from "@/components/QRForm";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
@@ -20,6 +20,7 @@ export default function EditPage() {
 
   const [contact, setContact] = useState<QRContact | null>(null);
   const [previewLogoUrl, setPreviewLogoUrl] = useState<string | undefined>(undefined);
+  const [supportEmail, setSupportEmail] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -31,6 +32,7 @@ export default function EditPage() {
   }, [isReader, roleLoading, router]);
 
   useEffect(() => {
+    getUserProfile().then((p) => { if (p?.supportEmail) setSupportEmail(p.supportEmail); });
     getContact(id).then((c) => {
       if (!c) {
         router.push("/dashboard");
@@ -144,6 +146,7 @@ export default function EditPage() {
             submitLabel={tr.save}
             saved={saved}
             error={error}
+            supportEmail={supportEmail}
             onFormChange={(f) => setPreviewLogoUrl(f.showLogoInQr !== false ? f.logoUrl || undefined : undefined)}
           />
         </div>
