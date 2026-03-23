@@ -16,21 +16,10 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = getSupabaseBrowser();
-    const code = new URLSearchParams(window.location.search).get("code");
-
-    if (code) {
-      // PKCE flow: exchange the code for a session right here
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (error) setSessionError(true);
-        else setSessionReady(true);
-      });
-    } else {
-      // No code — check if there's already an active session (e.g. user navigated back)
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) setSessionReady(true);
-        else setSessionError(true);
-      });
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setSessionReady(true);
+      else setSessionError(true);
+    });
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
