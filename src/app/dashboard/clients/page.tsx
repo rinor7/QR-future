@@ -5,7 +5,7 @@ import { useLang } from "@/lib/language";
 import { getUserProfile } from "@/lib/store";
 import { ClientAccount, Plan, PLAN_LABELS } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { Trash2, Users, AlertTriangle } from "lucide-react";
+import { Trash2, Users, AlertTriangle, ArrowRight } from "lucide-react";
 
 const PLAN_COLORS: Record<Plan, string> = {
   free: "bg-gray-100 text-gray-600",
@@ -21,6 +21,8 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<ClientAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [pendingPlan, setPendingPlan] = useState<{ userId: string; email: string; from: Plan; to: Plan } | null>(null);
+  const [changingPlan, setChangingPlan] = useState(false);
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -43,13 +45,23 @@ export default function ClientsPage() {
     }
   }
 
-  async function handlePlanChange(userId: string, plan: Plan) {
+  function requestPlanChange(userId: string, newPlan: Plan) {
+    const client = clients.find((c) => c.userId === userId);
+    if (!client || client.plan === newPlan) return;
+    setPendingPlan({ userId, email: client.email, from: client.plan, to: newPlan });
+  }
+
+  async function confirmPlanChange() {
+    if (!pendingPlan) return;
+    setChangingPlan(true);
     await fetch("/api/admin/clients/update-plan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, plan }),
+      body: JSON.stringify({ userId: pendingPlan.userId, plan: pendingPlan.to }),
     });
-    setClients((prev) => prev.map((c) => c.userId === userId ? { ...c, plan } : c));
+    setClients((prev) => prev.map((c) => c.userId === pendingPlan.userId ? { ...c, plan: pendingPlan.to } : c));
+    setChangingPlan(false);
+    setPendingPlan(null);
   }
 
   async function handleDelete(userId: string) {
@@ -176,7 +188,7 @@ export default function ClientsPage() {
                   <td className="px-6 py-4">
                     <select
                       value={c.plan}
-                      onChange={(e) => handlePlanChange(c.userId, e.target.value as Plan)}
+                      onChange={(e) => requestPlanChange(c.userId, e.target.value as Plan)}
                       className={`px-2 py-1 rounded-lg text-xs font-semibold border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer ${PLAN_COLORS[c.plan]}`}
                     >
                       {(["free", "star", "premium", "platinum"] as Plan[]).map((p) => (
@@ -214,6 +226,51 @@ export default function ClientsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Plan change confirmation modal */}
+      {pendingPlan && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
+            <h2 className="text-lg font-bold text-gray-900">{tr.clients_plan_modal_title}</h2>
+            <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
+              <div className="text-center">
+                <p className="text-xs text-gray-400 mb-1">From</p>
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${PLAN_COLORS[pendingPlan.from]}`}>
+                  {PLAN_LABELS[pendingPlan.from]}
+                </span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-gray-400 shrink-0" />
+              <div className="text-center">
+                <p className="text-xs text-gray-400 mb-1">To</p>
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${PLAN_COLORS[pendingPlan.to]}`}>
+                  {PLAN_LABELS[pendingPlan.to]}
+                </span>
+              </div>
+              <div className="flex-1 text-right">
+                <p className="text-xs text-gray-500 font-medium truncate">{pendingPlan.email}</p>
+              </div>
+            </div>
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+              {tr.clients_plan_modal_stripe}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setPendingPlan(null)}
+                className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                {tr.clients_plan_modal_cancel}
+              </button>
+              <button
+                onClick={confirmPlanChange}
+                disabled={changingPlan}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl text-sm font-medium transition-colors"
+              >
+                {changingPlan ? "..." : tr.clients_plan_modal_confirm}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -160,7 +160,9 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-gray-700 truncate">{userEmail}</p>
-            <p className="text-xs text-gray-400">{tr.logout}</p>
+            <p className="text-xs text-gray-400">
+              {isPlatformAdmin ? "Platform Admin" : isOwner ? tr.role_owner : userRole === "admin" ? tr.role_admin : userRole === "writer" ? tr.role_writer : tr.role_reader}
+            </p>
           </div>
           <LogOut className="w-4 h-4 text-gray-400 group-hover:text-red-500 transition-colors shrink-0" />
         </div>
