@@ -16,19 +16,21 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = getSupabaseBrowser();
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setSessionReady(true);
-      } else {
-        // Wait briefly for session to propagate, then check again
-        setTimeout(() => {
-          supabase.auth.getSession().then(({ data: { session: s } }) => {
-            if (s) setSessionReady(true);
-            else setSessionError(true);
-          });
-        }, 1000);
-      }
-    });
+    const code = new URLSearchParams(window.location.search).get("code");
+
+    if (code) {
+      // PKCE flow: exchange the code for a session right here
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) setSessionError(true);
+        else setSessionReady(true);
+      });
+    } else {
+      // No code — check if there's already an active session (e.g. user navigated back)
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setSessionReady(true);
+        else setSessionError(true);
+      });
+    }
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {

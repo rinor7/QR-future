@@ -242,11 +242,21 @@ export default function PlanSettingsPage() {
       {/* Stripe warning modal */}
       {stripeWarning && draft && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
-            <h2 className="text-base font-bold text-gray-900">Stripe aktualisieren?</h2>
-            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-              {tr.plan_settings_stripe_warning}
-            </p>
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-5">
+            <div>
+              <h2 className="text-base font-bold text-gray-900 mb-1">Stripe manuell aktualisieren</h2>
+              <p className="text-sm text-gray-500">
+                Preise in dieser App und in Stripe sind <strong>nicht verknüpft</strong>. Eine Preisänderung hier aktualisiert nur die Anzeige für neue Kunden — Stripe bleibt unverändert.
+              </p>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-1.5 text-sm text-amber-800">
+              <p className="font-semibold">Nach dem Speichern bitte in Stripe:</p>
+              <ol className="list-decimal list-inside space-y-1 text-amber-700">
+                <li>Neuen Preis für das Produkt erstellen</li>
+                <li>Alten Preis archivieren</li>
+                <li>Neuen Preis-ID im Code hinterlegen</li>
+              </ol>
+            </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setStripeWarning(false)}
