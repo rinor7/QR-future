@@ -262,9 +262,6 @@ export default function ClientsPage() {
                 <p className="text-xs text-gray-500 font-medium truncate">{pendingPlan.email}</p>
               </div>
             </div>
-            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-              {tr.clients_plan_modal_stripe}
-            </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setPendingPlan(null)}
