@@ -13,7 +13,7 @@ export default function QRCodeDisplay({
 }) {
   if (!value) return null;
 
-  const logoSize = Math.round(size * 0.22);
+  const logoSize = Math.round(size * 0.28);
 
   return (
     <div className="relative inline-block">

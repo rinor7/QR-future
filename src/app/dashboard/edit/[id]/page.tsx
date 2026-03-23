@@ -75,7 +75,7 @@ export default function EditPage() {
       };
       const logoUrl = contact?.logoUrl;
       if (logoUrl) {
-        const logoSize = Math.round(exportSize * 0.22);
+        const logoSize = Math.round(exportSize * 0.28);
         const padding = Math.round(logoSize * 0.1);
         const offset = (exportSize - logoSize) / 2;
         const logoImg = new Image();
@@ -134,11 +134,6 @@ export default function EditPage() {
           {tr.edit_success}
         </div>
       )}
-      {saved && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 text-sm font-medium">
-          {tr.saved}
-        </div>
-      )}
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">
           {error}
@@ -147,7 +142,7 @@ export default function EditPage() {
 
       <div className="flex gap-8">
         <div className="flex-1">
-          <QRForm initial={contact} onSubmit={handleSubmit} submitLabel={tr.save} />
+          <QRForm initial={contact} onSubmit={handleSubmit} submitLabel={tr.save} saved={saved} />
         </div>
 
         {/* QR Preview */}

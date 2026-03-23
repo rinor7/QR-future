@@ -85,9 +85,10 @@ interface Props {
   initial?: Partial<CreateQRContact>;
   onSubmit: (data: CreateQRContact) => void;
   submitLabel: string;
+  saved?: boolean;
 }
 
-export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
+export default function QRForm({ initial, onSubmit, submitLabel, saved }: Props) {
   const router = useRouter();
   const { tr } = useLang();
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
@@ -669,6 +670,14 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
         >
           {tr.cancel}
         </button>
+        {saved && (
+          <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            {tr.saved}
+          </span>
+        )}
       </div>
     </form>
   );
