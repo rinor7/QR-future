@@ -19,8 +19,9 @@ export default function AuthCallbackPage() {
       const type = params.get("type");
       if (access_token && refresh_token) {
         supabase.auth.setSession({ access_token, refresh_token }).then(() => {
-          // Invited users must set a password first
-          router.replace(type === "invite" ? "/auth/set-password" : "/dashboard");
+          if (type === "invite") router.replace("/auth/set-password");
+          else if (type === "recovery") router.replace("/reset-password");
+          else router.replace("/dashboard");
         });
         return;
       }
@@ -32,7 +33,9 @@ export default function AuthCallbackPage() {
     const type = searchParams.get("type");
     if (code) {
       supabase.auth.exchangeCodeForSession(code).then(() => {
-        router.replace(type === "invite" ? "/auth/set-password" : "/dashboard");
+        if (type === "invite") router.replace("/auth/set-password");
+        else if (type === "recovery") router.replace("/reset-password");
+        else router.replace("/dashboard");
       });
       return;
     }

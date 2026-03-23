@@ -38,20 +38,27 @@ export async function GET() {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Fetch QR counts
-  const { data: contactRows } = await supabase
-    .from("contacts")
-    .select("user_id");
-
-  const qrCounts: Record<string, number> = {};
-  (contactRows ?? []).forEach((row: { user_id: string }) => {
-    qrCounts[row.user_id] = (qrCounts[row.user_id] ?? 0) + 1;
-  });
-
   // Only org owners (user_id = owner_id), excluding the platform admin
-  const clients = (profiles ?? [])
-    .filter((p) => p.user_id === p.owner_id && p.user_id !== user.id && !p.is_platform_admin)
-    .map((p) => ({
+  const ownerProfiles = (profiles ?? []).filter(
+    (p) => p.user_id === p.owner_id && p.user_id !== user.id && !p.is_platform_admin
+  );
+
+  // Fetch QR counts only for relevant owner IDs
+  const ownerIds = ownerProfiles.map((p) => p.user_id);
+  const qrCounts: Record<string, number> = {};
+
+  if (ownerIds.length > 0) {
+    const { data: contactRows } = await supabase
+      .from("contacts")
+      .select("user_id")
+      .in("user_id", ownerIds);
+
+    (contactRows ?? []).forEach((row: { user_id: string }) => {
+      qrCounts[row.user_id] = (qrCounts[row.user_id] ?? 0) + 1;
+    });
+  }
+
+  const clients = ownerProfiles.map((p) => ({
       userId: p.user_id,
       email: p.email,
       plan: p.plan ?? "free",

@@ -5,7 +5,8 @@ import { useLang } from "@/lib/language";
 import { getUserProfile } from "@/lib/store";
 import { ClientAccount, Plan, PLAN_LABELS } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { Trash2, Users, AlertTriangle, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { Trash2, Users, AlertTriangle, ArrowRight, Eye } from "lucide-react";
 
 const PLAN_COLORS: Record<Plan, string> = {
   free: "bg-gray-100 text-gray-600",
@@ -162,12 +163,13 @@ export default function ClientsPage() {
               <th className="text-left px-6 py-3">{tr.clients_col_qr}</th>
               <th className="text-left px-6 py-3">{tr.clients_col_joined}</th>
               <th className="px-6 py-3" />
+              <th className="px-6 py-3" />
             </tr>
           </thead>
           <tbody>
             {clients.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
                   <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   {tr.clients_no_clients}
                 </td>
@@ -217,6 +219,16 @@ export default function ClientsPage() {
                   {/* Joined */}
                   <td className="px-6 py-4 text-gray-400 text-xs">
                     {new Date(c.createdAt).toLocaleDateString()}
+                  </td>
+                  {/* View */}
+                  <td className="px-6 py-4">
+                    <Link
+                      href={`/dashboard/clients/${c.userId}`}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                    >
+                      <Eye className="w-3 h-3" />
+                      {tr.clients_view}
+                    </Link>
                   </td>
                   {/* Delete */}
                   <td className="px-6 py-4 text-right">
