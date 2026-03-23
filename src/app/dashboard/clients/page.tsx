@@ -186,15 +186,27 @@ export default function ClientsPage() {
                   </td>
                   {/* Plan dropdown */}
                   <td className="px-6 py-4">
-                    <select
-                      value={c.plan}
-                      onChange={(e) => requestPlanChange(c.userId, e.target.value as Plan)}
-                      className={`px-2 py-1 rounded-lg text-xs font-semibold border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer ${PLAN_COLORS[c.plan]}`}
-                    >
-                      {(["free", "star", "premium", "platinum"] as Plan[]).map((p) => (
-                        <option key={p} value={p}>{PLAN_LABELS[p]}</option>
-                      ))}
-                    </select>
+                    {c.hasStripe ? (
+                      <div className="flex flex-col gap-1">
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-lg w-fit ${PLAN_COLORS[c.plan]}`}>
+                          {PLAN_LABELS[c.plan]}
+                        </span>
+                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
+                          Stripe
+                        </span>
+                      </div>
+                    ) : (
+                      <select
+                        value={c.plan}
+                        onChange={(e) => requestPlanChange(c.userId, e.target.value as Plan)}
+                        className={`px-2 py-1 rounded-lg text-xs font-semibold border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer ${PLAN_COLORS[c.plan]}`}
+                      >
+                        {(["free", "star", "premium", "platinum"] as Plan[]).map((p) => (
+                          <option key={p} value={p}>{PLAN_LABELS[p]}</option>
+                        ))}
+                      </select>
+                    )}
                   </td>
                   {/* QR count */}
                   <td className="px-6 py-4">

@@ -91,6 +91,7 @@ export interface ClientAccount {
   createdAt: string;
   qrCount: number;
   lastActivityAt?: string;
+  hasStripe?: boolean;
 }
 
 export interface TeamMember {

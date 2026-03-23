@@ -33,7 +33,7 @@ export async function GET() {
   // Fetch all profiles
   const { data: profiles, error } = await supabase
     .from("profiles")
-    .select("user_id, email, plan, created_at, owner_id, last_activity_at, is_platform_admin")
+    .select("user_id, email, plan, created_at, owner_id, last_activity_at, is_platform_admin, stripe_customer_id")
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -58,6 +58,7 @@ export async function GET() {
       createdAt: p.created_at,
       qrCount: qrCounts[p.user_id] ?? 0,
       lastActivityAt: p.last_activity_at ?? null,
+      hasStripe: !!p.stripe_customer_id,
     }));
 
   return NextResponse.json({ clients });
