@@ -117,6 +117,9 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
   const th = THEMES[contact.theme ?? "classic"];
 
   useEffect(() => {
+    const key = `scanned_${contact.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
     fetch("/api/scan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

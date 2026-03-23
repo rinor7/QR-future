@@ -371,10 +371,16 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
             <div className="grid grid-cols-3 gap-3">
               {(["classic", "dark", "minimal"] as const).map((t) => {
                 const labels: Record<string, string> = { classic: tr.theme_classic, dark: tr.theme_dark, minimal: tr.theme_minimal };
-                const previews: Record<string, string> = {
-                  classic: "bg-white border-2 border-gray-200",
-                  dark: "bg-gray-900 border-2 border-gray-700",
-                  minimal: "bg-gray-50 border-2 border-gray-200",
+                const cardBg: Record<string, string> = { classic: "#ffffff", dark: "#111827", minimal: "#f9fafb" };
+                const headerBg: Record<string, string> = {
+                  classic: form.primaryColor,
+                  dark: "#374151",
+                  minimal: "#e5e7eb",
+                };
+                const btnBg: Record<string, string> = {
+                  classic: `${form.primaryColor}22`,
+                  dark: "rgba(255,255,255,0.08)",
+                  minimal: "#f3f4f6",
                 };
                 const selected = form.theme === t;
                 return (
@@ -384,8 +390,14 @@ export default function QRForm({ initial, onSubmit, submitLabel }: Props) {
                     onClick={() => set("theme", t)}
                     className={`relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${selected ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}
                   >
-                    <div className={`w-full h-10 rounded-lg ${previews[t]}`}>
-                      <div className={`h-3 w-full rounded-t-lg ${t === "dark" ? "bg-gray-700" : t === "minimal" ? "bg-gray-200" : "bg-blue-500"}`} />
+                    {/* Mini card preview */}
+                    <div className="w-full h-14 rounded-lg overflow-hidden border border-gray-100" style={{ backgroundColor: cardBg[t] }}>
+                      <div className="h-4 w-full" style={{ backgroundColor: headerBg[t] }} />
+                      <div className="px-1.5 pt-1 space-y-1">
+                        <div className="h-1.5 w-3/4 rounded-full" style={{ backgroundColor: headerBg[t], opacity: 0.3 }} />
+                        <div className="h-2.5 w-full rounded" style={{ backgroundColor: btnBg[t] }} />
+                        <div className="h-2.5 w-full rounded" style={{ backgroundColor: btnBg[t] }} />
+                      </div>
                     </div>
                     <span className="text-xs font-medium text-gray-700">{labels[t]}</span>
                     {selected && <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full" />}
