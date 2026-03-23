@@ -113,7 +113,12 @@ const THEMES = {
 
 export default function QRLandingClient({ contact }: { contact: QRContact }) {
   const [shared, setShared] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const color = contact.primaryColor || "#2563eb";
+
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0);
+  }, []);
   const th = THEMES[contact.theme ?? "classic"];
 
   useEffect(() => {
@@ -285,11 +290,13 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
 
         {/* vCard + Share */}
         <div className="px-5 pb-4 flex gap-2.5">
-          <button onClick={handleVCard} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 transition-colors" style={{ borderColor: th.borderColor(color), color: th.btnText(color) }}>
-            <Download className="w-4 h-4" />
-            vCard
-          </button>
-          <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 transition-colors" style={{ borderColor: th.borderColor(color), color: th.btnText(color) }}>
+          {isTouchDevice && (
+            <button onClick={handleVCard} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 transition-colors" style={{ borderColor: th.borderColor(color), color: th.btnText(color) }}>
+              <Download className="w-4 h-4" />
+              Kontakt speichern
+            </button>
+          )}
+          <button onClick={handleShare} className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 transition-colors ${isTouchDevice ? "flex-1" : "w-full"}`} style={{ borderColor: th.borderColor(color), color: th.btnText(color) }}>
             <Share2 className="w-4 h-4" />
             {shared ? "Kopiert!" : "Teilen"}
           </button>
