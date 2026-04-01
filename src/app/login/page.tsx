@@ -83,14 +83,6 @@ export default function LoginPage() {
               <GoogleIcon />
               Mit Google anmelden
             </button>
-            <button
-              type="button"
-              onClick={() => handleOAuth("apple")}
-              className="w-full flex items-center justify-center gap-3 border border-gray-200 hover:bg-gray-50 text-gray-700 py-2.5 rounded-xl font-medium text-sm transition-colors"
-            >
-              <AppleIcon />
-              Mit Apple anmelden
-            </button>
           </div>
 
           <div className="flex items-center gap-3 mb-6">
