@@ -6,7 +6,7 @@ import { getUserProfile } from "@/lib/store";
 import { ClientAccount, Plan, PLAN_LABELS } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Trash2, Users, AlertTriangle, ArrowRight, Eye } from "lucide-react";
+import { Trash2, Users, AlertTriangle, ArrowRight, Eye, Lock } from "lucide-react";
 
 const PLAN_COLORS: Record<Plan, string> = {
   free: "bg-gray-100 text-gray-600",
@@ -186,19 +186,9 @@ export default function ClientsPage() {
                       <span className="text-gray-800 font-medium">{c.email}</span>
                     </div>
                   </td>
-                  {/* Plan dropdown */}
+                  {/* Plan */}
                   <td className="px-6 py-4">
-                    {c.hasStripe ? (
-                      <div className="flex flex-col gap-1">
-                        <span className={`text-xs font-semibold px-2 py-1 rounded-lg w-fit ${PLAN_COLORS[c.plan]}`}>
-                          {PLAN_LABELS[c.plan]}
-                        </span>
-                        <span className="text-xs text-gray-400 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
-                          Stripe
-                        </span>
-                      </div>
-                    ) : (
+                    {!c.hasStripe && c.plan === "free" ? (
                       <select
                         value={c.plan}
                         onChange={(e) => requestPlanChange(c.userId, e.target.value as Plan)}
@@ -208,6 +198,18 @@ export default function ClientsPage() {
                           <option key={p} value={p}>{PLAN_LABELS[p]}</option>
                         ))}
                       </select>
+                    ) : (
+                      <div className="flex flex-col gap-1">
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-lg w-fit ${PLAN_COLORS[c.plan]}`}>
+                          {PLAN_LABELS[c.plan]}
+                        </span>
+                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                          {c.hasStripe
+                            ? <><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />Stripe</>
+                            : <><Lock className="w-3 h-3" />Manuell</>
+                          }
+                        </span>
+                      </div>
                     )}
                   </td>
                   {/* QR count */}
