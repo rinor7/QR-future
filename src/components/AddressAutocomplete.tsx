@@ -12,11 +12,12 @@ interface Props {
   value: string;
   onChange: (value: string) => void;
   onSelect: (parts: { street: string; streetNr: string; plz: string; city: string }) => void;
+  country?: string;
   placeholder?: string;
   className?: string;
 }
 
-export default function AddressAutocomplete({ value, onChange, onSelect, placeholder, className }: Props) {
+export default function AddressAutocomplete({ value, onChange, onSelect, country, placeholder, className }: Props) {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -40,7 +41,7 @@ export default function AddressAutocomplete({ value, onChange, onSelect, placeho
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(val)}`);
+        const res = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(val)}${country ? `&country=${country}` : ""}`);
         const data = await res.json();
         setPredictions(data.predictions ?? []);
         setOpen(data.predictions?.length > 0);

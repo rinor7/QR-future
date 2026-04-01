@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const input = searchParams.get("input");
+  const country = searchParams.get("country") || "ch";
 
   if (!input || input.length < 2) {
     return NextResponse.json({ predictions: [] });
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
   url.searchParams.set("key", key);
   url.searchParams.set("language", "de");
   url.searchParams.set("types", "address");
-  url.searchParams.set("components", "country:ch");
+  url.searchParams.set("components", `country:${country}`);
 
   const res = await fetch(url.toString());
   const data = await res.json();

@@ -35,6 +35,7 @@ function toContact(row: Record<string, unknown>): QRContact {
       if (row.pdf_url) return [{ url: row.pdf_url as string, label: (row.pdf_label as string) || "Dokument öffnen", type: "link" as const }];
       return [];
     })(),
+    country: (row.country as string) ?? "",
     street: (row.street as string) ?? "",
     streetNr: (row.street_nr as string) ?? "",
     plz: (row.plz as string) ?? "",
@@ -70,6 +71,7 @@ function toRow(data: Partial<CreateQRContact>) {
     ...(data.xUrl !== undefined && { x_url: data.xUrl }),
     ...(data.otherSocialUrl !== undefined && { other_social_url: data.otherSocialUrl }),
     ...(data.links !== undefined && { links: data.links }),
+    ...(data.country !== undefined && { country: data.country }),
     ...(data.street !== undefined && { street: data.street }),
     ...(data.streetNr !== undefined && { street_nr: data.streetNr }),
     ...(data.plz !== undefined && { plz: data.plz }),

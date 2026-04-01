@@ -28,6 +28,7 @@ const DEFAULTS: CreateQRContact = {
   xUrl: "",
   otherSocialUrl: "",
   links: [],
+  country: "",
   street: "",
   streetNr: "",
   plz: "",
@@ -505,6 +506,22 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
             <Plus className="w-3.5 h-3.5" /> {tr.field_website}
           </button>
         )}
+        <Field label="Land">
+          <select
+            value={form.country}
+            onChange={(e) => set("country", e.target.value)}
+            required
+            className={`${input} cursor-pointer`}
+          >
+            <option value="">— Land wählen —</option>
+            <option value="ch">Schweiz</option>
+            <option value="de">Deutschland</option>
+            <option value="at">Österreich</option>
+            <option value="li">Liechtenstein</option>
+            <option value="fr">Frankreich</option>
+            <option value="lu">Luxemburg</option>
+          </select>
+        </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label={tr.field_street}>
             <AddressAutocomplete
@@ -515,6 +532,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 setForm(next);
                 onFormChange?.(next);
               }}
+              country={form.country || "ch"}
               placeholder="Bahnhofstrasse"
               className={input}
             />
@@ -544,6 +562,14 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
               onChange={(e) => set("city", e.target.value)}
               placeholder="Zürich"
               className={input}
+            />
+          </Field>
+          <Field label="Land">
+            <input
+              type="text"
+              value="Schweiz"
+              disabled
+              className={`${input} bg-gray-50 text-gray-400 cursor-not-allowed`}
             />
           </Field>
         </div>
