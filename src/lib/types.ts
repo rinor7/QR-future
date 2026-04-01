@@ -39,6 +39,7 @@ export interface QRContact {
   links: ContactLink[];
 
   // Address
+  country: string;
   street: string;
   streetNr: string;
   plz: string;
