@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   url.searchParams.set("key", key);
   url.searchParams.set("language", "de");
   url.searchParams.set("types", "address");
-  url.searchParams.set("components", "country:ch|country:at|country:de|country:li");
+  url.searchParams.set("components", "country:ch");
 
   const res = await fetch(url.toString());
   const data = await res.json();
