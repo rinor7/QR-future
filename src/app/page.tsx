@@ -103,12 +103,12 @@ export default async function LandingPage() {
       {/* Nav */}
       <header className="border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <QrCode className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg">QR Plattform</span>
-          </div>
+            <span className="font-bold text-lg text-gray-900">QR Plattform</span>
+          </Link>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
               Anmelden
