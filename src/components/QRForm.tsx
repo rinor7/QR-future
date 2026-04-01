@@ -522,7 +522,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
             <option value="lu">Luxemburg</option>
           </select>
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <div className={`grid grid-cols-2 gap-3 transition-opacity ${!form.country ? "opacity-40 pointer-events-none" : ""}`}>
           <Field label={tr.field_street}>
             <AddressAutocomplete
               value={form.street}
@@ -532,7 +532,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 setForm(next);
                 onFormChange?.(next);
               }}
-              country={form.country || "ch"}
+              country={form.country}
               placeholder="Bahnhofstrasse"
               className={input}
             />
@@ -562,14 +562,6 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
               onChange={(e) => set("city", e.target.value)}
               placeholder="Zürich"
               className={input}
-            />
-          </Field>
-          <Field label="Land">
-            <input
-              type="text"
-              value="Schweiz"
-              disabled
-              className={`${input} bg-gray-50 text-gray-400 cursor-not-allowed`}
             />
           </Field>
         </div>
