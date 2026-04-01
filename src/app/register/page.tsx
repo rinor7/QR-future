@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
-import { QrCode } from "lucide-react";
+import { QrCode, Check } from "lucide-react";
 
 function GoogleIcon() {
   return (
@@ -16,7 +16,6 @@ function GoogleIcon() {
   );
 }
 
-
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,30 +27,16 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-
-    if (password !== confirm) {
-      setError("Passwörter stimmen nicht überein.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Passwort muss mindestens 6 Zeichen haben.");
-      return;
-    }
-
+    if (password !== confirm) { setError("Passwörter stimmen nicht überein."); return; }
+    if (password.length < 6) { setError("Passwort muss mindestens 6 Zeichen haben."); return; }
     setLoading(true);
     const supabase = getSupabaseBrowser();
     const { error } = await supabase.auth.signUp({ email, password });
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
-    }
-
+    if (error) { setError(error.message); setLoading(false); return; }
     setDone(true);
   }
 
-  async function handleOAuth(provider: "google" | "apple") {
+  async function handleOAuth(provider: "google") {
     const supabase = getSupabaseBrowser();
     await supabase.auth.signInWithOAuth({
       provider,
@@ -59,24 +44,18 @@ export default function RegisterPage() {
     });
   }
 
-  const input =
-    "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400";
+  const input = "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400";
 
   if (done) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="w-full max-w-sm text-center">
           <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-4 mx-auto">
-            <QrCode className="w-8 h-8 text-green-600" />
+            <Check className="w-8 h-8 text-green-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Konto erstellt!</h1>
-          <p className="text-gray-500 text-sm mb-6">
-            Bitte bestätigen Sie Ihre E-Mail-Adresse. Schauen Sie in Ihr Postfach.
-          </p>
-          <Link
-            href="/login"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium transition-colors text-sm"
-          >
+          <p className="text-gray-500 text-sm mb-6">Bitte bestätigen Sie Ihre E-Mail-Adresse. Schauen Sie in Ihr Postfach.</p>
+          <Link href="/login" className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium transition-colors text-sm">
             Zur Anmeldung
           </Link>
         </div>
@@ -85,22 +64,72 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-200">
-            <QrCode className="w-8 h-8 text-white" />
+    <div className="min-h-screen flex">
+      {/* Left branded panel */}
+      <div className="hidden lg:flex flex-col justify-between w-[45%] bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-12 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10" style={{backgroundImage:"radial-gradient(circle at 20% 80%, white 0%, transparent 50%)"}} />
+        <Link href="/" className="flex items-center gap-2 relative z-10">
+          <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
+            <QrCode className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">QR Plattform</h1>
-          <p className="text-gray-500 text-sm mt-1">Kostenloses Konto erstellen</p>
+          <span className="font-bold text-white text-lg">QR Plattform</span>
+        </Link>
+
+        <div className="relative z-10 space-y-8">
+          <div>
+            <h2 className="text-3xl font-extrabold text-white leading-snug mb-3">
+              In Sekunden starten.<br />Kostenlos.
+            </h2>
+            <p className="text-blue-200 text-sm leading-relaxed">
+              Kein Kreditkarte nötig. Erstellen Sie Ihren ersten QR-Code in weniger als 2 Minuten.
+            </p>
+          </div>
+          <ul className="space-y-3">
+            {[
+              "Kostenloser Plan ohne Ablauf",
+              "QR-Code sofort einsatzbereit",
+              "Daten jederzeit bearbeitbar",
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-3 text-sm text-blue-100">
+                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <Check className="w-3 h-3 text-white" />
+                </div>
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+        <div className="relative z-10 bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/20">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <QrCode className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-white text-sm font-semibold">Max Muster</p>
+              <p className="text-blue-200 text-xs">Geschäftsführer · Muster AG</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          {/* OAuth buttons */}
-          <div className="flex flex-col gap-3 mb-6">
+      {/* Right: form */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-gray-50">
+        {/* Mobile logo */}
+        <div className="lg:hidden flex flex-col items-center mb-8">
+          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center mb-3 shadow-lg shadow-blue-200">
+            <QrCode className="w-7 h-7 text-white" />
+          </div>
+          <span className="font-bold text-gray-900 text-lg">QR Plattform</span>
+        </div>
+
+        <div className="w-full max-w-sm">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-gray-900">Konto erstellen</h1>
+            <p className="text-gray-500 text-sm mt-1">Kostenlos starten — keine Kreditkarte nötig.</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-5">
             <button
               type="button"
               onClick={() => handleOAuth("google")}
@@ -109,77 +138,49 @@ export default function RegisterPage() {
               <GoogleIcon />
               Mit Google registrieren
             </button>
-          </div>
 
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400 font-medium">oder per E-Mail</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">E-Mail</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@beispiel.at"
-                required
-                autoFocus
-                className={input}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Passwort</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mindestens 6 Zeichen"
-                required
-                className={input}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Passwort bestätigen</label>
-              <input
-                type="password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                placeholder="••••••••"
-                required
-                className={input}
-              />
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400 font-medium">oder per E-Mail</span>
+              <div className="flex-1 h-px bg-gray-200" />
             </div>
 
-            {error && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl font-medium transition-colors"
-            >
-              {loading && (
-                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                </svg>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">E-Mail</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@beispiel.at" required autoFocus className={input} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Passwort</label>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mindestens 6 Zeichen" required className={input} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Passwort bestätigen</label>
+                <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" required className={input} />
+              </div>
+              {error && (
+                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">{error}</p>
               )}
-              {loading ? "Wird erstellt..." : "Konto erstellen"}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl font-medium transition-colors"
+              >
+                {loading && (
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                )}
+                {loading ? "Wird erstellt..." : "Konto erstellen"}
+              </button>
+            </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Bereits ein Konto?{" "}
-            <Link href="/login" className="text-blue-600 hover:underline font-medium">
-              Anmelden
-            </Link>
-          </p>
+            <p className="text-center text-sm text-gray-500">
+              Bereits ein Konto?{" "}
+              <Link href="/login" className="text-blue-600 hover:underline font-medium">Anmelden</Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

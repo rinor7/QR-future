@@ -121,23 +121,68 @@ export default async function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="max-w-6xl mx-auto px-6 py-24 text-center">
-        <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
-          <Zap className="w-3 h-3" /> Digitale Visitenkarten leicht gemacht
-        </div>
-        <h1 className="text-5xl font-extrabold text-gray-900 leading-tight mb-6">
-          QR Codes für Ihre<br />professionelle Angaben
-        </h1>
-        <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-10">
-          Erstellen Sie in Sekunden digitale Visitenkarten mit QR-Code. Teilen Sie Kontaktdaten, Website, Social Media und mehr — ohne App.
-        </p>
-        <div className="flex items-center justify-center gap-4">
-          <Link href="/register" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-semibold text-base transition-colors">
-            Kostenlos starten
-          </Link>
-          <Link href="/login" className="border border-gray-200 hover:bg-gray-50 text-gray-700 px-8 py-3.5 rounded-xl font-semibold text-base transition-colors">
-            Anmelden
-          </Link>
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
+        {/* Background decoration */}
+        <div className="absolute inset-0 opacity-10" style={{backgroundImage:"radial-gradient(circle at 20% 50%, white 0%, transparent 50%), radial-gradient(circle at 80% 20%, white 0%, transparent 40%)"}} />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+
+        <div className="relative max-w-6xl mx-auto px-6 py-20 flex flex-col md:flex-row items-center gap-12">
+          {/* Left: text */}
+          <div className="flex-1 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 bg-white/15 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
+              <Zap className="w-3 h-3" /> Digitale Visitenkarten leicht gemacht
+            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-5">
+              Ihr QR-Code.<br />Immer aktuell.
+            </h1>
+            <p className="text-lg text-blue-100 max-w-lg mb-8">
+              Erstellen Sie in Sekunden eine digitale Visitenkarte mit QR-Code. Kontaktdaten, Logo, Social Media — jederzeit bearbeitbar, ohne neuen Druck.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center md:items-start gap-3">
+              <Link href="/register" className="w-full sm:w-auto text-center bg-white hover:bg-blue-50 text-blue-700 px-8 py-3.5 rounded-xl font-semibold text-base transition-colors shadow-lg">
+                Kostenlos starten
+              </Link>
+              <Link href="/login" className="w-full sm:w-auto text-center border border-white/30 hover:bg-white/10 text-white px-8 py-3.5 rounded-xl font-semibold text-base transition-colors">
+                Anmelden
+              </Link>
+            </div>
+            {/* Trust badges */}
+            <div className="flex flex-wrap items-center gap-4 mt-8 justify-center md:justify-start">
+              {["Kein App-Download", "Kostenlos starten", "Jederzeit kündbar"].map((t) => (
+                <span key={t} className="flex items-center gap-1.5 text-blue-100 text-xs">
+                  <Check className="w-3.5 h-3.5 text-green-300" />{t}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: mock card visual */}
+          <div className="flex-shrink-0 w-full max-w-xs">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+              {/* Card header */}
+              <div className="h-24 bg-gradient-to-br from-indigo-500 to-blue-600" />
+              {/* Avatar */}
+              <div className="flex flex-col items-center -mt-10 pb-6 px-6">
+                <div className="w-20 h-20 rounded-2xl bg-white border-4 border-white shadow-lg flex items-center justify-center mb-3">
+                  <QrCode className="w-10 h-10 text-blue-600" />
+                </div>
+                <p className="font-bold text-gray-900 text-base">Max Muster</p>
+                <p className="text-sm text-gray-500">Geschäftsführer · Muster AG</p>
+                <div className="w-full mt-5 space-y-2">
+                  {["+41 79 000 00 00", "max@muster.ch", "www.muster.ch"].map((line) => (
+                    <div key={line} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                      <span className="text-xs text-gray-600 truncate">{line}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-5 p-3 bg-gray-50 rounded-2xl">
+                  <QrCode className="w-20 h-20 text-gray-800" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
