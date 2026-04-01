@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { QrCode, Check, Zap, Shield, Globe, ScanLine, Pencil } from "lucide-react";
+import { QrCode, Check, Zap, Shield, Globe, ScanLine, Pencil, CreditCard, Layers, BadgeCheck } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import FAQSection from "./FAQSection";
+import QRDemoSection from "./QRDemoSection";
 
 const PLAN_ORDER = ["free", "star", "premium", "platinum"];
 
@@ -37,6 +38,47 @@ const FEATURES = [
   },
 ];
 
+const USE_CASES = [
+  {
+    icon: CreditCard,
+    label: "Visitenkarte",
+    desc: "Drucken Sie Ihren QR-Code auf Ihre Visitenkarte. Ein Scan — alle Infos direkt im Handy.",
+    bg: "bg-blue-50",
+    iconColor: "text-blue-600",
+  },
+  {
+    icon: Layers,
+    label: "Flyer & Plakate",
+    desc: "Ergänzen Sie Flyer, Plakate oder Broschüren mit Ihrem QR-Code für sofortigen Kontakt.",
+    bg: "bg-purple-50",
+    iconColor: "text-purple-600",
+  },
+  {
+    icon: BadgeCheck,
+    label: "Türschild / Eingang",
+    desc: "Befestigen Sie einen QR-Code am Eingang — Besucher speichern Ihre Daten direkt beim Ankommen.",
+    bg: "bg-green-50",
+    iconColor: "text-green-600",
+  },
+];
+
+async function getStats() {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const [{ count: codes }, { count: scans }, { count: users }] = await Promise.all([
+      supabase.from("contacts").select("*", { count: "exact", head: true }),
+      supabase.from("scans").select("*", { count: "exact", head: true }),
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+    ]);
+    return { codes: codes ?? 0, scans: scans ?? 0, users: users ?? 0 };
+  } catch {
+    return null;
+  }
+}
+
 async function getPlanConfigs() {
   try {
     const supabase = createClient(
@@ -54,19 +96,19 @@ async function getPlanConfigs() {
 }
 
 export default async function LandingPage() {
-  const plans = await getPlanConfigs();
+  const [plans, stats] = await Promise.all([getPlanConfigs(), getStats()]);
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* Nav */}
       <header className="border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <QrCode className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg">QR Plattform</span>
-          </div>
+            <span className="font-bold text-lg text-gray-900">QR Plattform</span>
+          </Link>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
               Anmelden
@@ -99,6 +141,26 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* Stats bar — only show when numbers are meaningful */}
+      {stats && stats.codes >= 20 && stats.users >= 5 && (
+        <section className="border-y border-gray-100 py-10">
+          <div className="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-6 text-center">
+            <div>
+              <p className="text-3xl font-extrabold text-blue-600">{stats.codes.toLocaleString("de-CH")}+</p>
+              <p className="text-sm text-gray-500 mt-1">QR-Codes erstellt</p>
+            </div>
+            <div>
+              <p className="text-3xl font-extrabold text-blue-600">{stats.scans.toLocaleString("de-CH")}+</p>
+              <p className="text-sm text-gray-500 mt-1">Scans insgesamt</p>
+            </div>
+            <div>
+              <p className="text-3xl font-extrabold text-blue-600">{stats.users.toLocaleString("de-CH")}+</p>
+              <p className="text-sm text-gray-500 mt-1">Nutzer vertrauen uns</p>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Features */}
       <section className="bg-gray-50 py-20">
         <div className="max-w-6xl mx-auto px-6">
@@ -123,7 +185,6 @@ export default async function LandingPage() {
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">So funktioniert&apos;s</h2>
           <p className="text-center text-gray-500 mb-16">In 3 einfachen Schritten zur digitalen Visitenkarte.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 relative">
-            {/* connector lines (desktop only) */}
             <div className="hidden md:block absolute top-8 left-1/3 right-1/3 h-px bg-gray-200" />
             {[
               {
@@ -162,8 +223,32 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* Live QR Demo */}
+      <QRDemoSection />
+
+      {/* Use cases */}
       <section className="py-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">Wo können Sie ihn einsetzen?</h2>
+          <p className="text-center text-gray-500 mb-12">Überall dort, wo Sie gefunden werden möchten.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {USE_CASES.map(({ icon: Icon, label, desc, bg, iconColor }) => (
+              <div key={label} className="rounded-2xl border border-gray-200 p-6 flex flex-col gap-4">
+                <div className={`w-12 h-12 ${bg} rounded-xl flex items-center justify-center`}>
+                  <Icon className={`w-6 h-6 ${iconColor}`} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">{label}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="bg-gray-50 py-20">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">Einfache Preisgestaltung</h2>
           <p className="text-center text-gray-500 mb-12">Starten Sie kostenlos — upgraden Sie wenn Sie bereit sind.</p>

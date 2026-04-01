@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 const VALID_PRICES = new Set([
   "price_1TBkP61MPl7fNPWeElDgBGsM", // star
   "price_1TBkPQ1MPl7fNPWehoGc86wl", // premium
@@ -17,6 +15,7 @@ const PRICE_TO_PLAN: Record<string, string> = {
 
 export async function POST(request: Request) {
   try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
     const { priceId, userId, userEmail } = await request.json();
 
     if (!VALID_PRICES.has(priceId)) {

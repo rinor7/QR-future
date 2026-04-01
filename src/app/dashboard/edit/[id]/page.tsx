@@ -23,9 +23,9 @@ export default function EditPage() {
   const [supportEmail, setSupportEmail] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(searchParams.get("created") === "1");
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const justCreated = searchParams.get("created") === "1";
 
   useEffect(() => {
     if (!roleLoading && isReader) router.replace("/dashboard/codes");
@@ -105,6 +105,7 @@ export default function EditPage() {
   }
 
   async function handleSubmit(data: CreateQRContact) {
+    setSubmitting(true);
     try {
       const updated = await updateContact(id, data);
       if (updated) setContact(updated);
@@ -113,6 +114,8 @@ export default function EditPage() {
     } catch (e) {
       setError(tr.save_error);
       console.error(e);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -133,11 +136,6 @@ export default function EditPage() {
         <p className="text-gray-500 mt-1">{`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</p>
       </div>
 
-      {justCreated && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 text-sm font-medium">
-          {tr.edit_success}
-        </div>
-      )}
       <div className="flex gap-8">
         <div className="flex-1">
           <QRForm
@@ -145,6 +143,7 @@ export default function EditPage() {
             onSubmit={handleSubmit}
             submitLabel={tr.save}
             saved={saved}
+            loading={submitting}
             error={error}
             supportEmail={supportEmail}
             onFormChange={(f) => setPreviewLogoUrl(f.showLogoInQr !== false ? f.logoUrl || undefined : undefined)}
