@@ -13,6 +13,7 @@ export default function CreatePage() {
   const { tr } = useLang();
   const { isReader, loading: roleLoading } = useRole();
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!roleLoading && isReader) router.replace("/dashboard/codes");
@@ -20,6 +21,7 @@ export default function CreatePage() {
 
   async function handleSubmit(data: CreateQRContact) {
     setError(null);
+    setSubmitting(true);
     try {
       const contact = await createContact(data);
       router.push(`/dashboard/edit/${contact.id}?created=1`);
@@ -35,6 +37,8 @@ export default function CreatePage() {
         setError(tr.create_error);
         console.error(e);
       }
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -49,7 +53,7 @@ export default function CreatePage() {
           {error}
         </div>
       )}
-      <QRForm onSubmit={handleSubmit} submitLabel={tr.create_submit} />
+      <QRForm onSubmit={handleSubmit} submitLabel={tr.create_submit} loading={submitting} />
     </div>
   );
 }

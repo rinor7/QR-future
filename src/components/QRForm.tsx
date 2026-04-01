@@ -87,12 +87,13 @@ interface Props {
   onSubmit: (data: CreateQRContact) => void;
   submitLabel: string;
   saved?: boolean;
+  loading?: boolean;
   error?: string | null;
   supportEmail?: string;
   onFormChange?: (data: CreateQRContact) => void;
 }
 
-export default function QRForm({ initial, onSubmit, submitLabel, saved, error, supportEmail, onFormChange }: Props) {
+export default function QRForm({ initial, onSubmit, submitLabel, saved, loading, error, supportEmail, onFormChange }: Props) {
   const router = useRouter();
   const { tr } = useLang();
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
@@ -751,9 +752,16 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, error, s
       <div className="flex items-center gap-3 pt-2">
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium transition-colors"
+          disabled={!!loading}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-70 text-white px-6 py-2.5 rounded-xl font-medium transition-colors"
         >
-          {submitLabel}
+          {loading && (
+            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
+          )}
+          {loading ? "Wird gespeichert..." : submitLabel}
         </button>
         <button
           type="button"
