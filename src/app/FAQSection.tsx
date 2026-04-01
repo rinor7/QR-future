@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 const FAQS = [
   {
     q: "Was ist ein dynamischer QR-Code?",
-    a: "Ein dynamischer QR-Code leitet auf eine URL weiter, die Sie jederzeit ändern können — ohne den gedruckten QR-Code zu ersetzen. Ihre Kunden scannen immer die aktuellsten Daten.",
+    a: "Ein dynamischer QR-Code leitet auf eine URL weiter, die Sie jederzeit ändern können, ohne den gedruckten QR-Code zu ersetzen. Ihre Kunden scannen immer die aktuellsten Daten.",
   },
   {
     q: "Kann ich meinen QR-Code nach dem Drucken noch bearbeiten?",
@@ -14,7 +14,7 @@ const FAQS = [
   },
   {
     q: "Brauchen meine Kunden eine App zum Scannen?",
-    a: "Nein. Jedes moderne Smartphone kann QR-Codes direkt mit der Kamera-App scannen — ganz ohne App-Download.",
+    a: "Nein. Jedes moderne Smartphone kann QR-Codes direkt mit der Kamera-App scannen, ganz ohne App-Download.",
   },
   {
     q: "Wie lade ich meinen QR-Code herunter?",
@@ -22,7 +22,7 @@ const FAQS = [
   },
   {
     q: "Kann ich sehen, wie oft mein QR-Code gescannt wurde?",
-    a: "Ja. Im Dashboard sehen Sie für jeden QR-Code die Scan-Statistiken — wann und wie oft gescannt wurde.",
+    a: "Ja. Im Dashboard sehen Sie für jeden QR-Code die Scan-Statistiken: wann und wie oft gescannt wurde.",
   },
   {
     q: "Was passiert, wenn ich mein Abo kündige?",
@@ -30,7 +30,7 @@ const FAQS = [
   },
   {
     q: "Kann ich mein eigenes Logo im QR-Code einbetten?",
-    a: "Ja. Ab dem Star-Plan können Sie Ihr Logo in die Mitte des QR-Codes einbetten — für einen professionellen, markentreuen Auftritt.",
+    a: "Ja. Ab dem Star-Plan können Sie Ihr Logo in die Mitte des QR-Codes einbetten, für einen professionellen, markentreuen Auftritt.",
   },
 ];
 
@@ -41,7 +41,7 @@ export default function FAQSection() {
     <section className="py-20 bg-gray-50">
       <div className="max-w-3xl mx-auto px-6">
         <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">Häufige Fragen</h2>
-        <p className="text-center text-gray-500 mb-12">Alles was Sie wissen müssen — kurz und klar.</p>
+        <p className="text-center text-gray-500 mb-12">Alles was Sie wissen müssen, kurz und klar.</p>
         <div className="space-y-3">
           {FAQS.map((faq, i) => (
             <div key={i} className="bg-white rounded-2xl border border-gray-200 overflow-hidden">

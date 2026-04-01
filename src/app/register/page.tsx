@@ -126,7 +126,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-sm">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900">Konto erstellen</h1>
-            <p className="text-gray-500 text-sm mt-1">Kostenlos starten — keine Kreditkarte nötig.</p>
+            <p className="text-gray-500 text-sm mt-1">Kostenlos starten, keine Kreditkarte nötig.</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-5">
