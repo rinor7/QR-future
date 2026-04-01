@@ -141,8 +141,8 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Stats bar */}
-      {stats && (stats.codes > 0 || stats.scans > 0 || stats.users > 0) && (
+      {/* Stats bar — only show when numbers are meaningful */}
+      {stats && stats.codes >= 20 && stats.users >= 5 && (
         <section className="border-y border-gray-100 py-10">
           <div className="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-6 text-center">
             <div>
