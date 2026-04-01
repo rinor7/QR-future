@@ -6,6 +6,7 @@ import { Upload, FileText, Plus, Link2, X } from "lucide-react";
 import { CreateQRContact, ContactLink } from "@/lib/types";
 import { useLang } from "@/lib/language";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 
 const DEFAULTS: CreateQRContact = {
   qrLabel: "",
@@ -506,10 +507,14 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         )}
         <div className="grid grid-cols-2 gap-3">
           <Field label={tr.field_street}>
-            <input
-              type="text"
+            <AddressAutocomplete
               value={form.street}
-              onChange={(e) => set("street", e.target.value)}
+              onChange={(val) => set("street", val)}
+              onSelect={(parts) => {
+                const next = { ...form, ...parts };
+                setForm(next);
+                onFormChange?.(next);
+              }}
               placeholder="Bahnhofstrasse"
               className={input}
             />
