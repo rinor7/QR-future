@@ -101,7 +101,7 @@ export default async function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* Nav */}
-      <header className="border-b border-gray-100">
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -351,15 +351,50 @@ export default async function LandingPage() {
       <FAQSection />
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 py-8">
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-sm text-gray-400">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
-              <QrCode className="w-3.5 h-3.5 text-white" />
+      <footer className="bg-gray-900 text-gray-400">
+        <div className="max-w-6xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-3 gap-10">
+          {/* Brand */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <QrCode className="w-4.5 h-4.5 text-white" />
+              </div>
+              <span className="font-bold text-white text-base">QR Plattform</span>
             </div>
-            QR Plattform
+            <p className="text-sm leading-relaxed text-gray-500">
+              Digitale Visitenkarten mit QR-Code. Einmal erstellen — jederzeit aktualisieren. Kein Neudruck nötig.
+            </p>
           </div>
-          <span>© {new Date().getFullYear()} QR Plattform. Alle Rechte vorbehalten.</span>
+
+          {/* Links */}
+          <div>
+            <h4 className="text-white font-semibold text-sm mb-4">Plattform</h4>
+            <ul className="space-y-2.5 text-sm">
+              <li><Link href="/register" className="hover:text-white transition-colors">Kostenlos starten</Link></li>
+              <li><Link href="/login" className="hover:text-white transition-colors">Anmelden</Link></li>
+              <li><a href="#pricing" className="hover:text-white transition-colors">Preise</a></li>
+              <li><a href="#faq" className="hover:text-white transition-colors">FAQ</a></li>
+            </ul>
+          </div>
+
+          {/* CTA */}
+          <div>
+            <h4 className="text-white font-semibold text-sm mb-4">Jetzt starten</h4>
+            <p className="text-sm text-gray-500 mb-4">Erstellen Sie Ihren ersten QR-Code kostenlos — in weniger als 2 Minuten.</p>
+            <Link
+              href="/register"
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
+            >
+              Kostenlos registrieren
+            </Link>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-800">
+          <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
+            <span>© {new Date().getFullYear()} QR Plattform. Alle Rechte vorbehalten.</span>
+            <span>Made in Switzerland 🇨🇭</span>
+          </div>
         </div>
       </footer>
     </div>
