@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 const PRICE_TO_PLAN: Record<string, string> = {
   "price_1TBkP61MPl7fNPWeElDgBGsM": "star",
   "price_1TBkPQ1MPl7fNPWehoGc86wl": "premium",
@@ -46,6 +44,7 @@ async function pauseExcessContacts(supabase: ReturnType<typeof getSupabase>, own
 }
 
 export async function POST(request: Request) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
   const body = await request.text();
   const sig = request.headers.get("stripe-signature");
 
