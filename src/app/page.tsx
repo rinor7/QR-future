@@ -293,11 +293,11 @@ export default async function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="bg-gray-50 py-20">
+      <section id="pricing" className="bg-gray-50 py-20 scroll-mt-20">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">Einfache Preisgestaltung</h2>
           <p className="text-center text-gray-500 mb-12">Starten Sie kostenlos. Upgraden Sie wenn Sie bereit sind.</p>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {(plans ?? []).map((plan) => {
               const style = PLAN_STYLE[plan.plan] ?? PLAN_STYLE.free;
               const planName = plan.plan.charAt(0).toUpperCase() + plan.plan.slice(1);
@@ -348,7 +348,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <div id="faq"><FAQSection /></div>
+      <div id="faq" className="scroll-mt-20"><FAQSection /></div>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400">
@@ -370,8 +370,6 @@ export default async function LandingPage() {
           <div>
             <h4 className="text-white font-semibold text-sm mb-4">Plattform</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link href="/register" className="hover:text-white transition-colors">Kostenlos starten</Link></li>
-              <li><Link href="/login" className="hover:text-white transition-colors">Anmelden</Link></li>
               <li><a href="#pricing" className="hover:text-white transition-colors">Preise</a></li>
               <li><a href="#faq" className="hover:text-white transition-colors">FAQ</a></li>
             </ul>
