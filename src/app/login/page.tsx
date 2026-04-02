@@ -67,7 +67,7 @@ export default function LoginPage() {
               Ihre digitale Visitenkarte.<br />Immer dabei.
             </h2>
             <p className="text-blue-200 text-sm leading-relaxed">
-              QR-Code einmal drucken — Daten jederzeit aktualisieren. Kein Neudruck nötig.
+              QR-Code einmal drucken, Daten jederzeit aktualisieren. Kein Neudruck nötig.
             </p>
           </div>
           <ul className="space-y-3">

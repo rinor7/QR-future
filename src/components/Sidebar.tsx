@@ -77,9 +77,9 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
   const dark = isPlatformAdmin;
 
   return (
-    <aside className={`w-64 flex flex-col shrink-0 fixed top-0 left-0 h-screen z-50 transition-transform duration-300 ease-in-out wide:sticky wide:top-0 wide:h-screen wide:translate-x-0 wide:overflow-y-auto ${open ? "translate-x-0" : "-translate-x-full"} ${dark ? "bg-gray-900 border-r border-gray-700" : "bg-white border-r border-gray-200"}`}>
+    <aside className={`w-64 flex flex-col shrink-0 fixed top-0 left-0 h-screen z-50 transition-transform duration-300 ease-in-out wide:sticky wide:top-0 wide:h-screen wide:translate-x-0 wide:overflow-y-auto ${open ? "translate-x-0" : "-translate-x-full"} ${dark ? "bg-gray-900 border-r border-gray-700" : "bg-gradient-to-b from-blue-50/60 to-white border-r border-blue-100"}`}>
       {/* Logo */}
-      <div className={`h-16 flex items-center px-6 border-b ${dark ? "border-gray-700" : "border-gray-200"}`}>
+      <div className={`h-16 flex items-center px-6 border-b ${dark ? "border-gray-700" : "border-blue-100"}`}>
         <div className="flex items-center gap-2 flex-1">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <QrCode className="w-5 h-5 text-white" />
@@ -112,7 +112,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
                     : "bg-blue-600 text-white"
                   : dark
                   ? "text-gray-400 hover:bg-gray-800 hover:text-white"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  : "text-gray-600 hover:bg-blue-50 hover:text-blue-700"
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -123,7 +123,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
       </nav>
 
       {/* Footer */}
-      <div className={`p-3 border-t space-y-1 ${dark ? "border-gray-700" : "border-gray-200"}`}>
+      <div className={`p-3 border-t space-y-1 ${dark ? "border-gray-700" : "border-blue-100"}`}>
         {/* Language toggle */}
         <button
           onClick={toggleLang}

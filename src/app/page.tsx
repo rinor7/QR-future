@@ -29,7 +29,7 @@ const FEATURES = [
   {
     icon: Globe,
     title: "Überall zugänglich",
-    desc: "Ihre QR-Codes sind jederzeit und von überall abrufbar — kein App-Download nötig.",
+    desc: "Ihre QR-Codes sind jederzeit und von überall abrufbar, ohne App-Download.",
   },
   {
     icon: Shield,
@@ -42,7 +42,7 @@ const USE_CASES = [
   {
     icon: CreditCard,
     label: "Visitenkarte",
-    desc: "Drucken Sie Ihren QR-Code auf Ihre Visitenkarte. Ein Scan — alle Infos direkt im Handy.",
+    desc: "Drucken Sie Ihren QR-Code auf Ihre Visitenkarte. Ein Scan und alle Infos sind direkt im Handy.",
     bg: "bg-blue-50",
     iconColor: "text-blue-600",
   },
@@ -56,7 +56,7 @@ const USE_CASES = [
   {
     icon: BadgeCheck,
     label: "Türschild / Eingang",
-    desc: "Befestigen Sie einen QR-Code am Eingang — Besucher speichern Ihre Daten direkt beim Ankommen.",
+    desc: "Befestigen Sie einen QR-Code am Eingang. Besucher speichern Ihre Daten direkt beim Ankommen.",
     bg: "bg-green-50",
     iconColor: "text-green-600",
   },
@@ -137,7 +137,7 @@ export default async function LandingPage() {
               Ihr QR-Code.<br />Immer aktuell.
             </h1>
             <p className="text-lg text-blue-100 max-w-lg mb-8">
-              Erstellen Sie in Sekunden eine digitale Visitenkarte mit QR-Code. Kontaktdaten, Logo, Social Media — jederzeit bearbeitbar, ohne neuen Druck.
+              Erstellen Sie in Sekunden eine digitale Visitenkarte mit QR-Code. Kontaktdaten, Logo, Social Media. Jederzeit bearbeitbar, ohne neuen Druck.
             </p>
             <div className="flex flex-col sm:flex-row items-center md:items-start gap-3">
               <Link href="/register" className="w-full sm:w-auto text-center bg-white hover:bg-blue-50 text-blue-700 px-8 py-3.5 rounded-xl font-semibold text-base transition-colors shadow-lg">
@@ -248,7 +248,7 @@ export default async function LandingPage() {
                 icon: Pencil,
                 step: "03",
                 title: "Jederzeit bearbeiten",
-                desc: "Ändern Sie Ihre Daten wann immer Sie wollen — der gedruckte QR-Code leitet immer auf die aktuellen Infos weiter.",
+                desc: "Ändern Sie Ihre Daten wann immer Sie wollen. Der gedruckte QR-Code leitet immer auf die aktuellen Infos weiter.",
               },
             ].map(({ icon: Icon, step, title, desc }) => (
               <div key={step} className="flex flex-col items-center text-center">
@@ -293,10 +293,10 @@ export default async function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section className="bg-gray-50 py-20">
+      <section id="pricing" className="bg-gray-50 py-20">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">Einfache Preisgestaltung</h2>
-          <p className="text-center text-gray-500 mb-12">Starten Sie kostenlos — upgraden Sie wenn Sie bereit sind.</p>
+          <p className="text-center text-gray-500 mb-12">Starten Sie kostenlos. Upgraden Sie wenn Sie bereit sind.</p>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {(plans ?? []).map((plan) => {
               const style = PLAN_STYLE[plan.plan] ?? PLAN_STYLE.free;
@@ -348,7 +348,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <FAQSection />
+      <div id="faq"><FAQSection /></div>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400">
@@ -362,7 +362,7 @@ export default async function LandingPage() {
               <span className="font-bold text-white text-base">QR Plattform</span>
             </div>
             <p className="text-sm leading-relaxed text-gray-500">
-              Digitale Visitenkarten mit QR-Code. Einmal erstellen — jederzeit aktualisieren. Kein Neudruck nötig.
+              Digitale Visitenkarten mit QR-Code. Einmal erstellen, jederzeit aktualisieren. Kein Neudruck nötig.
             </p>
           </div>
 
@@ -380,7 +380,7 @@ export default async function LandingPage() {
           {/* CTA */}
           <div>
             <h4 className="text-white font-semibold text-sm mb-4">Jetzt starten</h4>
-            <p className="text-sm text-gray-500 mb-4">Erstellen Sie Ihren ersten QR-Code kostenlos — in weniger als 2 Minuten.</p>
+            <p className="text-sm text-gray-500 mb-4">Erstellen Sie Ihren ersten QR-Code kostenlos, in weniger als 2 Minuten.</p>
             <Link
               href="/register"
               className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
