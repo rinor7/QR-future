@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [plan, setPlan] = useState<Plan>("free");
   const [isOwner, setIsOwner] = useState(false);
   const [onboardingDismissed, setOnboardingDismissed] = useState(true);
@@ -64,14 +64,9 @@ export default function DashboardPage() {
   }
 
   async function handleDelete(id: string) {
-    if (deleteConfirm === id) {
-      await deleteContact(id);
-      setContacts((prev) => prev.filter((c) => c.id !== id));
-      setDeleteConfirm(null);
-    } else {
-      setDeleteConfirm(id);
-      setTimeout(() => setDeleteConfirm(null), 3000);
-    }
+    await deleteContact(id);
+    setContacts((prev) => prev.filter((c) => c.id !== id));
+    setDeleteModal(null);
   }
 
   return (
@@ -272,13 +267,8 @@ export default function DashboardPage() {
                       )}
                       {isAdmin && (
                         <button
-                          onClick={() => handleDelete(contact.id)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            deleteConfirm === contact.id
-                              ? "text-red-600 bg-red-50"
-                              : "text-gray-400 hover:text-red-500 hover:bg-red-50"
-                          }`}
-                          title={deleteConfirm === contact.id ? tr.delete_confirm : tr.delete}
+                          onClick={() => setDeleteModal(contact.id)}
+                          className="p-2 rounded-lg transition-colors text-gray-400 hover:text-red-500 hover:bg-red-50"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -291,6 +281,33 @@ export default function DashboardPage() {
           </table>
         )}
       </div>
+
+      {/* Delete confirmation modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+            <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
+              <Trash2 className="w-6 h-6 text-red-600" />
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 text-center mb-2">{tr.delete_modal_title}</h2>
+            <p className="text-sm text-gray-500 text-center mb-6">{tr.delete_modal_body}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteModal(null)}
+                className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-50 transition-colors"
+              >
+                {tr.delete_modal_cancel}
+              </button>
+              <button
+                onClick={() => handleDelete(deleteModal)}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-medium text-sm transition-colors"
+              >
+                {tr.delete_modal_confirm}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
