@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download, BarChart2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download, BarChart2, Folder as FolderIcon } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
+import { getAllFolders, assignQrToFolder, type Folder } from "@/lib/folders";
 
 
 export default function CodesPage() {
@@ -23,6 +24,11 @@ export default function CodesPage() {
   const [plan, setPlan] = useState<Plan>("free");
   const [isOwner, setIsOwner] = useState(false);
   const [scanCounts, setScanCounts] = useState<Record<string, number>>({});
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [folderFilter, setFolderFilter] = useState<string>("all");
+  const [assigningFolder, setAssigningFolder] = useState<string | null>(null);
+  // contactFolders: maps contact.id → folder_id (local state for optimistic UI)
+  const [contactFolders, setContactFolders] = useState<Record<string, string | null>>({});
 
   useEffect(() => {
     Promise.all([getAllContacts(), getUserProfile()]).then(([data, profile]) => {
@@ -30,6 +36,21 @@ export default function CodesPage() {
       if (profile) {
         setPlan(profile.plan);
         setIsOwner(profile.userId === profile.ownerId);
+        getAllFolders(profile.ownerId).then(setFolders).catch(() => {});
+        // Load folder assignments for contacts
+        import("@/lib/supabase-browser").then(({ getSupabaseBrowser }) => {
+          getSupabaseBrowser()
+            .from("contacts")
+            .select("id, folder_id")
+            .eq("user_id", profile.ownerId)
+            .then(({ data: rows }) => {
+              if (rows) {
+                const map: Record<string, string | null> = {};
+                rows.forEach((r) => { map[r.id] = r.folder_id ?? null; });
+                setContactFolders(map);
+              }
+            });
+        });
       }
     }).finally(() => setLoading(false));
 
@@ -53,6 +74,16 @@ export default function CodesPage() {
     await deleteContact(id);
     setContacts((prev) => prev.filter((c) => c.id !== id));
     setDeleteModal(null);
+  }
+
+  async function handleAssignFolder(contactId: string, folderId: string) {
+    setAssigningFolder(contactId);
+    try {
+      await assignQrToFolder(contactId, folderId);
+      setContactFolders((prev) => ({ ...prev, [contactId]: folderId }));
+    } finally {
+      setAssigningFolder(null);
+    }
   }
 
   function handleDownloadQR(id: string, logoUrl?: string, showLogoInQr?: boolean) {
@@ -118,7 +149,11 @@ export default function CodesPage() {
         statusFilter === "all" ||
         (statusFilter === "active" && c.isActive !== false) ||
         (statusFilter === "paused" && c.isActive === false);
-      return matchesSearch && matchesStatus;
+      const matchesFolder =
+        folderFilter === "all" ||
+        (folderFilter === "none" && !contactFolders[c.id]) ||
+        contactFolders[c.id] === folderFilter;
+      return matchesSearch && matchesStatus && matchesFolder;
     })
     .sort((a, b) => {
       if (sortBy === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -185,6 +220,19 @@ export default function CodesPage() {
           <option value="active">{tr.filter_active}</option>
           <option value="paused">{tr.filter_paused}</option>
         </select>
+        {folders.length > 0 && (
+          <select
+            value={folderFilter}
+            onChange={(e) => setFolderFilter(e.target.value)}
+            className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
+          >
+            <option value="all">Alle Ordner</option>
+            <option value="none">Kein Ordner</option>
+            {folders.map((f) => (
+              <option key={f.id} value={f.id}>{f.name}</option>
+            ))}
+          </select>
+        )}
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as "newest" | "oldest" | "name")}
@@ -250,6 +298,27 @@ export default function CodesPage() {
                 <p className="text-xs text-gray-400 -mt-2">
                   {tr.created_by}: {contact.createdBy}
                 </p>
+              )}
+
+              {/* Folder assignment */}
+              {folders.length > 0 && (
+                <div className="flex items-center gap-2 -mt-1">
+                  <FolderIcon className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                  <select
+                    value={contactFolders[contact.id] ?? ""}
+                    onChange={(e) => handleAssignFolder(contact.id, e.target.value)}
+                    disabled={assigningFolder === contact.id}
+                    className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    <option value="">Kein Ordner</option>
+                    {folders.map((f) => (
+                      <option key={f.id} value={f.id}>{f.name}</option>
+                    ))}
+                  </select>
+                  {assigningFolder === contact.id && (
+                    <div className="w-3.5 h-3.5 border border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
+                  )}
+                </div>
               )}
 
               <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
