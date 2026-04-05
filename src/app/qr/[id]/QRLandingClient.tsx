@@ -44,6 +44,7 @@ function FacebookIcon({ className }: { className?: string }) {
   );
 }
 import { useState, useEffect } from "react";
+import QRCodeDisplay from "@/components/QRCodeDisplay";
 
 function formatPhone(phone: string): string {
   const digits = phone.replace(/\D/g, "");
@@ -115,10 +116,12 @@ const THEMES = {
 export default function QRLandingClient({ contact }: { contact: QRContact }) {
   const [shared, setShared] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [pageUrl, setPageUrl] = useState("");
   const color = contact.primaryColor || "#2563eb";
 
   useEffect(() => {
     setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0);
+    setPageUrl(window.location.href);
   }, []);
   const th = THEMES[contact.theme ?? "classic"];
 
@@ -305,6 +308,18 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
               <Download className="w-4 h-4" />
               Kontakt speichern
             </button>
+          </div>
+        )}
+
+        {/* QR Code */}
+        {pageUrl && (
+          <div className={`mx-5 mb-4 flex flex-col items-center gap-2 p-4 rounded-2xl ${th.card}`} style={{ border: `1px solid ${th.borderColor(color)}20` }}>
+            <QRCodeDisplay
+              value={pageUrl}
+              size={140}
+              logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined}
+            />
+            <p className={`text-xs ${th.subtext}`}>Scannen zum Teilen</p>
           </div>
         )}
 
