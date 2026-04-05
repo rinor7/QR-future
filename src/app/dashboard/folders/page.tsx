@@ -491,7 +491,14 @@ export default function FoldersPage() {
   const selectedFolder = selectedId ? findNode(tree, selectedId) : null;
 
   async function handleCreateRoot(name: string, type: FolderType) {
-    await createFolder(name, type, null, orgId, userId);
+    const newFolder = await createFolder(name, type, null, orgId, userId);
+    // Root folders have no parent to inherit permissions from, so grant
+    // company_admin to the creator explicitly — otherwise RLS hides the folder.
+    await getSupabaseBrowser().rpc("grant_folder_role", {
+      p_user_id: userId,
+      p_folder_id: newFolder.id,
+      p_role: "company_admin",
+    });
     setAddingRoot(false);
     await load();
   }
