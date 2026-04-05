@@ -19,6 +19,7 @@ export default function AuthCallbackPage() {
       const type = params.get("type");
       if (access_token && refresh_token) {
         supabase.auth.setSession({ access_token, refresh_token }).then(() => {
+          document.cookie = `qr_login_ts=${Math.floor(Date.now() / 1000)}; path=/; max-age=7200; SameSite=Lax`;
           if (type === "invite") router.replace("/auth/set-password");
           else if (type === "recovery") router.replace("/reset-password");
           else router.replace("/dashboard");
@@ -33,6 +34,7 @@ export default function AuthCallbackPage() {
     const type = searchParams.get("type");
     if (code) {
       supabase.auth.exchangeCodeForSession(code).then(() => {
+        document.cookie = `qr_login_ts=${Math.floor(Date.now() / 1000)}; path=/; max-age=7200; SameSite=Lax`;
         if (type === "invite") router.replace("/auth/set-password");
         else if (type === "recovery") router.replace("/reset-password");
         else router.replace("/dashboard");

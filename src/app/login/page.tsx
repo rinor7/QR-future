@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { QrCode, Check } from "lucide-react";
@@ -17,8 +17,10 @@ function GoogleIcon() {
   );
 }
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const expired = searchParams.get("expired") === "1";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +37,7 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
+    document.cookie = `qr_login_ts=${Math.floor(Date.now() / 1000)}; path=/; max-age=7200; SameSite=Lax`;
     router.push("/dashboard");
     router.refresh();
   }
@@ -116,6 +119,12 @@ export default function LoginPage() {
             <p className="text-gray-500 text-sm mt-1">Melden Sie sich in Ihrem Konto an.</p>
           </div>
 
+          {expired && (
+            <div className="mb-4 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
+              Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.
+            </div>
+          )}
+
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-5">
             {/* Google OAuth */}
             <button
@@ -192,5 +201,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
