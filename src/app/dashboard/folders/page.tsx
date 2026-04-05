@@ -189,6 +189,7 @@ function FolderNode({
   orgId,
   userId,
   depth,
+  isRoot,
 }: {
   node: FolderWithStats;
   allFolders: FolderWithStats[];
@@ -198,6 +199,7 @@ function FolderNode({
   orgId: string;
   userId: string;
   depth: number;
+  isRoot?: boolean;
 }) {
   const [expanded, setExpanded] = useState(depth === 0);
   const [addingChild, setAddingChild] = useState(false);
@@ -289,12 +291,16 @@ function FolderNode({
               <button onClick={() => setEditing(true)} title="Umbenennen" className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-white/20 text-white/80" : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"}`}>
                 <Pencil className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => setMovingFolder(true)} title="Verschieben" className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-white/20 text-white/80" : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"}`}>
-                <MoveRight className="w-3.5 h-3.5" />
-              </button>
-              <button onClick={() => setDeleting(true)} title="Löschen" className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-red-200 text-white/80" : "text-gray-400 hover:text-red-500 hover:bg-red-50"}`}>
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+              {!isRoot && (
+                <button onClick={() => setMovingFolder(true)} title="Verschieben" className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-white/20 text-white/80" : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"}`}>
+                  <MoveRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {!isRoot && (
+                <button onClick={() => setDeleting(true)} title="Löschen" className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-red-200 text-white/80" : "text-gray-400 hover:text-red-500 hover:bg-red-50"}`}>
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </>
         )}
@@ -331,7 +337,7 @@ function FolderNode({
 
       {/* Children */}
       {expanded && node.children.map((child) => (
-        <FolderNode key={child.id} node={child} allFolders={allFolders} selectedId={selectedId} onSelect={onSelect} onRefresh={onRefresh} orgId={orgId} userId={userId} depth={depth + 1} />
+        <FolderNode key={child.id} node={child} allFolders={allFolders} selectedId={selectedId} onSelect={onSelect} onRefresh={onRefresh} orgId={orgId} userId={userId} depth={depth + 1} isRoot={false} />
       ))}
     </div>
   );
@@ -428,7 +434,6 @@ export default function FoldersPage() {
   const [orgId, setOrgId] = useState("");
   const [userId, setUserId] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [addingRoot, setAddingRoot] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // QR codes for the selected folder
@@ -490,19 +495,6 @@ export default function FoldersPage() {
 
   const selectedFolder = selectedId ? findNode(tree, selectedId) : null;
 
-  async function handleCreateRoot(name: string, type: FolderType) {
-    const newFolder = await createFolder(name, type, null, orgId, userId);
-    // Root folders have no parent to inherit permissions from, so grant
-    // company_admin to the creator explicitly — otherwise RLS hides the folder.
-    await getSupabaseBrowser().rpc("grant_folder_role", {
-      p_user_id: userId,
-      p_folder_id: newFolder.id,
-      p_role: "company_admin",
-    });
-    setAddingRoot(false);
-    await load();
-  }
-
   const totalFolders = tree.reduce(function countAll(acc: number, n: FolderWithStats): number {
     return acc + 1 + n.children.reduce(countAll, 0);
   }, 0);
@@ -515,24 +507,10 @@ export default function FoldersPage() {
           <h1 className="text-3xl font-bold text-gray-900">Ordner</h1>
           <p className="text-gray-500 mt-1">{totalFolders} Ordner insgesamt</p>
         </div>
-        <button
-          onClick={() => setAddingRoot(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
-        >
-          <FolderPlus className="w-5 h-5" />
-          Neuer Ordner
-        </button>
       </div>
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">{error}</div>
-      )}
-
-      {addingRoot && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4">
-          <p className="text-sm font-medium text-gray-700 mb-2">Root-Ordner erstellen</p>
-          <FolderForm onSave={handleCreateRoot} onCancel={() => setAddingRoot(false)} label="Erstellen" />
-        </div>
       )}
 
       {/* Split layout */}
@@ -552,9 +530,7 @@ export default function FoldersPage() {
             <div className="flex flex-col items-center py-12 text-gray-400 px-4 text-center">
               <FolderIcon className="w-10 h-10 mb-2 opacity-30" />
               <p className="text-sm font-medium">Noch keine Ordner</p>
-              <button onClick={() => setAddingRoot(true)} className="mt-3 text-sm text-blue-600 font-medium hover:underline">
-                Ersten Ordner erstellen
-              </button>
+              <p className="text-xs mt-1">Ordner werden automatisch erstellt.</p>
             </div>
           ) : (
             <div className="p-2">
@@ -569,6 +545,7 @@ export default function FoldersPage() {
                   orgId={orgId}
                   userId={userId}
                   depth={0}
+                  isRoot={true}
                 />
               ))}
             </div>
