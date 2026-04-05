@@ -238,7 +238,6 @@ function FolderNode({
   }
 
   const hasChildren = node.children.length > 0;
-  const typeColor = FOLDER_TYPE_COLORS[node.type] ?? "bg-gray-100 text-gray-600";
 
   return (
     <div>
