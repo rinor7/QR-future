@@ -2,13 +2,89 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download, BarChart2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download, BarChart2, Folder as FolderIcon, ChevronDown, X } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
+import { getAllFolders, assignQrToFolder, type Folder } from "@/lib/folders";
 
+
+// ── Folder badge + inline picker ──────────────────────────────────────────────
+function FolderBadge({
+  contactId,
+  folders,
+  currentFolderId,
+  assigning,
+  onAssign,
+}: {
+  contactId: string;
+  folders: Folder[];
+  currentFolderId: string | null;
+  assigning: boolean;
+  onAssign: (contactId: string, folderId: string) => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const currentFolder = folders.find((f) => f.id === currentFolderId) ?? null;
+
+  async function pick(folderId: string) {
+    setOpen(false);
+    await onAssign(contactId, folderId);
+  }
+
+  return (
+    <div className="relative -mt-1">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        disabled={assigning}
+        className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg border transition-colors disabled:opacity-50 ${
+          currentFolder
+            ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+            : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100"
+        }`}
+      >
+        {assigning
+          ? <span className="w-3 h-3 border border-blue-500 border-t-transparent rounded-full animate-spin" />
+          : <FolderIcon className="w-3 h-3" />}
+        <span className="max-w-[130px] truncate">
+          {currentFolder ? currentFolder.name : "Kein Ordner"}
+        </span>
+        {!assigning && <ChevronDown className="w-3 h-3 opacity-60" />}
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-8 z-20 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5 w-52 max-h-52 overflow-y-auto">
+            <button
+              onClick={() => pick("")}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50 transition-colors"
+            >
+              <X className="w-3 h-3" /> Kein Ordner
+            </button>
+            <div className="border-t border-gray-100 my-1" />
+            {folders.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => pick(f.id)}
+                className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors truncate ${
+                  f.id === currentFolderId
+                    ? "bg-blue-50 text-blue-700 font-medium"
+                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                }`}
+              >
+                <FolderIcon className="w-3 h-3 shrink-0" />
+                <span className="truncate">{f.name}</span>
+                {f.id === currentFolderId && <Check className="w-3 h-3 ml-auto shrink-0" />}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function CodesPage() {
   const { tr } = useLang();
@@ -23,6 +99,11 @@ export default function CodesPage() {
   const [plan, setPlan] = useState<Plan>("free");
   const [isOwner, setIsOwner] = useState(false);
   const [scanCounts, setScanCounts] = useState<Record<string, number>>({});
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [folderFilter, setFolderFilter] = useState<string>("all");
+  const [assigningFolder, setAssigningFolder] = useState<string | null>(null);
+  // contactFolders: maps contact.id → folder_id (local state for optimistic UI)
+  const [contactFolders, setContactFolders] = useState<Record<string, string | null>>({});
 
   useEffect(() => {
     Promise.all([getAllContacts(), getUserProfile()]).then(([data, profile]) => {
@@ -30,6 +111,21 @@ export default function CodesPage() {
       if (profile) {
         setPlan(profile.plan);
         setIsOwner(profile.userId === profile.ownerId);
+        getAllFolders(profile.ownerId).then(setFolders).catch(() => {});
+        // Load folder assignments for contacts
+        import("@/lib/supabase-browser").then(({ getSupabaseBrowser }) => {
+          getSupabaseBrowser()
+            .from("contacts")
+            .select("id, folder_id")
+            .eq("user_id", profile.ownerId)
+            .then(({ data: rows }) => {
+              if (rows) {
+                const map: Record<string, string | null> = {};
+                rows.forEach((r) => { map[r.id] = r.folder_id ?? null; });
+                setContactFolders(map);
+              }
+            });
+        });
       }
     }).finally(() => setLoading(false));
 
@@ -53,6 +149,23 @@ export default function CodesPage() {
     await deleteContact(id);
     setContacts((prev) => prev.filter((c) => c.id !== id));
     setDeleteModal(null);
+  }
+
+  async function handleAssignFolder(contactId: string, folderId: string) {
+    setAssigningFolder(contactId);
+    try {
+      if (!folderId) {
+        // Remove from folder
+        const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
+        await getSupabaseBrowser().from("contacts").update({ folder_id: null }).eq("id", contactId);
+        setContactFolders((prev) => ({ ...prev, [contactId]: null }));
+      } else {
+        await assignQrToFolder(contactId, folderId);
+        setContactFolders((prev) => ({ ...prev, [contactId]: folderId }));
+      }
+    } finally {
+      setAssigningFolder(null);
+    }
   }
 
   function handleDownloadQR(id: string, logoUrl?: string, showLogoInQr?: boolean) {
@@ -118,7 +231,11 @@ export default function CodesPage() {
         statusFilter === "all" ||
         (statusFilter === "active" && c.isActive !== false) ||
         (statusFilter === "paused" && c.isActive === false);
-      return matchesSearch && matchesStatus;
+      const matchesFolder =
+        folderFilter === "all" ||
+        (folderFilter === "none" && !contactFolders[c.id]) ||
+        contactFolders[c.id] === folderFilter;
+      return matchesSearch && matchesStatus && matchesFolder;
     })
     .sort((a, b) => {
       if (sortBy === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -185,6 +302,19 @@ export default function CodesPage() {
           <option value="active">{tr.filter_active}</option>
           <option value="paused">{tr.filter_paused}</option>
         </select>
+        {folders.length > 0 && (
+          <select
+            value={folderFilter}
+            onChange={(e) => setFolderFilter(e.target.value)}
+            className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
+          >
+            <option value="all">Alle Ordner</option>
+            <option value="none">Kein Ordner</option>
+            {folders.map((f) => (
+              <option key={f.id} value={f.id}>{f.name}</option>
+            ))}
+          </select>
+        )}
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as "newest" | "oldest" | "name")}
@@ -250,6 +380,17 @@ export default function CodesPage() {
                 <p className="text-xs text-gray-400 -mt-2">
                   {tr.created_by}: {contact.createdBy}
                 </p>
+              )}
+
+              {/* Folder badge + picker */}
+              {folders.length > 0 && (
+                <FolderBadge
+                  contactId={contact.id}
+                  folders={folders}
+                  currentFolderId={contactFolders[contact.id] ?? null}
+                  assigning={assigningFolder === contact.id}
+                  onAssign={handleAssignFolder}
+                />
               )}
 
               <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
