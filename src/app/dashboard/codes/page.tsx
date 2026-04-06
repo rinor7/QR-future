@@ -397,6 +397,9 @@ export default function CodesPage() {
   const limitReached = limit !== -1 && contacts.length >= limit;
   const hasFolders = displayTree.length > 0;
   const isDragging = !!dragContactId;
+  // Max 3 levels: root (depth 0), child (depth 1), grandchild (depth 2)
+  // breadcrumb.length equals current depth (0 = root view, 1 = inside level-1 folder, etc.)
+  const canCreateFolder = breadcrumb.length < 3;
 
   const pickerContact = pickerContactId ? contacts.find((c) => c.id === pickerContactId) : null;
 
@@ -423,13 +426,15 @@ export default function CodesPage() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => { setCreatingFolder(true); setFolderNameError(null); setNewFolderName(""); }}
-                className="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
-              >
-                <FolderPlus className="w-4 h-4" />
-                Neuer Ordner
-              </button>
+              {canCreateFolder && (
+                <button
+                  onClick={() => { setCreatingFolder(true); setFolderNameError(null); setNewFolderName(""); }}
+                  className="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
+                >
+                  <FolderPlus className="w-4 h-4" />
+                  Neuer Ordner
+                </button>
+              )}
               <Link
                 href="/dashboard/create"
                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
