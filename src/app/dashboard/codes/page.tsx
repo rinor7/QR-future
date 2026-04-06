@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download,
-  BarChart2, FolderOpen, ChevronRight, ArrowLeft,
+  BarChart2, FolderOpen, ChevronRight, ArrowLeft, FolderPlus, X,
 } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
-import { getAllFolders, buildTree, assignQrToFolder, type FolderWithStats } from "@/lib/folders";
+import { getAllFolders, buildTree, assignQrToFolder, createFolder, type FolderWithStats } from "@/lib/folders";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 export default function CodesPage() {
@@ -38,12 +38,21 @@ export default function CodesPage() {
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [assigningFolder, setAssigningFolder] = useState<string | null>(null);
 
+  // New folder creation
+  const [creatingFolder, setCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [savingFolder, setSavingFolder] = useState(false);
+  const [orgId, setOrgId] = useState("");
+  const [userId, setUserId] = useState("");
+
   useEffect(() => {
     Promise.all([getAllContacts(), getUserProfile()]).then(([data, profile]) => {
       setContacts(data);
       if (profile) {
         setPlan(profile.plan);
         setIsOwner(profile.userId === profile.ownerId);
+        setOrgId(profile.ownerId);
+        setUserId(profile.userId);
         getAllFolders(profile.ownerId).then((folders) => {
           setFolderTree(buildTree(folders));
         }).catch(() => {});
@@ -66,6 +75,30 @@ export default function CodesPage() {
       .then(({ counts }) => { if (counts) setScanCounts(counts); })
       .catch(() => {});
   }, []);
+
+  async function handleCreateFolder(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newFolderName.trim()) return;
+    setSavingFolder(true);
+    try {
+      const parentId = currentFolderId;
+      const newFolder = await createFolder(newFolderName.trim(), "custom", parentId, orgId, userId);
+      // Grant permission so RLS doesn't hide it (root folders only)
+      if (!parentId) {
+        await getSupabaseBrowser().rpc("grant_folder_role", {
+          p_user_id: userId,
+          p_folder_id: newFolder.id,
+          p_role: "company_admin",
+        });
+      }
+      const updated = await getAllFolders(orgId);
+      setFolderTree(buildTree(updated));
+      setNewFolderName("");
+      setCreatingFolder(false);
+    } finally {
+      setSavingFolder(false);
+    }
+  }
 
   function findNode(nodes: FolderWithStats[], id: string): FolderWithStats | null {
     for (const n of nodes) {
@@ -264,13 +297,22 @@ export default function CodesPage() {
               )}
             </div>
           ) : (
-            <Link
-              href="/dashboard/create"
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              {tr.create_qr}
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCreatingFolder(true)}
+                className="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
+              >
+                <FolderPlus className="w-4 h-4" />
+                Neuer Ordner
+              </button>
+              <Link
+                href="/dashboard/create"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
+              >
+                <Plus className="w-5 h-5" />
+                {tr.create_qr}
+              </Link>
+            </div>
           )
         )}
       </div>
@@ -346,6 +388,37 @@ export default function CodesPage() {
         </div>
       ) : (
         <>
+          {/* ── New folder inline form ── */}
+          {creatingFolder && (
+            <form onSubmit={handleCreateFolder} className="flex items-center gap-2 mb-5 bg-white border border-blue-200 rounded-2xl px-4 py-3">
+              <FolderPlus className="w-5 h-5 text-blue-500 shrink-0" />
+              <input
+                autoFocus
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder={currentFolderId ? "Unterordner-Name" : "Ordner-Name"}
+                className="flex-1 text-sm focus:outline-none placeholder:text-gray-400"
+              />
+              <button
+                type="submit"
+                disabled={savingFolder || !newFolderName.trim()}
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm px-3 py-1.5 rounded-lg transition-colors"
+              >
+                {savingFolder
+                  ? <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <Check className="w-3.5 h-3.5" />}
+                Erstellen
+              </button>
+              <button
+                type="button"
+                onClick={() => { setCreatingFolder(false); setNewFolderName(""); }}
+                className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </form>
+          )}
+
           {/* ── Folder cards ── */}
           {!search.trim() && visibleFolders.length > 0 && (
             <div className="mb-8">
