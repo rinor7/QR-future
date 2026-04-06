@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download,
-  BarChart2, FolderOpen, ChevronRight, ArrowLeft, FolderPlus, X,
+  BarChart2, FolderOpen, Folder as FolderIcon, ChevronRight,
+  ArrowLeft, FolderPlus, X, ChevronDown,
 } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
@@ -14,6 +15,113 @@ import { useRole } from "@/lib/useRole";
 import { getAllFolders, buildTree, assignQrToFolder, createFolder, type FolderWithStats } from "@/lib/folders";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
+// ── Folder picker tree (recursive) ───────────────────────────────────────────
+function FolderPickerNode({
+  node,
+  selected,
+  onSelect,
+  depth,
+}: {
+  node: FolderWithStats;
+  selected: string | null;
+  onSelect: (id: string) => void;
+  depth: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const hasChildren = node.children.length > 0;
+  const isSelected = selected === node.id;
+
+  return (
+    <div>
+      <div
+        className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-colors ${isSelected ? "bg-blue-50" : "hover:bg-gray-50"}`}
+        style={{ paddingLeft: `${depth * 16 + 12}px` }}
+        onClick={() => onSelect(node.id)}
+      >
+        {/* Expand arrow */}
+        <button
+          onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+          className={`w-4 h-4 flex items-center justify-center shrink-0 text-gray-400 ${!hasChildren ? "invisible" : ""}`}
+        >
+          {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        </button>
+        <FolderIcon className={`w-4 h-4 shrink-0 ${isSelected ? "text-blue-500" : "text-blue-400"}`} />
+        <span className={`flex-1 text-sm truncate ${isSelected ? "font-semibold text-blue-700" : "text-gray-700"}`}>{node.name}</span>
+        {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
+      </div>
+      {expanded && node.children.map((child) => (
+        <FolderPickerNode key={child.id} node={child} selected={selected} onSelect={onSelect} depth={depth + 1} />
+      ))}
+    </div>
+  );
+}
+
+function FolderPicker({
+  folders,
+  currentFolderId,
+  contactName,
+  onSave,
+  onClose,
+  saving,
+}: {
+  folders: FolderWithStats[];
+  currentFolderId: string | null;
+  contactName: string;
+  onSave: (folderId: string | null) => void;
+  onClose: () => void;
+  saving: boolean;
+}) {
+  const [selected, setSelected] = useState<string | null>(currentFolderId);
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <h2 className="font-bold text-gray-900 text-sm">In Ordner verschieben</h2>
+            <p className="text-xs text-gray-500 mt-0.5 truncate max-w-[220px]">{contactName}</p>
+          </div>
+          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-3 max-h-64 overflow-y-auto">
+          {/* No folder option */}
+          <div
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-colors ${selected === null ? "bg-blue-50" : "hover:bg-gray-50"}`}
+            onClick={() => setSelected(null)}
+          >
+            <span className="w-4 h-4 shrink-0" />
+            <X className="w-4 h-4 shrink-0 text-gray-400" />
+            <span className={`flex-1 text-sm ${selected === null ? "font-semibold text-blue-700" : "text-gray-500"}`}>Kein Ordner</span>
+            {selected === null && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
+          </div>
+          {folders.length > 0 && <div className="border-t border-gray-100 my-1.5" />}
+          {folders.map((f) => (
+            <FolderPickerNode key={f.id} node={f} selected={selected} onSelect={setSelected} depth={0} />
+          ))}
+        </div>
+
+        <div className="px-4 pb-4 flex gap-3">
+          <button onClick={onClose} className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
+            Abbrechen
+          </button>
+          <button
+            onClick={() => onSave(selected)}
+            disabled={saving}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          >
+            {saving && <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+            Speichern
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function CodesPage() {
   const { tr } = useLang();
   const { isAdmin, isReader } = useRole();
@@ -29,6 +137,8 @@ export default function CodesPage() {
   const [scanCounts, setScanCounts] = useState<Record<string, number>>({});
   const [folderTree, setFolderTree] = useState<FolderWithStats[]>([]);
   const [contactFolders, setContactFolders] = useState<Record<string, string | null>>({});
+  const [orgId, setOrgId] = useState("");
+  const [userId, setUserId] = useState("");
 
   // Folder navigation
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -38,12 +148,14 @@ export default function CodesPage() {
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [assigningFolder, setAssigningFolder] = useState<string | null>(null);
 
+  // Folder picker modal
+  const [pickerContactId, setPickerContactId] = useState<string | null>(null);
+
   // New folder creation
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [savingFolder, setSavingFolder] = useState(false);
-  const [orgId, setOrgId] = useState("");
-  const [userId, setUserId] = useState("");
+  const [folderNameError, setFolderNameError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([getAllContacts(), getUserProfile()]).then(([data, profile]) => {
@@ -76,14 +188,68 @@ export default function CodesPage() {
       .catch(() => {});
   }, []);
 
+  // Skip any auto-created "Root" folder — show its children as top-level instead
+  const displayTree: FolderWithStats[] = (() => {
+    if (folderTree.length === 1 && folderTree[0].name === "Root") {
+      return folderTree[0].children;
+    }
+    return folderTree.filter((f) => f.name !== "Root");
+  })();
+
+  function findNode(nodes: FolderWithStats[], id: string): FolderWithStats | null {
+    for (const n of nodes) {
+      if (n.id === id) return n;
+      const found = findNode(n.children, id);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function buildPath(nodes: FolderWithStats[], id: string, path: FolderWithStats[] = []): FolderWithStats[] | null {
+    for (const n of nodes) {
+      if (n.id === id) return [...path, n];
+      const found = buildPath(n.children, id, [...path, n]);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  const currentFolder = currentFolderId ? findNode(displayTree, currentFolderId) : null;
+  const breadcrumb = currentFolderId ? (buildPath(displayTree, currentFolderId) ?? []) : [];
+
+  const visibleFolders = currentFolderId
+    ? (currentFolder?.children ?? [])
+    : displayTree;
+
+  function countInFolder(folderId: string): number {
+    return Object.values(contactFolders).filter((v) => v === folderId).length;
+  }
+
+  // Get siblings at the current creation level (for duplicate check)
+  function getSiblings(): FolderWithStats[] {
+    if (currentFolderId) {
+      return findNode(displayTree, currentFolderId)?.children ?? [];
+    }
+    return displayTree;
+  }
+
   async function handleCreateFolder(e: React.FormEvent) {
     e.preventDefault();
-    if (!newFolderName.trim()) return;
+    const name = newFolderName.trim();
+    if (!name) return;
+
+    // Duplicate name check
+    const siblings = getSiblings();
+    if (siblings.some((f) => f.name.toLowerCase() === name.toLowerCase())) {
+      setFolderNameError(`Ein Ordner namens "${name}" existiert bereits.`);
+      return;
+    }
+
     setSavingFolder(true);
+    setFolderNameError(null);
     try {
       const parentId = currentFolderId;
-      const newFolder = await createFolder(newFolderName.trim(), "custom", parentId, orgId, userId);
-      // Grant permission so RLS doesn't hide it (root folders only)
+      const newFolder = await createFolder(name, "custom", parentId, orgId, userId);
       if (!parentId) {
         await getSupabaseBrowser().rpc("grant_folder_role", {
           p_user_id: userId,
@@ -100,39 +266,6 @@ export default function CodesPage() {
     }
   }
 
-  function findNode(nodes: FolderWithStats[], id: string): FolderWithStats | null {
-    for (const n of nodes) {
-      if (n.id === id) return n;
-      const found = findNode(n.children, id);
-      if (found) return found;
-    }
-    return null;
-  }
-
-  // Build breadcrumb path for current folder
-  function buildPath(nodes: FolderWithStats[], id: string, path: FolderWithStats[] = []): FolderWithStats[] | null {
-    for (const n of nodes) {
-      if (n.id === id) return [...path, n];
-      const found = buildPath(n.children, id, [...path, n]);
-      if (found) return found;
-    }
-    return null;
-  }
-
-  const currentFolder = currentFolderId ? findNode(folderTree, currentFolderId) : null;
-  const breadcrumb = currentFolderId ? (buildPath(folderTree, currentFolderId) ?? []) : [];
-
-  // Folders visible at current level
-  const visibleFolders = currentFolderId
-    ? (currentFolder?.children ?? [])
-    : folderTree;
-
-  // Count QR codes per folder
-  function countInFolder(folderId: string): number {
-    return Object.values(contactFolders).filter((v) => v === folderId).length;
-  }
-
-  // QR codes to show — if search active, search across all; otherwise filtered by folder level
   const filtered = contacts
     .filter((c) => {
       const matchesSearch =
@@ -144,16 +277,15 @@ export default function CodesPage() {
         (statusFilter === "active" && c.isActive !== false) ||
         (statusFilter === "paused" && c.isActive === false);
       if (!matchesSearch || !matchesStatus) return false;
-
-      // If searching, show all matching regardless of folder
       if (search.trim()) return true;
-
-      // Otherwise: show QR codes at current level
-      if (currentFolderId) {
-        return contactFolders[c.id] === currentFolderId;
-      } else {
-        return !contactFolders[c.id];
-      }
+      if (currentFolderId) return contactFolders[c.id] === currentFolderId;
+      // Root level: show only QR codes not in any folder (or in a "Root" folder we're hiding)
+      const fid = contactFolders[c.id];
+      if (!fid) return true;
+      // Also show cards assigned to the hidden Root folder
+      const assignedFolder = findNode(folderTree, fid);
+      if (assignedFolder && assignedFolder.name === "Root") return true;
+      return false;
     })
     .sort((a, b) => {
       if (sortBy === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -192,24 +324,18 @@ export default function CodesPage() {
     }
   }
 
-  // Drag handlers
+  // Drag
   function handleDragStart(e: React.DragEvent, contactId: string) {
     setDragContactId(contactId);
     e.dataTransfer.effectAllowed = "move";
   }
-
-  function handleDragEnd() {
-    setDragContactId(null);
-    setDragOverId(null);
-  }
-
+  function handleDragEnd() { setDragContactId(null); setDragOverId(null); }
   async function handleDropOnFolder(folderId: string) {
     if (!dragContactId) return;
     setDragOverId(null);
     await handleAssignFolder(dragContactId, folderId);
     setDragContactId(null);
   }
-
   async function handleDropOnRoot() {
     if (!dragContactId) return;
     setDragOverId(null);
@@ -269,9 +395,10 @@ export default function CodesPage() {
 
   const limit = PLAN_LIMITS[plan];
   const limitReached = limit !== -1 && contacts.length >= limit;
-
-  const hasFolders = folderTree.length > 0;
+  const hasFolders = displayTree.length > 0;
   const isDragging = !!dragContactId;
+
+  const pickerContact = pickerContactId ? contacts.find((c) => c.id === pickerContactId) : null;
 
   return (
     <div className="p-4 wide:p-8">
@@ -286,9 +413,7 @@ export default function CodesPage() {
             <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
               <span className="text-sm text-amber-800">{tr.plan_limit_reached} — </span>
               {isOwner ? (
-                <Link href="/dashboard/upgrade" className="text-sm font-medium text-amber-700 hover:text-amber-900 transition-colors">
-                  {tr.free_plan_upgrade}
-                </Link>
+                <Link href="/dashboard/upgrade" className="text-sm font-medium text-amber-700 hover:text-amber-900 transition-colors">{tr.free_plan_upgrade}</Link>
               ) : (
                 <span className="text-sm text-amber-700">
                   {tr.plan_limit_ask_owner}{" "}
@@ -299,7 +424,7 @@ export default function CodesPage() {
           ) : (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setCreatingFolder(true)}
+                onClick={() => { setCreatingFolder(true); setFolderNameError(null); setNewFolderName(""); }}
                 className="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
               >
                 <FolderPlus className="w-4 h-4" />
@@ -317,7 +442,7 @@ export default function CodesPage() {
         )}
       </div>
 
-      {/* Breadcrumb navigation */}
+      {/* Breadcrumb */}
       {breadcrumb.length > 0 && (
         <div className="flex items-center gap-1.5 mb-5 text-sm">
           <button
@@ -333,12 +458,7 @@ export default function CodesPage() {
               {i === breadcrumb.length - 1 ? (
                 <span className="font-semibold text-gray-900">{seg.name}</span>
               ) : (
-                <button
-                  onClick={() => setCurrentFolderId(seg.id)}
-                  className="text-gray-500 hover:text-blue-600 transition-colors"
-                >
-                  {seg.name}
-                </button>
+                <button onClick={() => setCurrentFolderId(seg.id)} className="text-gray-500 hover:text-blue-600 transition-colors">{seg.name}</button>
               )}
             </span>
           ))}
@@ -388,38 +508,37 @@ export default function CodesPage() {
         </div>
       ) : (
         <>
-          {/* ── New folder inline form ── */}
+          {/* New folder form */}
           {creatingFolder && (
-            <form onSubmit={handleCreateFolder} className="flex items-center gap-2 mb-5 bg-white border border-blue-200 rounded-2xl px-4 py-3">
-              <FolderPlus className="w-5 h-5 text-blue-500 shrink-0" />
-              <input
-                autoFocus
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                placeholder={currentFolderId ? "Unterordner-Name" : "Ordner-Name"}
-                className="flex-1 text-sm focus:outline-none placeholder:text-gray-400"
-              />
-              <button
-                type="submit"
-                disabled={savingFolder || !newFolderName.trim()}
-                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm px-3 py-1.5 rounded-lg transition-colors"
-              >
-                {savingFolder
-                  ? <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  : <Check className="w-3.5 h-3.5" />}
-                Erstellen
-              </button>
-              <button
-                type="button"
-                onClick={() => { setCreatingFolder(false); setNewFolderName(""); }}
-                className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            <form onSubmit={handleCreateFolder} className="mb-5 bg-white border border-blue-200 rounded-2xl px-4 py-3">
+              <div className="flex items-center gap-2">
+                <FolderPlus className="w-5 h-5 text-blue-500 shrink-0" />
+                <input
+                  autoFocus
+                  value={newFolderName}
+                  onChange={(e) => { setNewFolderName(e.target.value); setFolderNameError(null); }}
+                  placeholder={currentFolderId ? "Unterordner-Name" : "Ordner-Name"}
+                  className="flex-1 text-sm focus:outline-none placeholder:text-gray-400"
+                />
+                <button
+                  type="submit"
+                  disabled={savingFolder || !newFolderName.trim()}
+                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  {savingFolder
+                    ? <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    : <Check className="w-3.5 h-3.5" />}
+                  Erstellen
+                </button>
+                <button type="button" onClick={() => { setCreatingFolder(false); setNewFolderName(""); setFolderNameError(null); }} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              {folderNameError && <p className="mt-2 text-xs text-red-600">{folderNameError}</p>}
             </form>
           )}
 
-          {/* ── Folder cards ── */}
+          {/* Folder cards */}
           {!search.trim() && visibleFolders.length > 0 && (
             <div className="mb-8">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Ordner</p>
@@ -434,17 +553,11 @@ export default function CodesPage() {
                       style={{ width: "110px" }}
                       onClick={() => !isDragging && setCurrentFolderId(folder.id)}
                       onDragOver={(e) => { e.preventDefault(); setDragOverId(folder.id); }}
-                      onDragLeave={(e) => {
-                        if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverId(null);
-                      }}
+                      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverId(null); }}
                       onDrop={(e) => { e.preventDefault(); handleDropOnFolder(folder.id); }}
                     >
-                      {/* Folder icon */}
-                      <div className={`w-full relative transition-all duration-150 ${isDragTarget ? "scale-110" : "group-hover:scale-105"}`}
-                        style={{ aspectRatio: "1.1" }}>
-                        {/* Folder tab */}
+                      <div className={`w-full relative transition-all duration-150 ${isDragTarget ? "scale-110" : "group-hover:scale-105"}`} style={{ aspectRatio: "1.1" }}>
                         <div className={`absolute top-0 left-0 w-10 h-4 rounded-t-lg transition-colors ${isDragTarget ? "bg-blue-500" : "bg-blue-400 group-hover:bg-blue-500"}`} />
-                        {/* Folder body */}
                         <div className={`absolute bottom-0 left-0 right-0 top-2 rounded-b-2xl rounded-tr-2xl flex items-center justify-center transition-colors shadow-sm ${isDragTarget ? "bg-blue-500 border-2 border-blue-300 border-dashed" : "bg-blue-400 group-hover:bg-blue-500"}`}>
                           {isDragTarget ? (
                             <span className="text-white text-xs font-semibold">Ablegen</span>
@@ -452,7 +565,6 @@ export default function CodesPage() {
                             <FolderOpen className="w-8 h-8 text-white/80" />
                           )}
                         </div>
-                        {/* QR count badge */}
                         {qrCount > 0 && (
                           <div className="absolute -top-1 -right-1 w-5 h-5 bg-white border border-blue-200 rounded-full flex items-center justify-center">
                             <span className="text-xs font-bold text-blue-600">{qrCount}</span>
@@ -468,7 +580,7 @@ export default function CodesPage() {
             </div>
           )}
 
-          {/* Drop zone to remove from folder (visible when dragging inside a folder) */}
+          {/* Remove-from-folder drop zone (when dragging inside a folder) */}
           {currentFolder && isDragging && (
             <div
               className={`mb-5 border-2 border-dashed rounded-2xl p-4 text-center text-sm font-medium transition-colors ${dragOverId === "__remove__" ? "border-red-400 bg-red-50 text-red-500" : "border-gray-300 text-gray-400"}`}
@@ -480,7 +592,7 @@ export default function CodesPage() {
             </div>
           )}
 
-          {/* QR codes section */}
+          {/* QR codes label */}
           {!search.trim() && hasFolders && (
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
               {currentFolder ? `QR-Codes in ${currentFolder.name}` : "Nicht zugeordnet"}
@@ -493,7 +605,7 @@ export default function CodesPage() {
                 <>
                   <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-20" />
                   <p className="text-base font-medium">Ordner ist leer</p>
-                  <p className="text-sm mt-1">QR-Codes per Drag & Drop hierher ziehen.</p>
+                  <p className="text-sm mt-1">QR-Code hinziehen oder über den Ordner-Button verschieben.</p>
                 </>
               ) : (
                 <p className="text-lg">{tr.no_results}</p>
@@ -503,12 +615,9 @@ export default function CodesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 wide:grid-cols-3 gap-5">
               {filtered.map((contact) => {
                 const isBeingAssigned = assigningFolder === contact.id;
-                const folderName = contactFolders[contact.id]
-                  ? (() => {
-                      const node = findNode(folderTree, contactFolders[contact.id]!);
-                      return node?.name ?? null;
-                    })()
-                  : null;
+                const folderId = contactFolders[contact.id];
+                const folderNode = folderId ? findNode(displayTree, folderId) : null;
+                const folderName = folderNode?.name ?? null;
 
                 return (
                   <div
@@ -517,9 +626,7 @@ export default function CodesPage() {
                     onDragStart={(e) => handleDragStart(e, contact.id)}
                     onDragEnd={handleDragEnd}
                     className={`bg-white rounded-2xl border p-6 flex flex-col gap-4 transition-all cursor-grab active:cursor-grabbing ${
-                      dragContactId === contact.id
-                        ? "opacity-50 scale-95 shadow-xl"
-                        : "hover:shadow-md"
+                      dragContactId === contact.id ? "opacity-50 scale-95 shadow-xl" : "hover:shadow-md"
                     } ${contact.isActive === false ? "border-amber-200 opacity-75" : "border-gray-200"}`}
                   >
                     {isBeingAssigned && (
@@ -533,27 +640,33 @@ export default function CodesPage() {
                         ⏸ {tr.qr_paused_badge}
                       </div>
                     )}
+
                     <div className="flex items-start justify-between">
-                      <div>
-                        {contact.qrLabel && (
-                          <h3 className="font-semibold text-gray-900">{contact.qrLabel}</h3>
-                        )}
+                      <div className="flex-1 min-w-0">
+                        {contact.qrLabel && <h3 className="font-semibold text-gray-900">{contact.qrLabel}</h3>}
                         <p className={contact.qrLabel ? "text-sm text-gray-700" : "font-semibold text-gray-900"}>
                           {`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}
                         </p>
-                        {contact.company && (
-                          <p className="text-sm text-gray-500">{contact.company}</p>
-                        )}
-                        {/* Folder label (shown when searching) */}
-                        {search.trim() && folderName && (
-                          <span className="inline-flex items-center gap-1 text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-lg px-2 py-0.5 mt-1">
-                            <FolderOpen className="w-3 h-3" /> {folderName}
-                          </span>
+                        {contact.company && <p className="text-sm text-gray-500">{contact.company}</p>}
+
+                        {/* Folder badge — always shown if in a folder */}
+                        {hasFolders && (
+                          <button
+                            onClick={() => setPickerContactId(contact.id)}
+                            className={`mt-1.5 flex items-center gap-1 text-xs px-2 py-0.5 rounded-lg border transition-colors ${
+                              folderName
+                                ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                                : "bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100"
+                            }`}
+                          >
+                            <FolderIcon className="w-3 h-3 shrink-0" />
+                            <span className="max-w-[120px] truncate">{folderName ?? "Ordner wählen"}</span>
+                          </button>
                         )}
                       </div>
                       {contact.logoUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={contact.logoUrl} alt="Logo" className="w-24 h-24 object-contain rounded-lg" />
+                        <img src={contact.logoUrl} alt="Logo" className="w-24 h-24 object-contain rounded-lg shrink-0 ml-2" />
                       )}
                     </div>
 
@@ -570,9 +683,7 @@ export default function CodesPage() {
                     </div>
 
                     {contact.createdBy && (
-                      <p className="text-xs text-gray-400 -mt-2">
-                        {tr.created_by}: {contact.createdBy}
-                      </p>
+                      <p className="text-xs text-gray-400 -mt-2">{tr.created_by}: {contact.createdBy}</p>
                     )}
 
                     <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
@@ -585,30 +696,17 @@ export default function CodesPage() {
                           {tr.edit}
                         </Link>
                       )}
-                      <button
-                        onClick={() => handleCopy(contact.id)}
-                        className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors"
-                      >
+                      <button onClick={() => handleCopy(contact.id)} className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors">
                         {copiedId === contact.id ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                       </button>
-                      <a
-                        href={`/qr/${contact.id}`}
-                        target="_blank"
-                        className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors"
-                      >
+                      <a href={`/qr/${contact.id}`} target="_blank" className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors">
                         <ExternalLink className="w-4 h-4" />
                       </a>
-                      <button
-                        onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)}
-                        className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors"
-                      >
+                      <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors">
                         <Download className="w-4 h-4" />
                       </button>
                       {isAdmin && (
-                        <button
-                          onClick={() => setDeleteModal(contact.id)}
-                          className="p-2 rounded-xl transition-colors border border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-500"
-                        >
+                        <button onClick={() => setDeleteModal(contact.id)} className="p-2 rounded-xl transition-colors border border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-500">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}
@@ -621,7 +719,22 @@ export default function CodesPage() {
         </>
       )}
 
-      {/* Delete confirmation modal */}
+      {/* Folder picker modal */}
+      {pickerContactId && pickerContact && (
+        <FolderPicker
+          folders={displayTree}
+          currentFolderId={contactFolders[pickerContactId] ?? null}
+          contactName={`${pickerContact.firstName} ${pickerContact.lastName}`.trim() || pickerContact.company || pickerContact.id}
+          saving={assigningFolder === pickerContactId}
+          onClose={() => setPickerContactId(null)}
+          onSave={async (folderId) => {
+            await handleAssignFolder(pickerContactId, folderId);
+            setPickerContactId(null);
+          }}
+        />
+      )}
+
+      {/* Delete modal */}
       {deleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
@@ -629,22 +742,10 @@ export default function CodesPage() {
               <Trash2 className="w-6 h-6 text-red-600" />
             </div>
             <h2 className="text-lg font-bold text-gray-900 text-center mb-2">{tr.delete_modal_title}</h2>
-            <p className="text-sm text-gray-500 text-center mb-6">
-              {tr.delete_modal_body}
-            </p>
+            <p className="text-sm text-gray-500 text-center mb-6">{tr.delete_modal_body}</p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteModal(null)}
-                className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-50 transition-colors"
-              >
-                {tr.delete_modal_cancel}
-              </button>
-              <button
-                onClick={() => handleDelete(deleteModal)}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-medium text-sm transition-colors"
-              >
-                {tr.delete_modal_confirm}
-              </button>
+              <button onClick={() => setDeleteModal(null)} className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-50 transition-colors">{tr.delete_modal_cancel}</button>
+              <button onClick={() => handleDelete(deleteModal)} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-medium text-sm transition-colors">{tr.delete_modal_confirm}</button>
             </div>
           </div>
         </div>
