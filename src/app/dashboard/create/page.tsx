@@ -8,14 +8,13 @@ import { useState, useEffect } from "react";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
 import {
-  getAllFolders, buildTree, createFolder, assignQrToFolder,
+  getAllFolders, buildTree, assignQrToFolder,
   type FolderWithStats,
 } from "@/lib/folders";
 import { getUserProfile } from "@/lib/store";
-import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import {
   FolderOpen, Folder as FolderIcon, ChevronRight, ChevronDown,
-  Check, FolderPlus, X,
+  Check, X,
 } from "lucide-react";
 
 // ── Recursive tree node for picker ───────────────────────────────────────────
@@ -68,14 +67,7 @@ export default function CreatePage() {
   // Folder state
   const [folderTree, setFolderTree] = useState<FolderWithStats[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-  const [orgId, setOrgId] = useState("");
-  const [userId, setUserId] = useState("");
 
-  // New folder inline creation
-  const [creatingFolder, setCreatingFolder] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
-  const [savingFolder, setSavingFolder] = useState(false);
-  const [folderNameError, setFolderNameError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!roleLoading && isReader) router.replace("/dashboard/codes");
@@ -84,8 +76,6 @@ export default function CreatePage() {
   useEffect(() => {
     getUserProfile().then((profile) => {
       if (!profile) return;
-      setOrgId(profile.ownerId);
-      setUserId(profile.userId);
       getAllFolders(profile.ownerId).then((folders) => {
         const tree = buildTree(folders);
         // Skip auto-created Root folder
@@ -96,38 +86,6 @@ export default function CreatePage() {
       }).catch(() => {});
     });
   }, []);
-
-  async function handleCreateNewFolder(e: React.FormEvent) {
-    e.preventDefault();
-    const name = newFolderName.trim();
-    if (!name) return;
-    // Duplicate check (top-level only since we create at root)
-    if (folderTree.some((f) => f.name.toLowerCase() === name.toLowerCase())) {
-      setFolderNameError(`Ein Ordner namens "${name}" existiert bereits.`);
-      return;
-    }
-    setSavingFolder(true);
-    setFolderNameError(null);
-    try {
-      const newFolder = await createFolder(name, "custom", null, orgId, userId);
-      await getSupabaseBrowser().rpc("grant_folder_role", {
-        p_user_id: userId,
-        p_folder_id: newFolder.id,
-        p_role: "company_admin",
-      });
-      const updated = await getAllFolders(orgId);
-      const tree = buildTree(updated);
-      const display = tree.length === 1 && tree[0].name === "Root"
-        ? tree[0].children
-        : tree.filter((f) => f.name !== "Root");
-      setFolderTree(display);
-      setSelectedFolderId(newFolder.id);
-      setNewFolderName("");
-      setCreatingFolder(false);
-    } finally {
-      setSavingFolder(false);
-    }
-  }
 
   const selectedFolder = selectedFolderId
     ? (() => {
@@ -186,56 +144,16 @@ export default function CreatePage() {
             <p className="text-sm font-semibold text-gray-800">In Ordner speichern</p>
             <p className="text-xs text-gray-400 mt-0.5">Optional — QR-Code direkt in einen Ordner legen.</p>
           </div>
-          <div className="flex items-center gap-2">
-            {selectedFolder && (
-              <button
-                type="button"
-                onClick={() => setSelectedFolderId(null)}
-                className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="w-3.5 h-3.5" /> Zurücksetzen
-              </button>
-            )}
+          {selectedFolder && (
             <button
               type="button"
-              onClick={() => { setCreatingFolder((v) => !v); setFolderNameError(null); setNewFolderName(""); }}
-              className="flex items-center gap-1.5 text-xs border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg transition-colors font-medium"
+              onClick={() => setSelectedFolderId(null)}
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
             >
-              <FolderPlus className="w-3.5 h-3.5" />
-              Neuer Ordner
+              <X className="w-3.5 h-3.5" /> Zurücksetzen
             </button>
-          </div>
+          )}
         </div>
-
-        {/* New folder inline form */}
-        {creatingFolder && (
-          <form onSubmit={handleCreateNewFolder} className="mb-3 flex flex-col gap-1">
-            <div className="flex items-center gap-2 border border-blue-200 rounded-xl px-3 py-2 bg-blue-50/40">
-              <FolderPlus className="w-4 h-4 text-blue-500 shrink-0" />
-              <input
-                autoFocus
-                value={newFolderName}
-                onChange={(e) => { setNewFolderName(e.target.value); setFolderNameError(null); }}
-                placeholder="Ordner-Name"
-                className="flex-1 text-sm bg-transparent focus:outline-none placeholder:text-gray-400"
-              />
-              <button
-                type="submit"
-                disabled={savingFolder || !newFolderName.trim()}
-                className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs px-2.5 py-1.5 rounded-lg transition-colors"
-              >
-                {savingFolder
-                  ? <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  : <Check className="w-3 h-3" />}
-                Erstellen
-              </button>
-              <button type="button" onClick={() => { setCreatingFolder(false); setNewFolderName(""); setFolderNameError(null); }} className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            {folderNameError && <p className="text-xs text-red-600 px-1">{folderNameError}</p>}
-          </form>
-        )}
 
         {/* Selected folder display */}
         {selectedFolder ? (
@@ -264,7 +182,7 @@ export default function CreatePage() {
         )}
 
         {folderTree.length === 0 && !creatingFolder && (
-          <p className="text-xs text-gray-400 mt-2">Noch keine Ordner vorhanden. Klicke auf &ldquo;Neuer Ordner&rdquo; um einen zu erstellen.</p>
+          <p className="text-xs text-gray-400 mt-2">Noch keine Ordner vorhanden. Erstelle zuerst Ordner auf der QR-Codes Seite.</p>
         )}
       </div>
 
