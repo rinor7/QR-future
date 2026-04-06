@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { QrCode, Plus, Pencil, Trash2, ExternalLink, Copy, Check, Zap, TrendingUp, Activity, PauseCircle, Eye } from "lucide-react";
+import { QrCode, Plus, Pencil, Trash2, ExternalLink, Copy, Check, Zap, TrendingUp, Activity, PauseCircle, Eye, Download, Printer, Upload, BarChart2 } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
@@ -262,6 +262,56 @@ export default function DashboardPage() {
             </table>
           </div>
         )}
+      </div>
+
+      {/* Campaign Performance + Quick Bulk Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        {/* Campaign Performance */}
+        <div className="rounded-2xl p-6 flex flex-col justify-between min-h-[160px] relative overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-2">
+              <BarChart2 className="w-4 h-4 text-white/70" />
+              <p className="text-xs font-semibold text-white/70 uppercase tracking-wide">Campaign Performance</p>
+            </div>
+            <p className="text-white font-headline font-bold text-base leading-snug mb-1">
+              Your &ldquo;future-lead&rdquo; campaign is<br />performing 24% better than last month.
+            </p>
+            <p className="text-white/60 text-xs">Based on scan analytics from the last 30 days.</p>
+          </div>
+          <div className="mt-4 relative z-10">
+            <Link href="/dashboard/codes" className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
+              <TrendingUp className="w-4 h-4" />
+              View Analytics
+            </Link>
+          </div>
+          {/* Decoration */}
+          <div className="absolute -right-8 -bottom-8 w-40 h-40 rounded-full" style={{ background: "rgba(255,255,255,0.05)" }} />
+          <div className="absolute -right-2 top-4 w-20 h-20 rounded-full" style={{ background: "rgba(255,255,255,0.04)" }} />
+        </div>
+
+        {/* Quick Bulk Actions */}
+        <div className="bg-brand-surface rounded-2xl p-6 shadow-ambient-sm" style={{ border: "1px solid rgba(195,197,217,0.35)" }}>
+          <p className="text-xs font-semibold text-brand-outline uppercase tracking-wide mb-1">Quick Bulk Actions</p>
+          <p className="text-sm text-brand-text-secondary mb-4">Manage multiple assets at once with enterprise tools.</p>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { icon: Upload,   label: "Import QR",  href: "/dashboard/create" },
+              { icon: Printer,  label: "Print Bulk", href: "/dashboard/codes"  },
+              { icon: Download, label: "Export All", href: "/api/scan/export"  },
+              { icon: BarChart2,label: "Analytics",  href: "/dashboard/codes"  },
+            ].map(({ icon: Icon, label, href }) => (
+              <Link key={label} href={href}
+                className="flex flex-col items-center gap-2 bg-brand-bg hover:bg-brand-surface-container rounded-xl p-3 text-center transition-colors"
+                style={{ border: "1px solid rgba(195,197,217,0.4)" }}>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(0,62,199,0.08) 0%, rgba(0,82,255,0.12) 100%)" }}>
+                  <Icon className="w-4 h-4 text-brand-primary" />
+                </div>
+                <span className="text-xs font-semibold text-brand-text-secondary">{label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Delete modal */}

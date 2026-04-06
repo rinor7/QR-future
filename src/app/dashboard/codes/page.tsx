@@ -414,7 +414,52 @@ export default function CodesPage() {
   const pickerContact = pickerContactId ? contacts.find((c) => c.id === pickerContactId) : null;
 
   return (
-    <div className="p-4 wide:p-8">
+    <div className="flex h-full min-h-screen">
+      {/* ── Left folder panel ── */}
+      <div className="hidden md:flex flex-col w-56 shrink-0 bg-brand-surface border-r"
+        style={{ borderColor: "rgba(195,197,217,0.35)", minHeight: "100vh" }}>
+        <div className="px-4 py-5" style={{ borderBottom: "1px solid rgba(195,197,217,0.35)" }}>
+          <p className="text-xs font-semibold text-brand-outline uppercase tracking-wide">Ordner</p>
+        </div>
+        <div className="flex-1 overflow-y-auto py-2">
+          {/* All QR codes */}
+          <button
+            onClick={() => setCurrentFolderId(null)}
+            className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium transition-colors ${
+              currentFolderId === null ? "text-white" : "text-brand-text-secondary hover:bg-brand-surface-low hover:text-brand-text"
+            }`}
+            style={currentFolderId === null ? { background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", borderRadius: "0.75rem", margin: "0 8px", width: "calc(100% - 16px)" } : undefined}
+          >
+            <FolderOpen className="w-4 h-4 shrink-0" />
+            Alle QR Codes
+          </button>
+          {/* Folder list */}
+          {displayTree.map((folder) => (
+            <SidebarFolderNode
+              key={folder.id}
+              node={folder}
+              currentFolderId={currentFolderId}
+              onSelect={setCurrentFolderId}
+              depth={0}
+            />
+          ))}
+        </div>
+        {canCreateFolder && (
+          <div className="p-3" style={{ borderTop: "1px solid rgba(195,197,217,0.35)" }}>
+            <button
+              onClick={() => { setCreatingFolder(true); setFolderNameError(null); setNewFolderName(""); }}
+              className="w-full flex items-center gap-2 text-xs font-semibold text-brand-primary hover:bg-brand-surface-low px-3 py-2 rounded-xl transition-colors"
+              style={{ border: "1px dashed rgba(0,62,199,0.3)" }}
+            >
+              <FolderPlus className="w-3.5 h-3.5" />
+              Neuer Ordner
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Main content ── */}
+      <div className="flex-1 min-w-0 p-4 wide:p-8">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
@@ -436,20 +481,11 @@ export default function CodesPage() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              {canCreateFolder && (
-                <button
-                  onClick={() => { setCreatingFolder(true); setFolderNameError(null); setNewFolderName(""); }}
-                  className="flex items-center gap-2 bg-brand-surface hover:bg-brand-surface-low text-brand-text-secondary px-4 py-2.5 rounded-xl font-medium transition-colors text-sm shadow-ambient-sm"
-                  style={{ border: "1px solid rgba(195,197,217,0.5)" }}
-                >
-                  <FolderPlus className="w-4 h-4" />
-                  Neuer Ordner
-                </button>
-              )}
-              <Link
-                href="/dashboard/create"
-                className="btn-primary flex items-center gap-2"
-              >
+              <a href="/api/scan/export" download="scan-data.csv" className="flex items-center gap-1.5 bg-brand-surface hover:bg-brand-surface-low text-brand-text-secondary px-3 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-ambient-sm" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
+                <Download className="w-4 h-4" />
+                {tr.export_csv}
+              </a>
+              <Link href="/dashboard/create" className="btn-primary flex items-center gap-2">
                 <Plus className="w-5 h-5" />
                 {tr.create_qr}
               </Link>
@@ -461,10 +497,7 @@ export default function CodesPage() {
       {/* Breadcrumb */}
       {breadcrumb.length > 0 && (
         <div className="flex items-center gap-1.5 mb-5 text-sm">
-          <button
-            onClick={() => setCurrentFolderId(null)}
-            className="flex items-center gap-1.5 text-brand-outline hover:text-brand-primary transition-colors font-medium"
-          >
+          <button onClick={() => setCurrentFolderId(null)} className="flex items-center gap-1.5 text-brand-outline hover:text-brand-primary transition-colors font-medium">
             <ArrowLeft className="w-4 h-4" />
             QR Codes
           </button>
@@ -482,7 +515,7 @@ export default function CodesPage() {
       )}
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
+      <div className="flex flex-wrap items-center gap-3 mb-5">
         <input
           type="text"
           placeholder={tr.search_placeholder}
@@ -491,15 +524,6 @@ export default function CodesPage() {
           className="flex-1 min-w-[200px] max-w-md bg-brand-surface rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary placeholder:text-brand-outline text-brand-text"
           style={{ border: "1px solid rgba(195,197,217,0.5)" }}
         />
-        <a
-          href="/api/scan/export"
-          download="scan-data.csv"
-          className="flex items-center gap-1.5 bg-brand-surface hover:bg-brand-surface-low text-brand-text-secondary px-3 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-ambient-sm"
-          style={{ border: "1px solid rgba(195,197,217,0.5)" }}
-        >
-          <Download className="w-4 h-4" />
-          {tr.export_csv}
-        </a>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "paused")}
@@ -639,8 +663,16 @@ export default function CodesPage() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 wide:grid-cols-3 gap-5">
-              {paginated.map((contact) => {
+            <div className="bg-brand-surface rounded-2xl overflow-hidden shadow-ambient-sm" style={{ border: "1px solid rgba(195,197,217,0.35)" }}>
+              {/* Table header */}
+              <div className="hidden sm:grid grid-cols-[1fr_140px_100px_auto] gap-4 px-5 py-3 text-xs font-semibold text-brand-outline uppercase tracking-wide" style={{ background: "#f7f9fb", borderBottom: "1px solid rgba(195,197,217,0.35)" }}>
+                <span>{tr.col_name}</span>
+                <span>{tr.col_created}</span>
+                <span>{tr.scans_label}</span>
+                <span className="text-right">{tr.col_actions}</span>
+              </div>
+
+              {paginated.map((contact, idx) => {
                 const isBeingAssigned = assigningFolder === contact.id;
                 const folderId = contactFolders[contact.id];
                 const folderNode = folderId ? findNode(displayTree, folderId) : null;
@@ -652,91 +684,84 @@ export default function CodesPage() {
                     draggable
                     onDragStart={(e) => handleDragStart(e, contact.id)}
                     onDragEnd={handleDragEnd}
-                    className={`bg-brand-surface rounded-2xl p-6 flex flex-col gap-4 transition-all cursor-grab active:cursor-grabbing shadow-ambient-sm ${
-                      dragContactId === contact.id ? "opacity-50 scale-95 shadow-ambient" : "hover:shadow-ambient-md"
-                    } ${contact.isActive === false ? "opacity-75" : ""}`}
-                    style={{ border: contact.isActive === false ? "1px solid rgba(186,26,26,0.2)" : "1px solid rgba(195,197,217,0.4)" }}
+                    className={`flex items-center gap-4 px-5 py-4 transition-colors cursor-grab active:cursor-grabbing ${
+                      dragContactId === contact.id ? "opacity-50 bg-brand-surface-low" : "hover:bg-brand-bg"
+                    }`}
+                    style={idx < paginated.length - 1 ? { borderBottom: "1px solid rgba(195,197,217,0.25)" } : undefined}
                   >
-                    {isBeingAssigned && (
-                      <div className="flex items-center gap-2 text-xs text-brand-primary font-medium -mb-2">
-                        <span className="w-3 h-3 border border-brand-primary border-t-transparent rounded-full animate-spin" />
-                        Wird verschoben...
+                    {/* QR thumbnail */}
+                    <div id={`qr-${contact.id}`} className="shrink-0">
+                      <div className="w-12 h-12 rounded-xl bg-brand-bg flex items-center justify-center overflow-hidden">
+                        <QRCodeDisplay value={getQRUrl(contact.id)} size={48} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
                       </div>
-                    )}
-                    {contact.isActive === false && (
-                      <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium w-fit" style={{ background: "rgba(186,26,26,0.08)", color: "#ba1a1a" }}>
-                        ⏸ {tr.qr_paused_badge}
-                      </div>
-                    )}
+                    </div>
 
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        {contact.qrLabel && <h3 className="font-headline font-semibold text-brand-text">{contact.qrLabel}</h3>}
-                        <p className={contact.qrLabel ? "text-sm text-brand-text-secondary" : "font-headline font-semibold text-brand-text"}>
+                    {/* Name + meta */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {contact.qrLabel && <span className="font-semibold text-brand-text text-sm">{contact.qrLabel}</span>}
+                        <span className={`text-sm ${contact.qrLabel ? "text-brand-text-secondary" : "font-semibold text-brand-text"}`}>
                           {`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}
-                        </p>
-                        {contact.company && <p className="text-sm text-brand-outline">{contact.company}</p>}
-
-                        {/* Folder badge */}
+                        </span>
+                        {contact.isActive === false && (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: "rgba(186,26,26,0.08)", color: "#ba1a1a" }}>⏸ {tr.qr_paused_badge}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 mt-0.5">
+                        {contact.company && <span className="text-xs text-brand-outline">{contact.company}</span>}
                         {hasFolders && (
                           <button
                             onClick={() => setPickerContactId(contact.id)}
-                            className={`mt-1.5 flex items-center gap-1 text-xs px-2 py-0.5 rounded-lg transition-colors ${
-                              folderName
-                                ? "text-brand-primary hover:bg-brand-surface-low"
-                                : "text-brand-outline hover:bg-brand-surface-low"
-                            }`}
-                            style={{ border: folderName ? "1px solid rgba(0,62,199,0.25)" : "1px solid rgba(195,197,217,0.5)", background: folderName ? "rgba(0,62,199,0.06)" : "transparent" }}
+                            className="flex items-center gap-1 text-xs transition-colors"
+                            style={{ color: folderName ? "#003ec7" : "#737688" }}
                           >
                             <FolderIcon className="w-3 h-3 shrink-0" />
-                            <span className="max-w-[120px] truncate">{folderName ?? "Ordner wählen"}</span>
+                            <span className="max-w-[100px] truncate">{folderName ?? "Ordner wählen"}</span>
                           </button>
                         )}
+                        {isBeingAssigned && (
+                          <span className="flex items-center gap-1 text-xs text-brand-primary">
+                            <span className="w-3 h-3 border border-brand-primary border-t-transparent rounded-full animate-spin" />
+                            Verschoben...
+                          </span>
+                        )}
                       </div>
+                    </div>
+
+                    {/* Date */}
+                    <div className="hidden sm:block w-[130px] shrink-0">
+                      <p className="text-xs text-brand-text-secondary font-mono">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</p>
+                      {contact.createdBy && <p className="text-xs text-brand-outline mt-0.5">{contact.createdBy.split("@")[0]}</p>}
+                    </div>
+
+                    {/* Scans */}
+                    <div className="hidden sm:flex w-[90px] shrink-0 items-center gap-1 text-xs text-brand-outline">
+                      <BarChart2 className="w-3.5 h-3.5" />
+                      {scanCounts[contact.id] ?? 0}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 shrink-0">
                       {contact.logoUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={contact.logoUrl} alt="Logo" className="w-24 h-24 object-contain rounded-xl shrink-0 ml-2" />
+                        <img src={contact.logoUrl} alt="Logo" className="w-7 h-7 object-contain rounded-lg mr-1" />
                       )}
-                    </div>
-
-                    <div id={`qr-${contact.id}`} className="flex justify-center py-2 mt-auto">
-                      <QRCodeDisplay value={getQRUrl(contact.id)} size={140} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-brand-outline">
-                      <span className="font-mono">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</span>
-                      <span className="flex items-center gap-1">
-                        <BarChart2 className="w-3.5 h-3.5" />
-                        {scanCounts[contact.id] ?? 0} {tr.scans_label}
-                      </span>
-                    </div>
-
-                    {contact.createdBy && (
-                      <p className="text-xs text-brand-outline -mt-2">{tr.created_by}: {contact.createdBy}</p>
-                    )}
-
-                    <div className="flex items-center gap-2 pt-2" style={{ borderTop: "1px solid rgba(195,197,217,0.3)" }}>
                       {!isReader && (
-                        <Link
-                          href={`/dashboard/edit/${contact.id}`}
-                          className="flex-1 flex items-center justify-center gap-1.5 text-brand-text-secondary hover:bg-brand-surface-low px-3 py-2 rounded-xl text-sm font-medium transition-colors"
-                          style={{ border: "1px solid rgba(195,197,217,0.5)" }}
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                          {tr.edit}
+                        <Link href={`/dashboard/edit/${contact.id}`} className="p-2 rounded-xl text-brand-outline hover:text-brand-primary hover:bg-brand-surface-low transition-colors">
+                          <Pencil className="w-4 h-4" />
                         </Link>
                       )}
-                      <button onClick={() => handleCopy(contact.id)} className="p-2 rounded-xl text-brand-outline hover:bg-brand-surface-low transition-colors" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
+                      <button onClick={() => handleCopy(contact.id)} className="p-2 rounded-xl text-brand-outline hover:bg-brand-surface-low transition-colors">
                         {copiedId === contact.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                       </button>
-                      <a href={`/qr/${contact.id}`} target="_blank" className="p-2 rounded-xl text-brand-outline hover:bg-brand-surface-low transition-colors" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
+                      <a href={`/qr/${contact.id}`} target="_blank" className="p-2 rounded-xl text-brand-outline hover:bg-brand-surface-low transition-colors">
                         <ExternalLink className="w-4 h-4" />
                       </a>
-                      <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="p-2 rounded-xl text-brand-outline hover:bg-brand-surface-low transition-colors" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
+                      <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="p-2 rounded-xl text-brand-outline hover:bg-brand-surface-low transition-colors">
                         <Download className="w-4 h-4" />
                       </button>
                       {isAdmin && (
-                        <button onClick={() => setDeleteModal(contact.id)} className="p-2 rounded-xl transition-colors text-brand-outline hover:bg-brand-error-container hover:text-brand-error" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
+                        <button onClick={() => setDeleteModal(contact.id)} className="p-2 rounded-xl text-brand-outline hover:bg-brand-error-container hover:text-brand-error transition-colors">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}
@@ -744,6 +769,23 @@ export default function CodesPage() {
                   </div>
                 );
               })}
+
+              {/* New QR Code row at bottom */}
+              {!isReader && !limitReached && (
+                <Link
+                  href="/dashboard/create"
+                  className="flex items-center gap-3 px-5 py-4 hover:bg-brand-bg transition-colors"
+                  style={{ borderTop: "1px solid rgba(195,197,217,0.25)" }}
+                >
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ border: "2px dashed rgba(0,62,199,0.3)", background: "rgba(0,62,199,0.04)" }}>
+                    <Plus className="w-5 h-5 text-brand-primary opacity-60" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-brand-primary">Neuer QR Code</p>
+                    <p className="text-xs text-brand-outline">Klicken um einen QR Code zu erstellen</p>
+                  </div>
+                </Link>
+              )}
             </div>
           )}
 
@@ -826,6 +868,58 @@ export default function CodesPage() {
           </div>
         </div>
       )}
+      </div>{/* end main content */}
+    </div>
+  );
+}
+
+// ── Sidebar folder node (recursive) ──────────────────────────────────────────
+function SidebarFolderNode({
+  node,
+  currentFolderId,
+  onSelect,
+  depth,
+}: {
+  node: FolderWithStats;
+  currentFolderId: string | null;
+  onSelect: (id: string) => void;
+  depth: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const isActive = currentFolderId === node.id;
+  const hasChildren = node.children.length > 0;
+
+  return (
+    <div>
+      <div
+        className={`flex items-center gap-2 cursor-pointer transition-colors text-sm font-medium ${
+          isActive ? "text-white" : "text-brand-text-secondary hover:bg-brand-surface-low hover:text-brand-text"
+        }`}
+        style={{
+          paddingLeft: `${depth * 12 + 16}px`,
+          paddingRight: "12px",
+          paddingTop: "8px",
+          paddingBottom: "8px",
+          ...(isActive ? { background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", borderRadius: "0.75rem", margin: "0 8px", width: "calc(100% - 16px)" } : {}),
+        }}
+        onClick={() => onSelect(node.id)}
+      >
+        {hasChildren ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+            className={`shrink-0 ${isActive ? "text-white/70" : "text-brand-outline"}`}
+          >
+            {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+          </button>
+        ) : (
+          <span className="w-3.5 h-3.5 shrink-0" />
+        )}
+        <FolderIcon className="w-3.5 h-3.5 shrink-0" />
+        <span className="truncate flex-1">{node.name}</span>
+      </div>
+      {expanded && node.children.map((child) => (
+        <SidebarFolderNode key={child.id} node={child} currentFolderId={currentFolderId} onSelect={onSelect} depth={depth + 1} />
+      ))}
     </div>
   );
 }
