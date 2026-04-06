@@ -151,6 +151,10 @@ export default function CodesPage() {
   // Folder picker modal
   const [pickerContactId, setPickerContactId] = useState<string | null>(null);
 
+  // Pagination
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 12;
+
   // New folder creation
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
@@ -393,6 +397,9 @@ export default function CodesPage() {
     qrImg.src = svgUrl;
   }
 
+  // Reset to page 1 whenever the view changes
+  useEffect(() => { setPage(1); }, [currentFolderId, search, statusFilter, sortBy]);
+
   const limit = PLAN_LIMITS[plan];
   const limitReached = limit !== -1 && contacts.length >= limit;
   const hasFolders = displayTree.length > 0;
@@ -400,6 +407,9 @@ export default function CodesPage() {
   // Max 3 levels: root (depth 0), child (depth 1), grandchild (depth 2)
   // breadcrumb.length equals current depth (0 = root view, 1 = inside level-1 folder, etc.)
   const canCreateFolder = breadcrumb.length < 3;
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const pickerContact = pickerContactId ? contacts.find((c) => c.id === pickerContactId) : null;
 
@@ -618,7 +628,7 @@ export default function CodesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 wide:grid-cols-3 gap-5">
-              {filtered.map((contact) => {
+              {paginated.map((contact) => {
                 const isBeingAssigned = assigningFolder === contact.id;
                 const folderId = contactFolders[contact.id];
                 const folderNode = folderId ? findNode(displayTree, folderId) : null;
@@ -719,6 +729,49 @@ export default function CodesPage() {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-1.5 mt-8">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                ←
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+                // Show first, last, current ±1, and ellipsis
+                const show = p === 1 || p === totalPages || Math.abs(p - page) <= 1;
+                const showEllipsisBefore = p === page - 2 && page - 2 > 1;
+                const showEllipsisAfter = p === page + 2 && page + 2 < totalPages;
+                if (!show && !showEllipsisBefore && !showEllipsisAfter) return null;
+                if (showEllipsisBefore || showEllipsisAfter) {
+                  return <span key={`ellipsis-${p}`} className="px-1 text-gray-400 text-sm">…</span>;
+                }
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`w-9 h-9 rounded-xl text-sm font-medium transition-colors ${
+                      p === page
+                        ? "bg-blue-600 text-white"
+                        : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                →
+              </button>
             </div>
           )}
         </>
