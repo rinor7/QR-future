@@ -8,11 +8,20 @@ import { getUserProfile } from "@/lib/store";
 import { Plan } from "@/lib/types";
 import { useLang } from "@/lib/language";
 
-const PLAN_META: Record<Plan, { priceId: string | null; color: string; badge: string }> = {
-  free:     { priceId: null,                               color: "border-gray-200",  badge: "bg-gray-100 text-gray-600"   },
-  star:     { priceId: "price_1TBkP61MPl7fNPWeElDgBGsM",  color: "border-yellow-300",badge: "bg-yellow-100 text-yellow-700"},
-  premium:  { priceId: "price_1TBkPQ1MPl7fNPWehoGc86wl",  color: "border-blue-400",  badge: "bg-blue-100 text-blue-700"   },
-  platinum: { priceId: "price_1TBkPb1MPl7fNPWeD7FeszuB",  color: "border-purple-400",badge: "bg-purple-100 text-purple-700"},
+interface PlanMeta {
+  priceId: string | null;
+  gradient: string;
+  badgeBg: string;
+  badgeText: string;
+  accentColor: string;
+  popular?: boolean;
+}
+
+const PLAN_META: Record<Plan, PlanMeta> = {
+  free:     { priceId: null,                               gradient: "none",                                              badgeBg: "rgba(115,118,136,0.1)", badgeText: "#737688",  accentColor: "#737688" },
+  star:     { priceId: "price_1TBkP61MPl7fNPWeElDgBGsM",  gradient: "linear-gradient(135deg, #b45309 0%, #d97706 100%)", badgeBg: "rgba(180,83,9,0.1)",    badgeText: "#b45309",  accentColor: "#d97706" },
+  premium:  { priceId: "price_1TBkPQ1MPl7fNPWehoGc86wl",  gradient: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", badgeBg: "rgba(0,62,199,0.1)",    badgeText: "#003ec7",  accentColor: "#003ec7", popular: true },
+  platinum: { priceId: "price_1TBkPb1MPl7fNPWeD7FeszuB",  gradient: "linear-gradient(135deg, #6b21a8 0%, #9333ea 100%)", badgeBg: "rgba(107,33,168,0.1)",  badgeText: "#6b21a8",  accentColor: "#9333ea" },
 };
 
 interface PlanConfig { plan: Plan; price: number; features: string[]; }
@@ -54,12 +63,10 @@ export default function UpgradePage() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        console.error("Stripe error:", data.error);
         alert(data.error || "Something went wrong. Please try again.");
         setLoading(null);
       }
-    } catch (err) {
-      console.error("Checkout failed:", err);
+    } catch {
       alert("Something went wrong. Please try again.");
       setLoading(null);
     }
@@ -68,8 +75,8 @@ export default function UpgradePage() {
   return (
     <div className="p-4 wide:p-8 max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{tr.upgrade_title}</h1>
-        <p className="text-gray-500 mt-1">{tr.upgrade_subtitle}</p>
+        <h1 className="font-headline text-3xl font-bold text-brand-text">{tr.upgrade_title}</h1>
+        <p className="text-brand-outline mt-1">{tr.upgrade_subtitle}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -77,34 +84,46 @@ export default function UpgradePage() {
           const meta = PLAN_META[config.plan];
           const isCurrent = config.plan === currentPlan;
           const planName = config.plan.charAt(0).toUpperCase() + config.plan.slice(1);
+          const isPremium = meta.popular;
           return (
             <div
               key={config.plan}
-              className={`bg-white rounded-2xl border-2 p-6 flex flex-col ${meta.color} ${isCurrent ? "ring-2 ring-blue-500" : ""}`}
+              className={`bg-brand-surface rounded-2xl p-6 flex flex-col transition-shadow hover:shadow-ambient-md shadow-ambient-sm relative ${isCurrent ? "ring-2 ring-brand-primary" : ""}`}
+              style={{ border: isCurrent ? "none" : "1px solid rgba(195,197,217,0.4)" }}
             >
+              {isPremium && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-semibold text-white px-3 py-1 rounded-full whitespace-nowrap" style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
+                  Beliebt
+                </div>
+              )}
+
               <div className="mb-4">
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${meta.badge}`}>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: meta.badgeBg, color: meta.badgeText }}>
                   {planName}
                 </span>
                 {isCurrent && (
-                  <span className="ml-2 text-xs text-blue-600 font-medium">{tr.upgrade_current}</span>
+                  <span className="ml-2 text-xs text-brand-primary font-medium">{tr.upgrade_current}</span>
                 )}
               </div>
 
-              <div className="mb-4">
-                <span className="text-3xl font-bold text-gray-900">CHF {config.price}</span>
-                <span className="text-gray-400 text-sm">{tr.upgrade_per_month}</span>
+              <div className="mb-5">
+                <span className="font-headline text-3xl font-bold text-brand-text">CHF {config.price}</span>
+                <span className="text-brand-outline text-sm ml-1">{tr.upgrade_per_month}</span>
               </div>
 
-              <ul className="space-y-2 mb-6 flex-1">
+              <ul className="space-y-2.5 mb-6 flex-1">
                 {config.features.length > 0 ? config.features.map((f, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <li key={i} className="flex items-start gap-2 text-sm text-brand-text-secondary">
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: meta.badgeBg }}>
+                      <Check className="w-2.5 h-2.5" style={{ color: meta.accentColor }} />
+                    </span>
                     {f}
                   </li>
                 )) : (
-                  <li className="flex items-center gap-2 text-sm text-gray-600">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <li className="flex items-start gap-2 text-sm text-brand-text-secondary">
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: meta.badgeBg }}>
+                      <Check className="w-2.5 h-2.5" style={{ color: meta.accentColor }} />
+                    </span>
                     {tr.upgrade_no_expiry}
                   </li>
                 )}
@@ -114,13 +133,14 @@ export default function UpgradePage() {
                 <button
                   onClick={() => handleUpgrade(meta.priceId!)}
                   disabled={loading === meta.priceId}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl font-medium transition-colors text-sm"
+                  className="w-full py-2.5 rounded-xl font-medium text-sm text-white transition-opacity disabled:opacity-60 hover:opacity-90"
+                  style={{ background: meta.gradient !== "none" ? meta.gradient : "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
                 >
                   {loading === meta.priceId ? tr.upgrade_loading : `${planName} ${tr.upgrade_select}`}
                 </button>
               )}
               {isCurrent && (
-                <div className="w-full text-center text-sm text-gray-400 py-2.5">
+                <div className="w-full text-center text-sm text-brand-outline py-2.5">
                   {tr.upgrade_current_plan}
                 </div>
               )}

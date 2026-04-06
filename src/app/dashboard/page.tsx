@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { QrCode, Plus, Pencil, Trash2, ExternalLink, Copy, Check, Zap } from "lucide-react";
+import { QrCode, Plus, Pencil, Trash2, ExternalLink, Copy, Check, Zap, TrendingUp, Activity, PauseCircle, Eye } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
@@ -69,37 +69,40 @@ export default function DashboardPage() {
     setDeleteModal(null);
   }
 
+  const activeCount = contacts.filter((c) => c.isActive !== false).length;
+  const pausedCount = contacts.filter((c) => c.isActive === false).length;
+
   return (
     <div className="p-4 wide:p-8">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">{tr.dashboard_subtitle}</p>
+          <h1 className="font-headline text-3xl font-bold text-brand-text tracking-tight">Dashboard</h1>
+          <p className="text-brand-text-secondary mt-1 text-sm">{tr.dashboard_subtitle}</p>
         </div>
         {!loading && !roleLoading && !isReader && (() => {
           const limit = PLAN_LIMITS[plan];
           const limitReached = limit !== -1 && contacts.length >= limit;
           return limitReached ? (
-            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
+            <div className="flex items-center gap-2 bg-amber-50 rounded-xl px-4 py-2.5" style={{ border: "1px solid rgba(251,191,36,0.4)" }}>
               <span className="text-sm text-amber-800">{tr.plan_limit_reached} — </span>
               {isOwner ? (
-                <Link href="/dashboard/upgrade" className="text-sm font-medium text-amber-700 hover:text-amber-900 transition-colors">
+                <Link href="/dashboard/upgrade" className="text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors">
                   {tr.free_plan_upgrade}
                 </Link>
               ) : (
                 <span className="text-sm text-amber-700">
                   {tr.plan_limit_ask_owner}{" "}
-                  <Link href="/dashboard/upgrade" className="font-medium underline hover:text-amber-900 transition-colors">{tr.see_plans}</Link>.
+                  <Link href="/dashboard/upgrade" className="font-semibold underline hover:text-amber-900 transition-colors">{tr.see_plans}</Link>.
                 </span>
               )}
             </div>
           ) : (
             <Link
               href="/dashboard/create"
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
+              className="btn-primary flex items-center gap-2"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4" />
               {tr.create_qr}
             </Link>
           );
@@ -108,200 +111,175 @@ export default function DashboardPage() {
 
       {/* Free plan banner */}
       {!loading && plan === "free" && isOwner && (
-        <div className="flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 mb-6">
-          <div className="flex items-center gap-2 text-amber-800 text-sm">
-            <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+        <div className="flex items-center justify-between gap-3 rounded-xl px-5 py-3 mb-6"
+          style={{ background: "linear-gradient(135deg, rgba(0,62,199,0.06) 0%, rgba(0,82,255,0.08) 100%)", border: "1px solid rgba(0,62,199,0.12)" }}>
+          <div className="flex items-center gap-2 text-brand-primary text-sm font-medium">
+            <Zap className="w-4 h-4 shrink-0" />
             {tr.free_plan_banner}
           </div>
-          <Link href="/dashboard/upgrade" className="text-sm font-medium text-amber-700 hover:text-amber-900 whitespace-nowrap transition-colors">
-            {tr.free_plan_upgrade}
+          <Link href="/dashboard/upgrade" className="text-sm font-semibold text-brand-primary hover:text-brand-primary-light whitespace-nowrap transition-colors">
+            {tr.free_plan_upgrade} →
           </Link>
         </div>
       )}
 
-      {/* Onboarding banner */}
+      {/* Onboarding */}
       {!loading && !onboardingDismissed && contacts.length === 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-6">
-          <h2 className="text-base font-bold text-blue-900 mb-1">{tr.onboarding_title}</h2>
-          <p className="text-sm text-blue-700 mb-4">{tr.onboarding_subtitle}</p>
+        <div className="rounded-2xl p-6 mb-6"
+          style={{ background: "linear-gradient(135deg, rgba(0,62,199,0.05) 0%, rgba(0,82,255,0.08) 100%)", border: "1px solid rgba(0,62,199,0.1)" }}>
+          <h2 className="font-headline text-base font-bold text-brand-text mb-1">{tr.onboarding_title}</h2>
+          <p className="text-sm text-brand-text-secondary mb-4">{tr.onboarding_subtitle}</p>
           <ol className="space-y-2 mb-5">
             {[tr.onboarding_step1, tr.onboarding_step2, tr.onboarding_step3].map((step, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-blue-800">
-                <span className="w-5 h-5 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">{i + 1}</span>
+              <li key={i} className="flex items-start gap-3 text-sm text-brand-text-secondary">
+                <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 text-white"
+                  style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
+                  {i + 1}
+                </span>
                 {step}
               </li>
             ))}
           </ol>
           <button
-            onClick={() => {
-              localStorage.setItem("onboarding_dismissed", "1");
-              setOnboardingDismissed(true);
-            }}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
+            onClick={() => { localStorage.setItem("onboarding_dismissed", "1"); setOnboardingDismissed(true); }}
+            className="btn-primary text-sm"
           >
             {tr.onboarding_dismiss}
           </button>
         </div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-8">
-        <StatCard
-          label={tr.stat_total}
-          value={contacts.length}
-          icon={<QrCode className="w-6 h-6 text-blue-600" />}
-          bg="bg-blue-50"
-        />
-        <StatCard
-          label={tr.stat_active}
-          value={contacts.filter((c) => c.isActive !== false).length}
-          icon={<span className="text-2xl">✅</span>}
-          bg="bg-green-50"
-        />
-        <StatCard
-          label={tr.stat_paused}
-          value={contacts.filter((c) => c.isActive === false).length}
-          icon={<span className="text-2xl">⏸️</span>}
-          bg="bg-amber-50"
-        />
-        <StatCard
-          label={tr.scans_total}
-          value={scanTotal}
-          icon={<span className="text-2xl">👁️</span>}
-          bg="bg-orange-50"
-        />
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <KPICard label={tr.stat_total} value={contacts.length} icon={<QrCode className="w-5 h-5" />} color="blue" />
+        <KPICard label={tr.stat_active} value={activeCount} icon={<Activity className="w-5 h-5" />} color="green" />
+        <KPICard label={tr.stat_paused} value={pausedCount} icon={<PauseCircle className="w-5 h-5" />} color="amber" />
+        <KPICard label={tr.scans_total} value={scanTotal} icon={<Eye className="w-5 h-5" />} color="purple" />
       </div>
 
       {/* Scan chart */}
       {scanLast7.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">{tr.scans_last7}</h2>
+        <div className="bg-brand-surface rounded-2xl p-6 mb-6 shadow-ambient">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-headline font-semibold text-brand-text">{tr.scans_last7}</h2>
+            <div className="flex items-center gap-1.5 text-xs text-brand-text-secondary">
+              <TrendingUp className="w-3.5 h-3.5 text-brand-primary" />
+              {tr.scans_label}
+            </div>
+          </div>
           <ScanChart data={scanLast7} label={tr.scans_label} />
         </div>
       )}
 
-      {/* QR Codes list */}
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden overflow-x-auto">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">{tr.all_codes}</h2>
+      {/* Recent QR codes */}
+      <div className="bg-brand-surface rounded-2xl shadow-ambient overflow-hidden">
+        <div className="px-6 py-4 flex items-center justify-between">
+          <h2 className="font-headline font-semibold text-brand-text">{tr.all_codes}</h2>
+          <Link href="/dashboard/codes" className="text-xs font-semibold text-brand-primary hover:text-brand-primary-light transition-colors">
+            {tr.nav_codes} →
+          </Link>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20 text-gray-400">
-            <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full" />
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : contacts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-            <QrCode className="w-16 h-16 mb-4 opacity-30" />
-            <p className="text-lg font-medium">{tr.no_codes}</p>
-            <p className="text-sm mt-1">{tr.no_codes_sub}</p>
-            <Link
-              href="/dashboard/create"
-              className="mt-4 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition-colors"
-            >
+          <div className="flex flex-col items-center justify-center py-20 text-brand-outline">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+              style={{ background: "linear-gradient(135deg, rgba(0,62,199,0.06) 0%, rgba(0,82,255,0.1) 100%)" }}>
+              <QrCode className="w-8 h-8 text-brand-primary opacity-60" />
+            </div>
+            <p className="font-headline font-semibold text-brand-text-secondary">{tr.no_codes}</p>
+            <p className="text-sm mt-1 text-brand-outline">{tr.no_codes_sub}</p>
+            <Link href="/dashboard/create" className="btn-primary mt-4 text-sm">
               {tr.create_now}
             </Link>
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                <th className="px-6 py-3 text-left">QR Code</th>
-                <th className="px-6 py-3 text-left">{tr.col_name}</th>
-                <th className="px-6 py-3 text-left">{tr.col_created}</th>
-                <th className="px-6 py-3 text-left">{tr.col_link}</th>
-                <th className="px-6 py-3 text-right">{tr.col_actions}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {contacts.map((contact) => (
-                <tr key={contact.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="w-14 h-14">
-                      <QRCodeDisplay value={getQRUrl(contact.id)} size={56} />
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="font-semibold text-gray-900">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</p>
-                    <p className="text-sm text-gray-500">{contact.company || contact.title || ""}</p>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 leading-5">
-                    {new Date(contact.createdAt).toLocaleDateString("de-DE")}
-                    {contact.createdBy && (
-                      <span className="block text-xs text-gray-400 mt-0.5">{contact.createdBy.split("@")[0]}</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 font-mono truncate max-w-[140px]">
-                        /qr/{contact.id}
-                      </span>
-                      <button
-                        onClick={() => handleCopy(contact.id)}
-                        className="text-gray-400 hover:text-blue-600 transition-colors"
-                      >
-                        {copiedId === contact.id ? (
-                          <Check className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button>
-                      <a
-                        href={`/qr/${contact.id}`}
-                        target="_blank"
-                        className="text-gray-400 hover:text-blue-600 transition-colors"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {!isReader && (
-                        <Link
-                          href={`/dashboard/edit/${contact.id}`}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Link>
-                      )}
-                      {isAdmin && (
-                        <button
-                          onClick={() => setDeleteModal(contact.id)}
-                          className="p-2 rounded-lg transition-colors text-gray-400 hover:text-red-500 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-xs font-semibold text-brand-outline uppercase tracking-wider"
+                  style={{ background: "#f7f9fb" }}>
+                  <th className="px-6 py-3 text-left">QR Code</th>
+                  <th className="px-6 py-3 text-left">{tr.col_name}</th>
+                  <th className="px-6 py-3 text-left">{tr.col_created}</th>
+                  <th className="px-6 py-3 text-left">{tr.col_link}</th>
+                  <th className="px-6 py-3 text-right">{tr.col_actions}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {contacts.map((contact, idx) => (
+                  <tr key={contact.id}
+                    className="transition-colors hover:bg-brand-bg"
+                    style={idx < contacts.length - 1 ? { borderBottom: "1px solid rgba(195,197,217,0.25)" } : undefined}>
+                    <td className="px-6 py-4">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-brand-bg flex items-center justify-center">
+                        <QRCodeDisplay value={getQRUrl(contact.id)} size={48} />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="font-semibold text-brand-text text-sm">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</p>
+                      <p className="text-xs text-brand-outline mt-0.5">{contact.company || contact.title || ""}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-brand-text-secondary">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</p>
+                      {contact.createdBy && (
+                        <span className="text-xs text-brand-outline">{contact.createdBy.split("@")[0]}</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-brand-outline font-mono truncate max-w-[120px]">/qr/{contact.id.slice(0, 8)}…</span>
+                        <button onClick={() => handleCopy(contact.id)} className="text-brand-outline hover:text-brand-primary transition-colors">
+                          {copiedId === contact.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                        <a href={`/qr/${contact.id}`} target="_blank" className="text-brand-outline hover:text-brand-primary transition-colors">
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {!isReader && (
+                          <Link href={`/dashboard/edit/${contact.id}`}
+                            className="p-2 text-brand-outline hover:text-brand-primary hover:bg-brand-bg rounded-xl transition-colors">
+                            <Pencil className="w-4 h-4" />
+                          </Link>
+                        )}
+                        {isAdmin && (
+                          <button onClick={() => setDeleteModal(contact.id)}
+                            className="p-2 rounded-xl transition-colors text-brand-outline hover:text-brand-error hover:bg-brand-error-container">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
-      {/* Delete confirmation modal */}
+      {/* Delete modal */}
       {deleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
-              <Trash2 className="w-6 h-6 text-red-600" />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-brand-surface rounded-2xl shadow-ambient max-w-sm w-full p-6">
+            <div className="flex items-center justify-center w-12 h-12 bg-brand-error-container rounded-full mx-auto mb-4">
+              <Trash2 className="w-6 h-6 text-brand-error" />
             </div>
-            <h2 className="text-lg font-bold text-gray-900 text-center mb-2">{tr.delete_modal_title}</h2>
-            <p className="text-sm text-gray-500 text-center mb-6">{tr.delete_modal_body}</p>
+            <h2 className="font-headline text-lg font-bold text-brand-text text-center mb-2">{tr.delete_modal_title}</h2>
+            <p className="text-sm text-brand-text-secondary text-center mb-6">{tr.delete_modal_body}</p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteModal(null)}
-                className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-50 transition-colors"
-              >
+              <button onClick={() => setDeleteModal(null)}
+                className="flex-1 bg-brand-surface-low text-brand-text-secondary py-2.5 rounded-xl font-medium text-sm hover:bg-brand-surface-container transition-colors">
                 {tr.delete_modal_cancel}
               </button>
-              <button
-                onClick={() => handleDelete(deleteModal)}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-medium text-sm transition-colors"
-              >
+              <button onClick={() => handleDelete(deleteModal)}
+                className="flex-1 bg-brand-error hover:opacity-90 text-white py-2.5 rounded-xl font-medium text-sm transition-opacity">
                 {tr.delete_modal_confirm}
               </button>
             </div>
@@ -312,26 +290,23 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  icon,
-  bg,
-}: {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-  bg: string;
-}) {
+function KPICard({ label, value, icon, color }: { label: string; value: number; icon: React.ReactNode; color: "blue" | "green" | "amber" | "purple" }) {
+  const styles = {
+    blue:   { bg: "rgba(0,62,199,0.06)",  icon: "#003ec7", text: "#003ec7" },
+    green:  { bg: "rgba(22,163,74,0.06)", icon: "#16a34a", text: "#16a34a" },
+    amber:  { bg: "rgba(217,119,6,0.06)", icon: "#d97706", text: "#d97706" },
+    purple: { bg: "rgba(147,51,234,0.06)",icon: "#9333ea", text: "#9333ea" },
+  }[color];
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 flex items-center justify-between">
-      <div>
-        <p className="text-sm text-gray-500">{label}</p>
-        <p className="text-4xl font-bold text-gray-900 mt-1">{value}</p>
+    <div className="bg-brand-surface rounded-2xl p-5 shadow-ambient">
+      <div className="flex items-start justify-between mb-3">
+        <p className="text-xs font-semibold text-brand-outline uppercase tracking-wider">{label}</p>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: styles.bg }}>
+          <span style={{ color: styles.icon }}>{icon}</span>
+        </div>
       </div>
-      <div className={`w-14 h-14 ${bg} rounded-xl flex items-center justify-center`}>
-        {icon}
-      </div>
+      <p className="font-headline text-3xl font-bold text-brand-text">{value.toLocaleString()}</p>
     </div>
   );
 }
@@ -346,14 +321,15 @@ function ScanChart({ data, label }: { data: { date: string; count: number }[]; l
         const dayLabel = new Date(d.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "short" });
         return (
           <div key={d.date} className="flex flex-col items-center gap-1 flex-1 group relative">
-            <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-1.5 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-white text-xs rounded-lg px-2 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-ambient-sm"
+              style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
               {d.count} {label}
             </div>
             <div
-              className="w-full rounded-t-md bg-blue-500 transition-all"
-              style={{ height: barH }}
+              className="w-full rounded-t-lg transition-all"
+              style={{ height: barH, background: "linear-gradient(180deg, #0052ff 0%, #003ec7 100%)", opacity: d.count > 0 ? 1 : 0.15 }}
             />
-            <span className="text-xs text-gray-400">{dayLabel}</span>
+            <span className="text-xs text-brand-outline">{dayLabel}</span>
           </div>
         );
       })}

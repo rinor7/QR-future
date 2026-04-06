@@ -34,20 +34,20 @@ function FolderPickerNode({
   return (
     <div>
       <div
-        className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-colors ${isSelected ? "bg-blue-50" : "hover:bg-gray-50"}`}
+        className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-colors ${isSelected ? "bg-blue-50" : "hover:bg-brand-surface-low"}`}
         style={{ paddingLeft: `${depth * 16 + 12}px` }}
         onClick={() => onSelect(node.id)}
       >
         {/* Expand arrow */}
         <button
           onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
-          className={`w-4 h-4 flex items-center justify-center shrink-0 text-gray-400 ${!hasChildren ? "invisible" : ""}`}
+          className={`w-4 h-4 flex items-center justify-center shrink-0 text-brand-outline ${!hasChildren ? "invisible" : ""}`}
         >
           {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
         </button>
-        <FolderIcon className={`w-4 h-4 shrink-0 ${isSelected ? "text-blue-500" : "text-blue-400"}`} />
-        <span className={`flex-1 text-sm truncate ${isSelected ? "font-semibold text-blue-700" : "text-gray-700"}`}>{node.name}</span>
-        {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
+        <FolderIcon className={`w-4 h-4 shrink-0 ${isSelected ? "text-brand-primary" : "text-brand-secondary"}`} />
+        <span className={`flex-1 text-sm truncate ${isSelected ? "font-semibold text-brand-primary" : "text-brand-text"}`}>{node.name}</span>
+        {isSelected && <Check className="w-4 h-4 text-brand-primary shrink-0" />}
       </div>
       {expanded && node.children.map((child) => (
         <FolderPickerNode key={child.id} node={child} selected={selected} onSelect={onSelect} depth={depth + 1} />
@@ -74,14 +74,14 @@ function FolderPicker({
   const [selected, setSelected] = useState<string | null>(currentFolderId);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-brand-surface rounded-2xl shadow-ambient w-full max-w-sm">
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(195,197,217,0.3)" }}>
           <div>
-            <h2 className="font-bold text-gray-900 text-sm">In Ordner verschieben</h2>
-            <p className="text-xs text-gray-500 mt-0.5 truncate max-w-[220px]">{contactName}</p>
+            <h2 className="font-headline font-bold text-brand-text text-sm">In Ordner verschieben</h2>
+            <p className="text-xs text-brand-outline mt-0.5 truncate max-w-[220px]">{contactName}</p>
           </div>
-          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+          <button onClick={onClose} className="p-1.5 text-brand-outline hover:text-brand-text rounded-xl hover:bg-brand-surface-low transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -89,28 +89,28 @@ function FolderPicker({
         <div className="p-3 max-h-64 overflow-y-auto">
           {/* No folder option */}
           <div
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-colors ${selected === null ? "bg-blue-50" : "hover:bg-gray-50"}`}
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-colors ${selected === null ? "bg-blue-50" : "hover:bg-brand-surface-low"}`}
             onClick={() => setSelected(null)}
           >
             <span className="w-4 h-4 shrink-0" />
-            <X className="w-4 h-4 shrink-0 text-gray-400" />
-            <span className={`flex-1 text-sm ${selected === null ? "font-semibold text-blue-700" : "text-gray-500"}`}>Kein Ordner</span>
-            {selected === null && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
+            <X className="w-4 h-4 shrink-0 text-brand-outline" />
+            <span className={`flex-1 text-sm ${selected === null ? "font-semibold text-brand-primary" : "text-brand-text-secondary"}`}>Kein Ordner</span>
+            {selected === null && <Check className="w-4 h-4 text-brand-primary shrink-0" />}
           </div>
-          {folders.length > 0 && <div className="border-t border-gray-100 my-1.5" />}
+          {folders.length > 0 && <div className="my-1.5" style={{ borderTop: "1px solid rgba(195,197,217,0.3)" }} />}
           {folders.map((f) => (
             <FolderPickerNode key={f.id} node={f} selected={selected} onSelect={setSelected} depth={0} />
           ))}
         </div>
 
         <div className="px-4 pb-4 flex gap-3">
-          <button onClick={onClose} className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
+          <button onClick={onClose} className="flex-1 text-brand-text-secondary py-2.5 rounded-xl text-sm font-medium hover:bg-brand-surface-low transition-colors" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
             Abbrechen
           </button>
           <button
             onClick={() => onSave(selected)}
             disabled={saving}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            className="flex-1 btn-primary disabled:opacity-50 py-2.5 flex items-center justify-center gap-2"
           >
             {saving && <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
             Speichern
@@ -418,19 +418,19 @@ export default function CodesPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">QR Codes</h1>
-          <p className="text-gray-500 mt-1">{contacts.length} {tr.codes_total}</p>
+          <h1 className="font-headline text-3xl font-bold text-brand-text">QR Codes</h1>
+          <p className="text-brand-outline mt-1">{contacts.length} {tr.codes_total}</p>
         </div>
         {!loading && !isReader && (
           limitReached ? (
-            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
-              <span className="text-sm text-amber-800">{tr.plan_limit_reached} — </span>
+            <div className="flex items-center gap-2 rounded-xl px-4 py-2.5" style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
+              <span className="text-sm text-white/90">{tr.plan_limit_reached} — </span>
               {isOwner ? (
-                <Link href="/dashboard/upgrade" className="text-sm font-medium text-amber-700 hover:text-amber-900 transition-colors">{tr.free_plan_upgrade}</Link>
+                <Link href="/dashboard/upgrade" className="text-sm font-semibold text-white hover:text-white/80 transition-colors">{tr.free_plan_upgrade}</Link>
               ) : (
-                <span className="text-sm text-amber-700">
+                <span className="text-sm text-white/90">
                   {tr.plan_limit_ask_owner}{" "}
-                  <Link href="/dashboard/upgrade" className="font-medium underline hover:text-amber-900 transition-colors">{tr.see_plans}</Link>.
+                  <Link href="/dashboard/upgrade" className="font-semibold underline hover:text-white/80 transition-colors">{tr.see_plans}</Link>.
                 </span>
               )}
             </div>
@@ -439,7 +439,8 @@ export default function CodesPage() {
               {canCreateFolder && (
                 <button
                   onClick={() => { setCreatingFolder(true); setFolderNameError(null); setNewFolderName(""); }}
-                  className="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium transition-colors text-sm"
+                  className="flex items-center gap-2 bg-brand-surface hover:bg-brand-surface-low text-brand-text-secondary px-4 py-2.5 rounded-xl font-medium transition-colors text-sm shadow-ambient-sm"
+                  style={{ border: "1px solid rgba(195,197,217,0.5)" }}
                 >
                   <FolderPlus className="w-4 h-4" />
                   Neuer Ordner
@@ -447,7 +448,7 @@ export default function CodesPage() {
               )}
               <Link
                 href="/dashboard/create"
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
+                className="btn-primary flex items-center gap-2"
               >
                 <Plus className="w-5 h-5" />
                 {tr.create_qr}
@@ -462,18 +463,18 @@ export default function CodesPage() {
         <div className="flex items-center gap-1.5 mb-5 text-sm">
           <button
             onClick={() => setCurrentFolderId(null)}
-            className="flex items-center gap-1.5 text-gray-500 hover:text-blue-600 transition-colors font-medium"
+            className="flex items-center gap-1.5 text-brand-outline hover:text-brand-primary transition-colors font-medium"
           >
             <ArrowLeft className="w-4 h-4" />
             QR Codes
           </button>
           {breadcrumb.map((seg, i) => (
             <span key={seg.id} className="flex items-center gap-1.5">
-              <ChevronRight className="w-4 h-4 text-gray-300" />
+              <ChevronRight className="w-4 h-4 text-brand-outline-variant" />
               {i === breadcrumb.length - 1 ? (
-                <span className="font-semibold text-gray-900">{seg.name}</span>
+                <span className="font-semibold text-brand-text">{seg.name}</span>
               ) : (
-                <button onClick={() => setCurrentFolderId(seg.id)} className="text-gray-500 hover:text-blue-600 transition-colors">{seg.name}</button>
+                <button onClick={() => setCurrentFolderId(seg.id)} className="text-brand-outline hover:text-brand-primary transition-colors">{seg.name}</button>
               )}
             </span>
           ))}
@@ -487,12 +488,14 @@ export default function CodesPage() {
           placeholder={tr.search_placeholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-[200px] max-w-md border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+          className="flex-1 min-w-[200px] max-w-md bg-brand-surface rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary placeholder:text-brand-outline text-brand-text"
+          style={{ border: "1px solid rgba(195,197,217,0.5)" }}
         />
         <a
           href="/api/scan/export"
           download="scan-data.csv"
-          className="flex items-center gap-1.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 bg-brand-surface hover:bg-brand-surface-low text-brand-text-secondary px-3 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-ambient-sm"
+          style={{ border: "1px solid rgba(195,197,217,0.5)" }}
         >
           <Download className="w-4 h-4" />
           {tr.export_csv}
@@ -500,7 +503,8 @@ export default function CodesPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "paused")}
-          className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
+          className="bg-brand-surface rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary text-brand-text-secondary"
+          style={{ border: "1px solid rgba(195,197,217,0.5)" }}
         >
           <option value="all">{tr.filter_all}</option>
           <option value="active">{tr.filter_active}</option>
@@ -509,7 +513,8 @@ export default function CodesPage() {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as "newest" | "oldest" | "name")}
-          className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
+          className="bg-brand-surface rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary text-brand-text-secondary"
+          style={{ border: "1px solid rgba(195,197,217,0.5)" }}
         >
           <option value="newest">{tr.sort_newest}</option>
           <option value="oldest">{tr.sort_oldest}</option>
@@ -519,44 +524,44 @@ export default function CodesPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full" />
+          <div className="animate-spin w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full" />
         </div>
       ) : (
         <>
           {/* New folder form */}
           {creatingFolder && (
-            <form onSubmit={handleCreateFolder} className="mb-5 bg-white border border-blue-200 rounded-2xl px-4 py-3">
+            <form onSubmit={handleCreateFolder} className="mb-5 bg-brand-surface rounded-2xl px-4 py-3 shadow-ambient-sm" style={{ border: "1px solid rgba(0,62,199,0.2)" }}>
               <div className="flex items-center gap-2">
-                <FolderPlus className="w-5 h-5 text-blue-500 shrink-0" />
+                <FolderPlus className="w-5 h-5 text-brand-primary shrink-0" />
                 <input
                   autoFocus
                   value={newFolderName}
                   onChange={(e) => { setNewFolderName(e.target.value); setFolderNameError(null); }}
                   placeholder={currentFolderId ? "Unterordner-Name" : "Ordner-Name"}
-                  className="flex-1 text-sm focus:outline-none placeholder:text-gray-400"
+                  className="flex-1 text-sm focus:outline-none placeholder:text-brand-outline text-brand-text bg-transparent"
                 />
                 <button
                   type="submit"
                   disabled={savingFolder || !newFolderName.trim()}
-                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm px-3 py-1.5 rounded-lg transition-colors"
+                  className="btn-primary flex items-center gap-1.5 text-sm px-3 py-1.5 disabled:opacity-50"
                 >
                   {savingFolder
                     ? <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     : <Check className="w-3.5 h-3.5" />}
                   Erstellen
                 </button>
-                <button type="button" onClick={() => { setCreatingFolder(false); setNewFolderName(""); setFolderNameError(null); }} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+                <button type="button" onClick={() => { setCreatingFolder(false); setNewFolderName(""); setFolderNameError(null); }} className="p-1.5 text-brand-outline hover:text-brand-text rounded-xl hover:bg-brand-surface-low transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              {folderNameError && <p className="mt-2 text-xs text-red-600">{folderNameError}</p>}
+              {folderNameError && <p className="mt-2 text-xs text-brand-error">{folderNameError}</p>}
             </form>
           )}
 
           {/* Folder cards */}
           {!search.trim() && visibleFolders.length > 0 && (
             <div className="mb-8">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Ordner</p>
+              <p className="text-xs font-semibold text-brand-outline uppercase tracking-wide mb-3">Ordner</p>
               <div className="flex flex-wrap gap-4">
                 {visibleFolders.map((folder) => {
                   const isDragTarget = dragOverId === folder.id;
@@ -572,8 +577,15 @@ export default function CodesPage() {
                       onDrop={(e) => { e.preventDefault(); handleDropOnFolder(folder.id); }}
                     >
                       <div className={`w-full relative transition-all duration-150 ${isDragTarget ? "scale-110" : "group-hover:scale-105"}`} style={{ aspectRatio: "1.1" }}>
-                        <div className={`absolute top-0 left-0 w-10 h-4 rounded-t-lg transition-colors ${isDragTarget ? "bg-blue-500" : "bg-blue-400 group-hover:bg-blue-500"}`} />
-                        <div className={`absolute bottom-0 left-0 right-0 top-2 rounded-b-2xl rounded-tr-2xl flex items-center justify-center transition-colors shadow-sm ${isDragTarget ? "bg-blue-500 border-2 border-blue-300 border-dashed" : "bg-blue-400 group-hover:bg-blue-500"}`}>
+                        <div className={`absolute top-0 left-0 w-10 h-4 rounded-t-lg transition-all ${isDragTarget ? "" : ""}`}
+                          style={{ background: isDragTarget ? "#003ec7" : "#4459a8" }} />
+                        <div className={`absolute bottom-0 left-0 right-0 top-2 rounded-b-2xl rounded-tr-2xl flex items-center justify-center transition-all shadow-ambient-sm`}
+                          style={{
+                            background: isDragTarget
+                              ? "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)"
+                              : "linear-gradient(135deg, #4459a8 0%, #003ec7 100%)",
+                            border: isDragTarget ? "2px dashed rgba(255,255,255,0.4)" : "none",
+                          }}>
                           {isDragTarget ? (
                             <span className="text-white text-xs font-semibold">Ablegen</span>
                           ) : (
@@ -581,13 +593,13 @@ export default function CodesPage() {
                           )}
                         </div>
                         {qrCount > 0 && (
-                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-white border border-blue-200 rounded-full flex items-center justify-center">
-                            <span className="text-xs font-bold text-blue-600">{qrCount}</span>
+                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-brand-surface rounded-full flex items-center justify-center shadow-ambient-sm" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
+                            <span className="text-xs font-bold text-brand-primary">{qrCount}</span>
                           </div>
                         )}
                       </div>
-                      <p className="text-sm font-medium text-gray-800 text-center mt-2 truncate w-full px-1">{folder.name}</p>
-                      <p className="text-xs text-gray-400 text-center">{qrCount} QR-Codes</p>
+                      <p className="text-sm font-medium text-brand-text text-center mt-2 truncate w-full px-1">{folder.name}</p>
+                      <p className="text-xs text-brand-outline text-center">{qrCount} QR-Codes</p>
                     </div>
                   );
                 })}
@@ -598,7 +610,7 @@ export default function CodesPage() {
           {/* Remove-from-folder drop zone (when dragging inside a folder) */}
           {currentFolder && isDragging && (
             <div
-              className={`mb-5 border-2 border-dashed rounded-2xl p-4 text-center text-sm font-medium transition-colors ${dragOverId === "__remove__" ? "border-red-400 bg-red-50 text-red-500" : "border-gray-300 text-gray-400"}`}
+              className={`mb-5 border-2 border-dashed rounded-2xl p-4 text-center text-sm font-medium transition-colors ${dragOverId === "__remove__" ? "border-brand-error bg-brand-error-container text-brand-error" : "border-brand-outline-variant text-brand-outline"}`}
               onDragOver={(e) => { e.preventDefault(); setDragOverId("__remove__"); }}
               onDragLeave={() => setDragOverId(null)}
               onDrop={(e) => { e.preventDefault(); handleDropOnRoot(); }}
@@ -609,16 +621,16 @@ export default function CodesPage() {
 
           {/* QR codes label */}
           {!search.trim() && hasFolders && (
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+            <p className="text-xs font-semibold text-brand-outline uppercase tracking-wide mb-3">
               {currentFolder ? `QR-Codes in ${currentFolder.name}` : "Nicht zugeordnet"}
             </p>
           )}
 
           {filtered.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">
+            <div className="text-center py-16 text-brand-outline">
               {currentFolder ? (
                 <>
-                  <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                  <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
                   <p className="text-base font-medium">Ordner ist leer</p>
                   <p className="text-sm mt-1">QR-Code hinziehen oder über den Ordner-Button verschieben.</p>
                 </>
@@ -640,39 +652,41 @@ export default function CodesPage() {
                     draggable
                     onDragStart={(e) => handleDragStart(e, contact.id)}
                     onDragEnd={handleDragEnd}
-                    className={`bg-white rounded-2xl border p-6 flex flex-col gap-4 transition-all cursor-grab active:cursor-grabbing ${
-                      dragContactId === contact.id ? "opacity-50 scale-95 shadow-xl" : "hover:shadow-md"
-                    } ${contact.isActive === false ? "border-amber-200 opacity-75" : "border-gray-200"}`}
+                    className={`bg-brand-surface rounded-2xl p-6 flex flex-col gap-4 transition-all cursor-grab active:cursor-grabbing shadow-ambient-sm ${
+                      dragContactId === contact.id ? "opacity-50 scale-95 shadow-ambient" : "hover:shadow-ambient-md"
+                    } ${contact.isActive === false ? "opacity-75" : ""}`}
+                    style={{ border: contact.isActive === false ? "1px solid rgba(186,26,26,0.2)" : "1px solid rgba(195,197,217,0.4)" }}
                   >
                     {isBeingAssigned && (
-                      <div className="flex items-center gap-2 text-xs text-blue-600 font-medium -mb-2">
-                        <span className="w-3 h-3 border border-blue-500 border-t-transparent rounded-full animate-spin" />
+                      <div className="flex items-center gap-2 text-xs text-brand-primary font-medium -mb-2">
+                        <span className="w-3 h-3 border border-brand-primary border-t-transparent rounded-full animate-spin" />
                         Wird verschoben...
                       </div>
                     )}
                     {contact.isActive === false && (
-                      <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 text-xs font-medium text-amber-700 w-fit">
+                      <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium w-fit" style={{ background: "rgba(186,26,26,0.08)", color: "#ba1a1a" }}>
                         ⏸ {tr.qr_paused_badge}
                       </div>
                     )}
 
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        {contact.qrLabel && <h3 className="font-semibold text-gray-900">{contact.qrLabel}</h3>}
-                        <p className={contact.qrLabel ? "text-sm text-gray-700" : "font-semibold text-gray-900"}>
+                        {contact.qrLabel && <h3 className="font-headline font-semibold text-brand-text">{contact.qrLabel}</h3>}
+                        <p className={contact.qrLabel ? "text-sm text-brand-text-secondary" : "font-headline font-semibold text-brand-text"}>
                           {`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}
                         </p>
-                        {contact.company && <p className="text-sm text-gray-500">{contact.company}</p>}
+                        {contact.company && <p className="text-sm text-brand-outline">{contact.company}</p>}
 
-                        {/* Folder badge — always shown if in a folder */}
+                        {/* Folder badge */}
                         {hasFolders && (
                           <button
                             onClick={() => setPickerContactId(contact.id)}
-                            className={`mt-1.5 flex items-center gap-1 text-xs px-2 py-0.5 rounded-lg border transition-colors ${
+                            className={`mt-1.5 flex items-center gap-1 text-xs px-2 py-0.5 rounded-lg transition-colors ${
                               folderName
-                                ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                                : "bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100"
+                                ? "text-brand-primary hover:bg-brand-surface-low"
+                                : "text-brand-outline hover:bg-brand-surface-low"
                             }`}
+                            style={{ border: folderName ? "1px solid rgba(0,62,199,0.25)" : "1px solid rgba(195,197,217,0.5)", background: folderName ? "rgba(0,62,199,0.06)" : "transparent" }}
                           >
                             <FolderIcon className="w-3 h-3 shrink-0" />
                             <span className="max-w-[120px] truncate">{folderName ?? "Ordner wählen"}</span>
@@ -681,7 +695,7 @@ export default function CodesPage() {
                       </div>
                       {contact.logoUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={contact.logoUrl} alt="Logo" className="w-24 h-24 object-contain rounded-lg shrink-0 ml-2" />
+                        <img src={contact.logoUrl} alt="Logo" className="w-24 h-24 object-contain rounded-xl shrink-0 ml-2" />
                       )}
                     </div>
 
@@ -689,7 +703,7 @@ export default function CodesPage() {
                       <QRCodeDisplay value={getQRUrl(contact.id)} size={140} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-gray-400">
+                    <div className="flex items-center justify-between text-xs text-brand-outline">
                       <span className="font-mono">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</span>
                       <span className="flex items-center gap-1">
                         <BarChart2 className="w-3.5 h-3.5" />
@@ -698,30 +712,31 @@ export default function CodesPage() {
                     </div>
 
                     {contact.createdBy && (
-                      <p className="text-xs text-gray-400 -mt-2">{tr.created_by}: {contact.createdBy}</p>
+                      <p className="text-xs text-brand-outline -mt-2">{tr.created_by}: {contact.createdBy}</p>
                     )}
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                    <div className="flex items-center gap-2 pt-2" style={{ borderTop: "1px solid rgba(195,197,217,0.3)" }}>
                       {!isReader && (
                         <Link
                           href={`/dashboard/edit/${contact.id}`}
-                          className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
+                          className="flex-1 flex items-center justify-center gap-1.5 text-brand-text-secondary hover:bg-brand-surface-low px-3 py-2 rounded-xl text-sm font-medium transition-colors"
+                          style={{ border: "1px solid rgba(195,197,217,0.5)" }}
                         >
                           <Pencil className="w-3.5 h-3.5" />
                           {tr.edit}
                         </Link>
                       )}
-                      <button onClick={() => handleCopy(contact.id)} className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors">
-                        {copiedId === contact.id ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                      <button onClick={() => handleCopy(contact.id)} className="p-2 rounded-xl text-brand-outline hover:bg-brand-surface-low transition-colors" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
+                        {copiedId === contact.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                       </button>
-                      <a href={`/qr/${contact.id}`} target="_blank" className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors">
+                      <a href={`/qr/${contact.id}`} target="_blank" className="p-2 rounded-xl text-brand-outline hover:bg-brand-surface-low transition-colors" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
                         <ExternalLink className="w-4 h-4" />
                       </a>
-                      <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="p-2 border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-colors">
+                      <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="p-2 rounded-xl text-brand-outline hover:bg-brand-surface-low transition-colors" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
                         <Download className="w-4 h-4" />
                       </button>
                       {isAdmin && (
-                        <button onClick={() => setDeleteModal(contact.id)} className="p-2 rounded-xl transition-colors border border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-500">
+                        <button onClick={() => setDeleteModal(contact.id)} className="p-2 rounded-xl transition-colors text-brand-outline hover:bg-brand-error-container hover:text-brand-error" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}
@@ -738,7 +753,8 @@ export default function CodesPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-2 rounded-xl text-sm text-brand-text-secondary hover:bg-brand-surface-low disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                style={{ border: "1px solid rgba(195,197,217,0.5)" }}
               >
                 ←
               </button>
@@ -749,17 +765,18 @@ export default function CodesPage() {
                 const showEllipsisAfter = p === page + 2 && page + 2 < totalPages;
                 if (!show && !showEllipsisBefore && !showEllipsisAfter) return null;
                 if (showEllipsisBefore || showEllipsisAfter) {
-                  return <span key={`ellipsis-${p}`} className="px-1 text-gray-400 text-sm">…</span>;
+                  return <span key={`ellipsis-${p}`} className="px-1 text-brand-outline text-sm">…</span>;
                 }
                 return (
                   <button
                     key={p}
                     onClick={() => setPage(p)}
-                    className={`w-9 h-9 rounded-xl text-sm font-medium transition-colors ${
+                    className={`w-9 h-9 rounded-xl text-sm font-medium transition-all ${
                       p === page
-                        ? "bg-blue-600 text-white"
-                        : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                        ? "text-white shadow-ambient-sm"
+                        : "text-brand-text-secondary hover:bg-brand-surface-low"
                     }`}
+                    style={p === page ? { background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", border: "none" } : { border: "1px solid rgba(195,197,217,0.5)" }}
                   >
                     {p}
                   </button>
@@ -768,7 +785,8 @@ export default function CodesPage() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-2 rounded-xl text-sm text-brand-text-secondary hover:bg-brand-surface-low disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                style={{ border: "1px solid rgba(195,197,217,0.5)" }}
               >
                 →
               </button>
@@ -794,16 +812,16 @@ export default function CodesPage() {
 
       {/* Delete modal */}
       {deleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
-              <Trash2 className="w-6 h-6 text-red-600" />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-brand-surface rounded-2xl shadow-ambient max-w-sm w-full p-6">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full mx-auto mb-4" style={{ background: "rgba(186,26,26,0.1)" }}>
+              <Trash2 className="w-6 h-6 text-brand-error" />
             </div>
-            <h2 className="text-lg font-bold text-gray-900 text-center mb-2">{tr.delete_modal_title}</h2>
-            <p className="text-sm text-gray-500 text-center mb-6">{tr.delete_modal_body}</p>
+            <h2 className="font-headline text-lg font-bold text-brand-text text-center mb-2">{tr.delete_modal_title}</h2>
+            <p className="text-sm text-brand-outline text-center mb-6">{tr.delete_modal_body}</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteModal(null)} className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-50 transition-colors">{tr.delete_modal_cancel}</button>
-              <button onClick={() => handleDelete(deleteModal)} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-medium text-sm transition-colors">{tr.delete_modal_confirm}</button>
+              <button onClick={() => setDeleteModal(null)} className="flex-1 text-brand-text-secondary py-2.5 rounded-xl font-medium text-sm hover:bg-brand-surface-low transition-colors" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>{tr.delete_modal_cancel}</button>
+              <button onClick={() => handleDelete(deleteModal)} className="flex-1 bg-brand-error hover:opacity-90 text-white py-2.5 rounded-xl font-medium text-sm transition-opacity">{tr.delete_modal_confirm}</button>
             </div>
           </div>
         </div>

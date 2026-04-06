@@ -10,9 +10,9 @@ import { useLang } from "@/lib/language";
 import { Zap } from "lucide-react";
 
 const PLAN_COLORS: Record<Plan, string> = {
-  free: "bg-gray-100 text-gray-600",
-  star: "bg-yellow-100 text-yellow-700",
-  premium: "bg-blue-100 text-blue-700",
+  free:     "bg-brand-surface-container text-brand-text-secondary",
+  star:     "bg-yellow-100 text-yellow-700",
+  premium:  "bg-blue-100 text-brand-primary",
   platinum: "bg-purple-100 text-purple-700",
 };
 
@@ -132,29 +132,34 @@ export default function SettingsPage() {
     setPwLoading(false);
   }
 
+  const inputClass = "w-full bg-brand-surface rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary placeholder:text-brand-outline text-brand-text";
+  const inputStyle = { border: "1px solid rgba(195,197,217,0.5)" };
+  const cardClass = "bg-brand-surface rounded-2xl p-6 mb-6 shadow-ambient-sm";
+  const cardStyle = { border: "1px solid rgba(195,197,217,0.35)" };
+
   return (
     <div className="p-4 wide:p-8 max-w-2xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{tr.settings_title}</h1>
-        <p className="text-gray-500 mt-1">{tr.settings_subtitle}</p>
+        <h1 className="font-headline text-3xl font-bold text-brand-text">{tr.settings_title}</h1>
+        <p className="text-brand-outline mt-1">{tr.settings_subtitle}</p>
       </div>
 
       {/* Account Info */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">{tr.settings_account}</h2>
+      <div className={cardClass} style={cardStyle}>
+        <h2 className="font-headline text-lg font-semibold text-brand-text mb-4">{tr.settings_account}</h2>
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">E-Mail</label>
-            <p className="mt-1 text-sm text-gray-900 font-medium">{email}</p>
+            <label className="text-xs font-semibold text-brand-outline uppercase tracking-wide">E-Mail</label>
+            <p className="mt-1 text-sm text-brand-text font-medium">{email}</p>
           </div>
           {isPlatformAdmin ? null : isOwner ? (
             <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Plan</label>
+              <label className="text-xs font-semibold text-brand-outline uppercase tracking-wide">Plan</label>
               <div className="mt-1 flex items-center gap-3">
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan]}`}>
                   {PLAN_LABELS[plan]} <Zap className="w-3 h-3 inline" />
                 </span>
-                <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline">
+                <Link href="/dashboard/upgrade" className="text-xs text-brand-primary hover:underline">
                   {tr.settings_plan_change}
                 </Link>
               </div>
@@ -162,13 +167,13 @@ export default function SettingsPage() {
           ) : (
             <>
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{tr.role_label}</label>
-                <p className="mt-1 text-sm text-gray-900 font-medium">
+                <label className="text-xs font-semibold text-brand-outline uppercase tracking-wide">{tr.role_label}</label>
+                <p className="mt-1 text-sm text-brand-text font-medium">
                   {userRole === "admin" ? tr.role_admin : userRole === "writer" ? tr.role_writer : tr.role_reader}
                 </p>
               </div>
               <div>
-                <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline">
+                <Link href="/dashboard/upgrade" className="text-xs text-brand-primary hover:underline">
                   {tr.our_plans}
                 </Link>
               </div>
@@ -177,21 +182,21 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Support Email — only for org owners and platform admin */}
+      {/* Support Email — only for platform admin */}
       {isPlatformAdmin && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">{tr.settings_support_email_title ?? "Platform Contact Email"}</h2>
-          <p className="text-sm text-gray-400 mb-4">{tr.settings_support_email_hint ?? "Shown to team members when a save error occurs."}</p>
+        <div className={cardClass} style={cardStyle}>
+          <h2 className="font-headline text-lg font-semibold text-brand-text mb-1">{tr.settings_support_email_title ?? "Platform Contact Email"}</h2>
+          <p className="text-sm text-brand-outline mb-4">{tr.settings_support_email_hint ?? "Shown to team members when a save error occurs."}</p>
           {supportEmailSaved && !editingSupport ? (
-            <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+            <div className="flex items-center justify-between bg-brand-surface-low rounded-xl px-4 py-3" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
               <div>
-                <p className="text-xs text-gray-400 mb-0.5">Email</p>
-                <p className="text-sm font-medium text-gray-600">{supportEmail}</p>
+                <p className="text-xs text-brand-outline mb-0.5">Email</p>
+                <p className="text-sm font-medium text-brand-text-secondary">{supportEmail}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setEditingSupport(true)}
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                className="text-xs text-brand-primary hover:text-brand-primary-light font-medium transition-colors"
               >
                 {tr.edit}
               </button>
@@ -199,25 +204,26 @@ export default function SettingsPage() {
           ) : (
             <form onSubmit={handleSaveSupportEmail} className="flex gap-3 items-end">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-brand-text-secondary mb-1">Email</label>
                 <input
                   type="email"
                   value={supportEmail}
                   onChange={(e) => setSupportEmail(e.target.value)}
                   placeholder="support@yourcompany.com"
                   autoFocus
-                  className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={inputClass}
+                  style={inputStyle}
                 />
               </div>
               <button
                 type="submit"
                 disabled={supportEmailLoading}
-                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-5 py-2.5 rounded-xl font-medium transition-colors text-sm whitespace-nowrap"
+                className="btn-primary disabled:opacity-60 whitespace-nowrap"
               >
                 {supportEmailLoading ? "..." : tr.settings_support_email_btn}
               </button>
               {editingSupport && (
-                <button type="button" onClick={() => setEditingSupport(false)} className="text-sm text-gray-400 hover:text-gray-600 px-3 py-2.5">
+                <button type="button" onClick={() => setEditingSupport(false)} className="text-sm text-brand-outline hover:text-brand-text px-3 py-2.5">
                   {tr.cancel}
                 </button>
               )}
@@ -227,30 +233,31 @@ export default function SettingsPage() {
       )}
 
       {/* Change Email */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">{tr.settings_email_change}</h2>
+      <div className={cardClass} style={cardStyle}>
+        <h2 className="font-headline text-lg font-semibold text-brand-text mb-4">{tr.settings_email_change}</h2>
         <form onSubmit={handleChangeEmail} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{tr.settings_email_current}</label>
-            <p className="text-sm text-gray-500 font-mono">{email}</p>
+            <label className="block text-sm font-medium text-brand-text-secondary mb-1">{tr.settings_email_current}</label>
+            <p className="text-sm text-brand-outline font-mono">{email}</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{tr.settings_email_new}</label>
+            <label className="block text-sm font-medium text-brand-text-secondary mb-1">{tr.settings_email_new}</label>
             <input
               type="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="neue@email.com"
               required
-              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass}
+              style={inputStyle}
             />
           </div>
-          {emailError && <p className="text-sm text-red-600">{emailError}</p>}
+          {emailError && <p className="text-sm text-brand-error">{emailError}</p>}
           {emailSuccess && <p className="text-sm text-green-600">{tr.settings_email_success}</p>}
           <button
             type="submit"
             disabled={emailLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl font-medium transition-colors text-sm"
+            className="w-full btn-primary disabled:opacity-60"
           >
             {emailLoading ? tr.settings_email_saving : tr.settings_email_btn}
           </button>
@@ -258,47 +265,50 @@ export default function SettingsPage() {
       </div>
 
       {/* Change Password */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">{tr.settings_pw_change}</h2>
+      <div className={cardClass} style={cardStyle}>
+        <h2 className="font-headline text-lg font-semibold text-brand-text mb-4">{tr.settings_pw_change}</h2>
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{tr.settings_pw_current}</label>
+            <label className="block text-sm font-medium text-brand-text-secondary mb-1">{tr.settings_pw_current}</label>
             <input
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
-              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass}
+              style={inputStyle}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{tr.settings_pw_new}</label>
+            <label className="block text-sm font-medium text-brand-text-secondary mb-1">{tr.settings_pw_new}</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass}
+              style={inputStyle}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{tr.settings_pw_confirm}</label>
+            <label className="block text-sm font-medium text-brand-text-secondary mb-1">{tr.settings_pw_confirm}</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass}
+              style={inputStyle}
             />
           </div>
 
-          {pwError && <p className="text-sm text-red-600">{pwError}</p>}
+          {pwError && <p className="text-sm text-brand-error">{pwError}</p>}
           {pwSuccess && <p className="text-sm text-green-600">{tr.settings_pw_success}</p>}
 
           <button
             type="submit"
             disabled={pwLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl font-medium transition-colors text-sm"
+            className="w-full btn-primary disabled:opacity-60"
           >
             {pwLoading ? tr.settings_pw_saving : tr.settings_pw_btn}
           </button>
