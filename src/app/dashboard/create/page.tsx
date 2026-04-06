@@ -181,7 +181,7 @@ export default function CreatePage() {
           </div>
         )}
 
-        {folderTree.length === 0 && !creatingFolder && (
+        {folderTree.length === 0 && (
           <p className="text-xs text-gray-400 mt-2">Noch keine Ordner vorhanden. Erstelle zuerst Ordner auf der QR-Codes Seite.</p>
         )}
       </div>
