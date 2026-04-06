@@ -264,7 +264,7 @@ export default function CreatePage() {
         )}
 
         {folderTree.length === 0 && !creatingFolder && (
-          <p className="text-xs text-gray-400 mt-2">Noch keine Ordner vorhanden. Klicke auf "Neuer Ordner" um einen zu erstellen.</p>
+          <p className="text-xs text-gray-400 mt-2">Noch keine Ordner vorhanden. Klicke auf &ldquo;Neuer Ordner&rdquo; um einen zu erstellen.</p>
         )}
       </div>
 
