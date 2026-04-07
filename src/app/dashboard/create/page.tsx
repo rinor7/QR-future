@@ -14,7 +14,7 @@ import {
 import { getUserProfile } from "@/lib/store";
 import {
   FolderOpen, Folder as FolderIcon, ChevronRight, ChevronDown,
-  Check, X,
+  Check, X, Phone, Mail, Globe, MapPin, Linkedin, Instagram, Facebook,
 } from "lucide-react";
 
 // ── Recursive tree node for picker ───────────────────────────────────────────
@@ -57,17 +57,142 @@ function FolderPickerNode({
   );
 }
 
+// ── Phone preview ─────────────────────────────────────────────────────────────
+function PhonePreview({ form }: { form: Partial<CreateQRContact> }) {
+  const color = form.primaryColor ?? "#2563eb";
+  const name = [form.firstName, form.lastName].filter(Boolean).join(" ") || "Your Name";
+  const title = form.title || "";
+  const company = form.company || "";
+  const theme = form.theme ?? "classic";
+
+  const cardBg = theme === "dark" ? "#111827" : theme === "minimal" ? "#f9fafb" : "#ffffff";
+  const textColor = theme === "dark" ? "#f9fafb" : "#111827";
+  const subtextColor = theme === "dark" ? "#9ca3af" : "#6b7280";
+  const btnBg = theme === "dark" ? "rgba(255,255,255,0.08)" : theme === "minimal" ? "#f3f4f6" : `${color}18`;
+  const btnText = theme === "dark" ? "#e5e7eb" : color;
+
+  return (
+    <div className="flex flex-col items-center">
+      {/* Phone frame */}
+      <div className="relative w-[220px]">
+        {/* Phone shell */}
+        <div className="absolute inset-0 rounded-[36px] bg-gray-900 shadow-2xl" style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.08)" }} />
+        {/* Screen bezel */}
+        <div className="relative mx-[6px] my-[10px] rounded-[30px] overflow-hidden bg-gray-100" style={{ minHeight: 420 }}>
+          {/* Dynamic island */}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-20 h-5 bg-black rounded-full z-10" />
+
+          {/* Card content */}
+          <div className="absolute inset-0 overflow-y-auto" style={{ backgroundColor: cardBg }}>
+            {/* Header band */}
+            <div className="h-28 w-full relative flex-shrink-0" style={{ background: `linear-gradient(135deg, ${color}cc 0%, ${color} 100%)` }}>
+              {form.bgImageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={form.bgImageUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+              )}
+            </div>
+
+            {/* Avatar circle */}
+            <div className="relative flex justify-center" style={{ marginTop: -28 }}>
+              <div
+                className="w-14 h-14 rounded-full border-2 border-white shadow-md flex items-center justify-center text-white font-bold text-lg overflow-hidden"
+                style={{ background: `linear-gradient(135deg, ${color}99 0%, ${color} 100%)` }}
+              >
+                {form.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={form.logoUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span>{(form.firstName?.[0] ?? "?").toUpperCase()}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Name/title */}
+            <div className="px-4 pt-2 pb-3 text-center">
+              <p className="font-bold text-sm leading-tight" style={{ color: textColor }}>{name}</p>
+              {title && <p className="text-xs mt-0.5" style={{ color: subtextColor }}>{title}</p>}
+              {company && <p className="text-xs mt-0.5 font-medium" style={{ color }}>{company}</p>}
+            </div>
+
+            {/* Action buttons */}
+            <div className="px-3 space-y-1.5 pb-3">
+              {(form.phone || form.email || form.website) ? (
+                <>
+                  {form.phone && (
+                    <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: btnBg }}>
+                      <Phone className="w-3 h-3 shrink-0" style={{ color: btnText }} />
+                      <span className="text-xs truncate" style={{ color: btnText }}>{form.phone}</span>
+                    </div>
+                  )}
+                  {form.email && (
+                    <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: btnBg }}>
+                      <Mail className="w-3 h-3 shrink-0" style={{ color: btnText }} />
+                      <span className="text-xs truncate" style={{ color: btnText }}>{form.email}</span>
+                    </div>
+                  )}
+                  {form.website && (
+                    <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: btnBg }}>
+                      <Globe className="w-3 h-3 shrink-0" style={{ color: btnText }} />
+                      <span className="text-xs truncate" style={{ color: btnText }}>{form.website.replace(/^https?:\/\//, "")}</span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="h-6 rounded-lg opacity-20" style={{ backgroundColor: color }} />
+                  <div className="h-6 rounded-lg opacity-10" style={{ backgroundColor: color }} />
+                  <div className="h-6 rounded-lg opacity-10" style={{ backgroundColor: color }} />
+                </>
+              )}
+
+              {(form.city || form.street) && (
+                <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: btnBg }}>
+                  <MapPin className="w-3 h-3 shrink-0" style={{ color: btnText }} />
+                  <span className="text-xs truncate" style={{ color: btnText }}>
+                    {[form.street, form.streetNr, form.city].filter(Boolean).join(" ")}
+                  </span>
+                </div>
+              )}
+
+              {/* Social icons row */}
+              {(form.linkedinUrl || form.instagramUrl || form.facebookUrl) && (
+                <div className="flex gap-2 pt-1 justify-center">
+                  {form.linkedinUrl && <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: btnBg }}><Linkedin className="w-3 h-3" style={{ color: btnText }} /></div>}
+                  {form.instagramUrl && <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: btnBg }}><Instagram className="w-3 h-3" style={{ color: btnText }} /></div>}
+                  {form.facebookUrl && <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: btnBg }}><Facebook className="w-3 h-3" style={{ color: btnText }} /></div>}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Home indicator */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 w-16 h-1 bg-white/40 rounded-full" />
+      </div>
+
+      <p className="mt-4 text-xs text-slate-400 font-medium">Live Preview</p>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function CreatePage() {
   const router = useRouter();
   const { tr } = useLang();
   const { isReader, loading: roleLoading } = useRole();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState<Partial<CreateQRContact>>({
+    primaryColor: "#2563eb",
+    theme: "classic",
+    showLogoInQr: true,
+  });
 
   // Folder state
   const [folderTree, setFolderTree] = useState<FolderWithStats[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-
+  const [folderOpen, setFolderOpen] = useState(false);
 
   useEffect(() => {
     if (!roleLoading && isReader) router.replace("/dashboard/codes");
@@ -78,7 +203,6 @@ export default function CreatePage() {
       if (!profile) return;
       getAllFolders(profile.ownerId).then((folders) => {
         const tree = buildTree(folders);
-        // Skip auto-created Root folder
         const display = tree.length === 1 && tree[0].name === "Root"
           ? tree[0].children
           : tree.filter((f) => f.name !== "Root");
@@ -106,7 +230,6 @@ export default function CreatePage() {
     setSubmitting(true);
     try {
       const contact = await createContact(data);
-      // Assign folder if one was selected
       if (selectedFolderId) {
         await assignQrToFolder(contact.id, selectedFolderId);
       }
@@ -126,67 +249,165 @@ export default function CreatePage() {
     }
   }
 
+  // Trigger form submit
+  function triggerSubmit() {
+    const form = document.getElementById("qr-create-form") as HTMLFormElement | null;
+    form?.requestSubmit();
+  }
+
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{tr.create_title}</h1>
-        <p className="text-gray-500 mt-1">{tr.create_subtitle}</p>
+    <div className="flex flex-col h-full min-h-screen bg-slate-50 dark:bg-[#0f1117]">
+      {/* ── Top navigation bar ─────────────────────────────────────────── */}
+      <div className="sticky top-0 z-30 bg-white dark:bg-[#131620] border-b border-slate-200 dark:border-[#1e2130] px-6 py-4 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">Create New QR Code</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Fill in the details below to generate your QR code</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={triggerSubmit}
+            disabled={submitting}
+            className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-60"
+            style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
+          >
+            {submitting ? (
+              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              </svg>
+            ) : (
+              <span className="material-symbols-outlined text-[18px]">qr_code_2</span>
+            )}
+            {submitting ? "Generating..." : "Finish & Generate"}
+          </button>
+        </div>
       </div>
 
+      {/* ── Error banner ───────────────────────────────────────────────── */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">{error}</div>
+        <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm flex items-start gap-3">
+          <span className="material-symbols-outlined text-red-500 text-[18px] shrink-0 mt-0.5">error</span>
+          <span>{error}</span>
+        </div>
       )}
 
-      {/* ── Folder picker ─────────────────────────────────────────── */}
-      <div className="mb-8 max-w-2xl bg-white rounded-2xl border border-gray-200 p-5">
-        <div className="flex items-center justify-between mb-3">
+      {/* ── Two-column body ─────────────────────────────────────────────── */}
+      <div className="flex flex-1 gap-6 px-6 py-6 items-start">
+        {/* ── Left: form ─────────────────────────────────────────────────── */}
+        <div className="flex-1 min-w-0 space-y-5 max-w-2xl">
+
+          {/* Basic Information */}
           <div>
-            <p className="text-sm font-semibold text-gray-800">In Ordner speichern</p>
-            <p className="text-xs text-gray-400 mt-0.5">Optional — QR-Code direkt in einen Ordner legen.</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Basic Information</p>
+            <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] border-l-4 border-l-blue-500 p-6 space-y-4">
+              {/* QR Name field is inside QRForm as the first field, so we need the folder picker here */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Destination Folder <span className="text-slate-400 font-normal">(optional)</span></label>
+                <button
+                  type="button"
+                  onClick={() => setFolderOpen((v) => !v)}
+                  className="w-full flex items-center justify-between gap-2 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm bg-slate-50 dark:bg-[#242736] hover:bg-white dark:hover:bg-[#1e2130] transition-colors text-left"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="material-symbols-outlined text-[18px] text-blue-500 shrink-0">folder</span>
+                    <span className={`truncate ${selectedFolder ? "text-slate-800 dark:text-slate-200 font-medium" : "text-slate-400"}`}>
+                      {selectedFolder ? selectedFolder.name : "No folder selected"}
+                    </span>
+                  </div>
+                  <span className="material-symbols-outlined text-[18px] text-slate-400 shrink-0">
+                    {folderOpen ? "expand_less" : "expand_more"}
+                  </span>
+                </button>
+
+                {folderOpen && (
+                  <div className="mt-2 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden max-h-52 overflow-y-auto bg-white dark:bg-[#1a1d27]">
+                    {folderTree.length > 0 ? (
+                      <>
+                        {folderTree.map((f) => (
+                          <FolderPickerNode
+                            key={f.id}
+                            node={f}
+                            selected={selectedFolderId}
+                            onSelect={(id) => {
+                              setSelectedFolderId((prev) => prev === id ? null : id);
+                              setFolderOpen(false);
+                            }}
+                            depth={0}
+                          />
+                        ))}
+                      </>
+                    ) : (
+                      <p className="text-xs text-slate-400 px-4 py-3">No folders yet. Create folders on the QR Codes page.</p>
+                    )}
+                  </div>
+                )}
+
+                {selectedFolder && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFolderId(null)}
+                    className="mt-1.5 flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors"
+                  >
+                    <X className="w-3 h-3" /> Clear folder selection
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
-          {selectedFolder && (
-            <button
-              type="button"
-              onClick={() => setSelectedFolderId(null)}
-              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X className="w-3.5 h-3.5" /> Zurücksetzen
-            </button>
-          )}
+
+          {/* QRForm handles all other sections */}
+          <QRForm
+            formId="qr-create-form"
+            onSubmit={handleSubmit}
+            submitLabel="Finish & Generate"
+            loading={submitting}
+            hideActions
+            onFormChange={(data) => setFormData(data)}
+          />
         </div>
 
-        {/* Selected folder display */}
-        {selectedFolder ? (
-          <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-xl">
-            <FolderOpen className="w-4 h-4 text-blue-500 shrink-0" />
-            <span className="text-sm font-semibold text-blue-700 flex-1">{selectedFolder.name}</span>
-            <Check className="w-4 h-4 text-blue-500 shrink-0" />
+        {/* ── Right: live preview ─────────────────────────────────────────── */}
+        <div className="hidden lg:flex flex-col items-center sticky top-24 w-64 shrink-0">
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] p-6 w-full">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-5 text-center">Live Preview</p>
+            <PhonePreview form={formData} />
           </div>
-        ) : (
-          <p className="text-xs text-gray-400 italic mb-2">Kein Ordner ausgewählt</p>
-        )}
 
-        {/* Folder tree */}
-        {folderTree.length > 0 && (
-          <div className="mt-3 border border-gray-100 rounded-xl overflow-hidden max-h-52 overflow-y-auto">
-            {folderTree.map((f) => (
-              <FolderPickerNode
-                key={f.id}
-                node={f}
-                selected={selectedFolderId}
-                onSelect={(id) => setSelectedFolderId((prev) => prev === id ? null : id)}
-                depth={0}
-              />
-            ))}
+          {/* QR dot preview */}
+          <div className="mt-4 bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] p-5 w-full">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 text-center">QR Code Preview</p>
+            <div className="flex justify-center">
+              <div className="w-32 h-32 rounded-xl bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-slate-700 flex items-center justify-center flex-col gap-2">
+                <span className="material-symbols-outlined text-[48px] text-slate-300">qr_code_2</span>
+                <p className="text-xs text-slate-400 text-center leading-tight">Generated after saving</p>
+              </div>
+            </div>
+            {formData.primaryColor && (
+              <div className="mt-3 flex items-center justify-center gap-2">
+                <div className="w-3 h-3 rounded-full border border-slate-200" style={{ backgroundColor: formData.primaryColor }} />
+                <span className="text-xs text-slate-500 font-mono">{formData.primaryColor}</span>
+              </div>
+            )}
           </div>
-        )}
-
-        {folderTree.length === 0 && (
-          <p className="text-xs text-gray-400 mt-2">Noch keine Ordner vorhanden. Erstelle zuerst Ordner auf der QR-Codes Seite.</p>
-        )}
+        </div>
       </div>
-
-      <QRForm onSubmit={handleSubmit} submitLabel={tr.create_submit} loading={submitting} />
     </div>
   );
 }

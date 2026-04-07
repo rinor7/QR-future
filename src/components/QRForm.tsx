@@ -93,9 +93,11 @@ interface Props {
   error?: string | null;
   supportEmail?: string;
   onFormChange?: (data: CreateQRContact) => void;
+  hideActions?: boolean;
+  formId?: string;
 }
 
-export default function QRForm({ initial, onSubmit, submitLabel, saved, loading, error, supportEmail, onFormChange }: Props) {
+export default function QRForm({ initial, onSubmit, submitLabel, saved, loading, error, supportEmail, onFormChange, hideActions, formId }: Props) {
   const router = useRouter();
   const { tr } = useLang();
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
@@ -248,7 +250,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
       {/* QR Code Label */}
       <Field label={tr.qr_label}>
         <input
@@ -772,7 +774,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       </Section>
 
       {/* Actions */}
-      <div className="flex items-center gap-3 pt-2">
+      {!hideActions && <div className="flex items-center gap-3 pt-2">
         <button
           type="submit"
           disabled={!!loading}
@@ -801,8 +803,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
             {tr.saved}
           </span>
         )}
-      </div>
-      {error && (
+      </div>}
+      {!hideActions && error && (
         <div className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
           {error}{" "}
           {supportEmail && (
@@ -825,10 +827,10 @@ function Section({
 }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
         {title}
       </h3>
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+      <div className="bg-white rounded-2xl border border-gray-200 border-l-4 border-l-blue-500 p-6 space-y-4">
         {children}
       </div>
     </div>
