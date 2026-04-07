@@ -52,6 +52,14 @@ export interface QRContact {
   showLogoInQr: boolean;
   isActive: boolean;
   theme: 'classic' | 'dark' | 'minimal';
+
+  // QR Code styling
+  qrDotStyle: 'square' | 'dots' | 'rounded' | 'classy' | 'classy-rounded' | 'extra-rounded';
+  qrCornerStyle: 'square' | 'dot' | 'extra-rounded';
+  qrDotColor: string;
+  qrBgColor: string;
+  qrGradient: boolean;
+  qrGradientColor: string;
 }
 
 export type CreateQRContact = Omit<QRContact, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>;

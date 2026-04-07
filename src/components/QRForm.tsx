@@ -7,6 +7,7 @@ import { CreateQRContact, ContactLink } from "@/lib/types";
 import { useLang } from "@/lib/language";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import QRStylePicker from "@/components/QRStylePicker";
 
 const DEFAULTS: CreateQRContact = {
   qrLabel: "",
@@ -38,6 +39,12 @@ const DEFAULTS: CreateQRContact = {
   notes: "",
   isActive: true,
   theme: "classic",
+  qrDotStyle: "square",
+  qrCornerStyle: "square",
+  qrDotColor: "#000000",
+  qrBgColor: "#ffffff",
+  qrGradient: false,
+  qrGradientColor: "#2563eb",
 };
 
 const MAX_SIZE = 14 * 1024 * 1024; // 14 MB
@@ -477,6 +484,27 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
             </div>
           </div>
         </div>
+      </Section>
+
+      {/* QR Code Design */}
+      <Section title="QR Code Design">
+        <QRStylePicker
+          value={{
+            qrDotStyle: form.qrDotStyle,
+            qrCornerStyle: form.qrCornerStyle,
+            qrDotColor: form.qrDotColor,
+            qrBgColor: form.qrBgColor,
+            qrGradient: form.qrGradient,
+            qrGradientColor: form.qrGradientColor,
+          }}
+          onChange={(v) => {
+            const next = { ...form, ...v };
+            setForm(next);
+            onFormChange?.(next);
+          }}
+          logoUrl={form.showLogoInQr ? form.logoUrl : undefined}
+          showLogo={form.showLogoInQr}
+        />
       </Section>
 
       {/* Contact */}

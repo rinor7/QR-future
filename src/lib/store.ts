@@ -46,6 +46,12 @@ function toContact(row: Record<string, unknown>): QRContact {
     showLogoInQr: (row.show_logo_in_qr as boolean) ?? true,
     isActive: (row.is_active as boolean) ?? true,
     theme: ((row.theme as string) ?? "classic") as "classic" | "dark" | "minimal",
+    qrDotStyle: ((row.qr_dot_style as string) ?? "square") as QRContact["qrDotStyle"],
+    qrCornerStyle: ((row.qr_corner_style as string) ?? "square") as QRContact["qrCornerStyle"],
+    qrDotColor: (row.qr_dot_color as string) ?? "#000000",
+    qrBgColor: (row.qr_bg_color as string) ?? "#ffffff",
+    qrGradient: (row.qr_gradient as boolean) ?? false,
+    qrGradientColor: (row.qr_gradient_color as string) ?? "#2563eb",
   };
 }
 
@@ -81,6 +87,12 @@ function toRow(data: Partial<CreateQRContact>) {
     ...(data.notes !== undefined && { notes: data.notes }),
     ...(data.showLogoInQr !== undefined && { show_logo_in_qr: data.showLogoInQr }),
     ...(data.theme !== undefined && { theme: data.theme }),
+    ...(data.qrDotStyle !== undefined && { qr_dot_style: data.qrDotStyle }),
+    ...(data.qrCornerStyle !== undefined && { qr_corner_style: data.qrCornerStyle }),
+    ...(data.qrDotColor !== undefined && { qr_dot_color: data.qrDotColor }),
+    ...(data.qrBgColor !== undefined && { qr_bg_color: data.qrBgColor }),
+    ...(data.qrGradient !== undefined && { qr_gradient: data.qrGradient }),
+    ...(data.qrGradientColor !== undefined && { qr_gradient_color: data.qrGradientColor }),
   };
 }
 

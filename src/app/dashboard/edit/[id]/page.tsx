@@ -20,6 +20,9 @@ export default function EditPage() {
 
   const [contact, setContact] = useState<QRContact | null>(null);
   const [previewLogoUrl, setPreviewLogoUrl] = useState<string | undefined>(undefined);
+  const [previewQRStyle, setPreviewQRStyle] = useState<Pick<QRContact, "qrDotStyle" | "qrCornerStyle" | "qrDotColor" | "qrBgColor" | "qrGradient" | "qrGradientColor">>({
+    qrDotStyle: "square", qrCornerStyle: "square", qrDotColor: "#000000", qrBgColor: "#ffffff", qrGradient: false, qrGradientColor: "#2563eb",
+  });
   const [supportEmail, setSupportEmail] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -40,6 +43,7 @@ export default function EditPage() {
       }
       setContact(c);
       setPreviewLogoUrl(c.showLogoInQr !== false ? c.logoUrl : undefined);
+      setPreviewQRStyle({ qrDotStyle: c.qrDotStyle, qrCornerStyle: c.qrCornerStyle, qrDotColor: c.qrDotColor, qrBgColor: c.qrBgColor, qrGradient: c.qrGradient, qrGradientColor: c.qrGradientColor });
       setLoading(false);
     });
   }, [id, router]);
@@ -146,7 +150,10 @@ export default function EditPage() {
             loading={submitting}
             error={error}
             supportEmail={supportEmail}
-            onFormChange={(f) => setPreviewLogoUrl(f.showLogoInQr !== false ? f.logoUrl || undefined : undefined)}
+            onFormChange={(f) => {
+              setPreviewLogoUrl(f.showLogoInQr !== false ? f.logoUrl || undefined : undefined);
+              setPreviewQRStyle({ qrDotStyle: f.qrDotStyle, qrCornerStyle: f.qrCornerStyle, qrDotColor: f.qrDotColor, qrBgColor: f.qrBgColor, qrGradient: f.qrGradient, qrGradientColor: f.qrGradientColor });
+            }}
           />
         </div>
 
@@ -157,8 +164,19 @@ export default function EditPage() {
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
                 QR Code
               </h3>
-              <div id="qr-preview" className="flex justify-center mb-4">
-                <QRCodeDisplay value={getQRUrl()} size={180} logoUrl={previewLogoUrl} />
+              <div id="qr-preview" className="flex justify-center mb-4 rounded-xl overflow-hidden" style={{ backgroundColor: previewQRStyle.qrBgColor }}>
+                <QRCodeDisplay
+                  value={getQRUrl()}
+                  size={180}
+                  logoUrl={previewLogoUrl}
+                  showLogo={!!previewLogoUrl}
+                  dotStyle={previewQRStyle.qrDotStyle}
+                  cornerStyle={previewQRStyle.qrCornerStyle}
+                  dotColor={previewQRStyle.qrDotColor}
+                  bgColor={previewQRStyle.qrBgColor}
+                  gradient={previewQRStyle.qrGradient}
+                  gradientColor={previewQRStyle.qrGradientColor}
+                />
               </div>
               <p className="text-xs text-gray-400 font-mono break-all mb-4">/qr/{id}</p>
               <div className="space-y-2">
