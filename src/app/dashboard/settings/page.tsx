@@ -35,6 +35,37 @@ export default function SettingsPage() {
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState(false);
 
+  const [darkMode, setDarkMode] = useState(false);
+  const [errorCorrection, setErrorCorrection] = useState("H");
+
+  // Load saved preferences on mount
+  useEffect(() => {
+    const savedDark = localStorage.getItem("qr-dark-mode") === "true";
+    const savedEc = localStorage.getItem("qr-error-correction") ?? "H";
+    setDarkMode(savedDark);
+    setErrorCorrection(savedEc);
+    if (savedDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  function handleToggleDarkMode(val: boolean) {
+    setDarkMode(val);
+    localStorage.setItem("qr-dark-mode", String(val));
+    if (val) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }
+
+  function handleErrorCorrectionChange(val: string) {
+    setErrorCorrection(val);
+    localStorage.setItem("qr-error-correction", val);
+  }
+
   useEffect(() => {
     const supabase = getSupabaseBrowser();
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -157,7 +188,7 @@ export default function SettingsPage() {
         {/* Security (4 cols) */}
         <section className="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
           <div className="flex items-center gap-4 mb-8">
-            <div className="bg-tertiary/10 p-3 rounded-xl text-tertiary">
+            <div className="bg-tertiary-container/10 p-3 rounded-xl text-tertiary-container">
               <span className="material-symbols-outlined">shield</span>
             </div>
             <h3 className="text-xl font-bold font-headline">Security</h3>
@@ -226,9 +257,15 @@ export default function SettingsPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 rounded-xl bg-surface">
                   <span className="text-sm">Default Error Correction</span>
-                  <select className="bg-transparent border-none text-sm font-bold text-primary p-0 focus:ring-0">
-                    <option>High (30%)</option>
-                    <option>Medium (15%)</option>
+                  <select
+                    value={errorCorrection}
+                    onChange={(e) => handleErrorCorrectionChange(e.target.value)}
+                    className="bg-transparent border-none text-sm font-bold text-primary p-0 focus:ring-0 cursor-pointer"
+                  >
+                    <option value="H">High (30%)</option>
+                    <option value="Q">Medium-High (25%)</option>
+                    <option value="M">Medium (15%)</option>
+                    <option value="L">Low (7%)</option>
                   </select>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-xl bg-surface">
@@ -246,19 +283,21 @@ export default function SettingsPage() {
                 Appearance
               </h4>
               <div className="flex gap-4">
-                <div className="flex-1 p-4 rounded-xl border-2 border-primary bg-primary/5 text-center cursor-pointer">
+                <div
+                  onClick={() => handleToggleDarkMode(false)}
+                  className={`flex-1 p-4 rounded-xl text-center cursor-pointer transition-all ${!darkMode ? "border-2 border-primary bg-primary/5" : "border border-outline-variant/20 bg-surface opacity-60 hover:opacity-80"}`}
+                >
                   <span className="material-symbols-outlined block mb-1">light_mode</span>
                   <span className="text-xs font-bold">Light</span>
                 </div>
                 <div
-                  className="flex-1 p-4 rounded-xl border border-outline-variant/20 bg-surface text-center opacity-50 cursor-not-allowed"
-                  title="Dark mode coming soon"
+                  onClick={() => handleToggleDarkMode(true)}
+                  className={`flex-1 p-4 rounded-xl text-center cursor-pointer transition-all ${darkMode ? "border-2 border-primary bg-primary/5" : "border border-outline-variant/20 bg-surface opacity-60 hover:opacity-80"}`}
                 >
                   <span className="material-symbols-outlined block mb-1">dark_mode</span>
                   <span className="text-xs font-bold">Dark</span>
                 </div>
               </div>
-              <p className="text-xs text-outline">Dark mode coming soon.</p>
             </div>
           </div>
         </section>
