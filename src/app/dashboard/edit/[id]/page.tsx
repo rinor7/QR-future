@@ -135,6 +135,23 @@ export default function EditPage() {
 
   return (
     <div className="p-4 wide:p-8">
+      {/* Created success banner */}
+      {saved && searchParams.get("created") === "1" && (
+        <div className="mb-6 flex items-center gap-3 px-5 py-4 bg-green-50 border border-green-200 rounded-2xl text-green-800">
+          <span className="material-symbols-outlined text-green-500 text-[22px] shrink-0">check_circle</span>
+          <div className="flex-1">
+            <p className="font-semibold text-sm">QR Code created successfully!</p>
+            <p className="text-xs text-green-600 mt-0.5">Your QR code is ready. Download it below or make any adjustments and save.</p>
+          </div>
+          <button
+            onClick={() => setSaved(false)}
+            className="text-green-400 hover:text-green-600 transition-colors shrink-0"
+          >
+            <span className="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+      )}
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">{tr.edit_title}</h1>
         <p className="text-gray-500 mt-1">{`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</p>
