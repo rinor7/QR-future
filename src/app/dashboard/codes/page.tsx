@@ -778,27 +778,29 @@ export default function CodesPage() {
                         {/* Actions */}
                         <div className="flex items-center gap-1 shrink-0">
                           {!isReader && (
-                            <Link href={`/dashboard/edit/${contact.id}`} className="px-3 py-1.5 text-primary font-bold text-xs hover:underline">Bearbeiten</Link>
+                            <Link href={`/dashboard/edit/${contact.id}`} title="Edit" className="w-8 h-8 flex items-center justify-center text-primary rounded-lg hover:bg-blue-50 transition-colors">
+                              <span className="material-symbols-outlined text-[17px]">edit</span>
+                            </Link>
                           )}
-                          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} className="w-8 h-8 border border-slate-200 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary transition-colors">
-                            <span className="material-symbols-outlined text-[16px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
+                          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
+                            <span className="material-symbols-outlined text-[17px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
                           </button>
-                          <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="w-8 h-8 border border-slate-200 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary transition-colors">
-                            <span className="material-symbols-outlined text-[16px]">download</span>
+                          <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
+                            <span className="material-symbols-outlined text-[17px]">download</span>
                           </button>
                           {!isReader && (
                             <button
                               onClick={() => handleTogglePause(contact.id, contact.isActive !== false)}
                               disabled={togglingId === contact.id}
-                              title={contact.isActive !== false ? "Pause QR" : "Activate QR"}
-                              className={`w-8 h-8 border flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "border-amber-100 text-amber-500 hover:bg-amber-50" : "border-green-100 text-green-500 hover:bg-green-50"}`}
+                              title={contact.isActive !== false ? "Pause" : "Activate"}
+                              className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "text-amber-500 hover:bg-amber-50" : "text-green-500 hover:bg-green-50"}`}
                             >
-                              <span className="material-symbols-outlined text-[16px]">{contact.isActive !== false ? "pause" : "play_arrow"}</span>
+                              <span className="material-symbols-outlined text-[17px]">{contact.isActive !== false ? "pause" : "play_arrow"}</span>
                             </button>
                           )}
                           {isAdmin && (
-                            <button onClick={() => setDeleteModal(contact.id)} className="w-8 h-8 border border-red-100 flex items-center justify-center text-red-400 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
-                              <span className="material-symbols-outlined text-[16px]">delete</span>
+                            <button onClick={() => setDeleteModal(contact.id)} title="Delete" className="w-8 h-8 flex items-center justify-center text-red-400 rounded-lg hover:bg-red-50 transition-colors">
+                              <span className="material-symbols-outlined text-[17px]">delete</span>
                             </button>
                           )}
                         </div>
