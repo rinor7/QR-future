@@ -273,32 +273,36 @@ export default function CreatePage() {
     <div className="flex flex-col h-full min-h-screen bg-slate-50 dark:bg-[#0f1117]">
       {/* ── Top navigation bar ─────────────────────────────────────────── */}
       <div className="sticky top-0 z-30 bg-white dark:bg-[#131620] border-b border-slate-200 dark:border-[#1e2130] px-6 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            className="flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           </button>
           <div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">Create New QR Code</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Fill in the details below to generate your QR code</p>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <button type="button" onClick={() => router.push("/dashboard/codes")} className="text-xs text-slate-400 hover:text-blue-600 transition-colors">QR Codes</button>
+              <span className="material-symbols-outlined text-[12px] text-slate-300">chevron_right</span>
+              <span className="text-xs text-blue-600 font-medium">New Dynamic Code</span>
+            </div>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">Step 2: Configuration &amp; Details</h1>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors"
           >
-            Cancel
+            Save Draft
           </button>
           <button
             type="button"
             onClick={triggerSubmit}
             disabled={submitting}
-            className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-60"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-60"
             style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
           >
             {submitting ? (
@@ -437,28 +441,78 @@ export default function CreatePage() {
         </div>
 
         {/* ── Right: live preview ─────────────────────────────────────────── */}
-        <div className="hidden lg:flex flex-col items-center self-start sticky top-24 w-64 shrink-0">
-          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] p-6 w-full">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-5 text-center">Live Preview</p>
-            <PhonePreview form={formData} />
+        <div className="hidden lg:flex flex-col self-start sticky top-24 w-[340px] shrink-0 gap-4">
+
+          {/* Phone preview card */}
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] overflow-hidden">
+            {/* Card header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-[#242736]">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Matrix Pro Rendering</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-1 rounded-full">Live Preview</span>
+            </div>
+            {/* Phone */}
+            <div className="py-6 flex justify-center">
+              <PhonePreview form={formData} />
+            </div>
+            {/* Info below phone */}
+            <div className="px-5 pb-2 text-center">
+              <p className="text-xs text-slate-400 mb-1">Scan to view contact details</p>
+              <p className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-3">
+                {[formData.firstName, formData.lastName].filter(Boolean).join(" ") || "New Dynamic Contact"}
+              </p>
+              {/* dot nav */}
+              <div className="flex justify-center gap-1.5 mb-4">
+                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                <div className="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-600" />
+                <div className="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-600" />
+              </div>
+            </div>
+            {/* Type + Tracking rows */}
+            <div className="border-t border-slate-100 dark:border-[#242736]">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-[#242736]">
+                <span className="text-xs text-slate-500">Type</span>
+                <span className="text-xs font-semibold text-blue-600">vCard (Dynamic)</span>
+              </div>
+              <div className="flex items-center justify-between px-5 py-3">
+                <span className="text-xs text-slate-500">Tracking</span>
+                <span className="text-xs font-semibold text-green-600 flex items-center gap-1.5">
+                  Enabled
+                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* QR dot preview */}
-          <div className="mt-4 bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] p-5 w-full">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 text-center">QR Code Preview</p>
+          {/* QR Code preview card */}
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] p-5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 text-center">QR Code Preview</p>
             <div className="flex justify-center">
-              <div className="w-32 h-32 rounded-xl bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-slate-700 flex items-center justify-center flex-col gap-2">
-                <span className="material-symbols-outlined text-[48px] text-slate-300">qr_code_2</span>
-                <p className="text-xs text-slate-400 text-center leading-tight">Generated after saving</p>
+              <div className="w-36 h-36 rounded-xl bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-slate-700 flex items-center justify-center flex-col gap-2">
+                <span className="material-symbols-outlined text-[52px] text-slate-300">qr_code_2</span>
+                <p className="text-xs text-slate-400 text-center leading-tight px-2">Generated after saving</p>
               </div>
             </div>
             {formData.primaryColor && (
               <div className="mt-3 flex items-center justify-center gap-2">
-                <div className="w-3 h-3 rounded-full border border-slate-200" style={{ backgroundColor: formData.primaryColor }} />
+                <div className="w-3 h-3 rounded-full border border-slate-200 shrink-0" style={{ backgroundColor: formData.primaryColor }} />
                 <span className="text-xs text-slate-500 font-mono">{formData.primaryColor}</span>
               </div>
             )}
           </div>
+
+          {/* Pro Tip card */}
+          <div className="rounded-2xl p-5" style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-white text-[18px]">tips_and_updates</span>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white mb-1">Matrix Pro Tip</p>
+                <p className="text-xs text-blue-100 leading-relaxed">Dynamic codes allow you to edit all contact info anytime without changing the physical QR image.</p>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
