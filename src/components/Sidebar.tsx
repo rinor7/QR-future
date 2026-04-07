@@ -92,8 +92,8 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
               onClick={onClose}
               className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold font-headline transition-colors duration-150 ${
                 active
-                  ? "text-primary bg-blue-50 rounded-l-xl border-r-4 border-primary"
-                  : "text-slate-500 hover:text-primary hover:bg-slate-100 rounded-xl"
+                  ? "text-primary dark:text-white bg-blue-50 dark:bg-blue-600/20 rounded-l-xl border-r-4 border-primary"
+                  : "text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
               }`}
             >
               <span className="material-symbols-outlined text-[20px] shrink-0">{icon}</span>

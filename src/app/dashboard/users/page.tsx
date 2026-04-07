@@ -283,9 +283,9 @@ export default function UsersPage() {
         <div className="lg:col-span-1 space-y-6">
           <h3 className="text-2xl font-bold font-headline">Access Policy</h3>
           <p className="text-outline leading-relaxed">Define the operational boundaries for your team. Each role comes with pre-configured permissions designed for enterprise security standards.</p>
-          <div className="glass-panel p-6 rounded-xl border-l-4 border-primary">
-            <h4 className="font-bold mb-2">Security Tip</h4>
-            <p className="text-sm text-on-surface-variant">We recommend having at least two &apos;Owner&apos; level accounts for business continuity. Admins cannot delete other Admins.</p>
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl border-l-4 border-primary">
+            <h4 className="font-bold mb-2 text-slate-900 dark:text-slate-100">Security Tip</h4>
+            <p className="text-sm text-slate-600 dark:text-slate-400">We recommend having at least two &apos;Owner&apos; level accounts for business continuity. Admins cannot delete other Admins.</p>
           </div>
         </div>
         <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">

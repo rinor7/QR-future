@@ -341,7 +341,7 @@ export default function SettingsPage() {
                   <span className="text-sm block text-blue-300">QR Codes Used</span>
                   <span className="text-2xl font-bold">{planUsed} Used</span>
                 </div>
-                <Link href="/dashboard/upgrade" className="bg-white text-blue-900 px-8 py-3 rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-xl">
+                <Link href="/dashboard/upgrade" className="bg-white text-blue-900 dark:bg-blue-900 dark:text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-50 dark:hover:bg-blue-800 transition-colors shadow-xl">
                   Manage Billing
                 </Link>
               </div>

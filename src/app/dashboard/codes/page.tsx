@@ -562,25 +562,27 @@ export default function CodesPage() {
                 <h3 className="font-headline text-xs font-extrabold uppercase tracking-widest text-outline">ORDNER</h3>
                 <button className="text-primary text-sm font-semibold hover:underline">View all folders</button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {visibleFolders.map((folder) => {
                   const isDragTarget = dragOverId === folder.id;
                   const qrCount = countInFolder(folder.id);
                   return (
                     <div
                       key={folder.id}
-                      className={`bg-white p-5 rounded-2xl flex items-center gap-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-primary/20 transition-all cursor-pointer group ${isDragTarget ? "ring-2 ring-primary" : ""}`}
+                      className={`relative bg-white dark:bg-[#1a1d27] rounded-2xl flex flex-col p-5 border border-slate-100 dark:border-[#242736] shadow-sm hover:shadow-md hover:border-primary/30 dark:hover:border-primary/40 transition-all cursor-pointer group ${isDragTarget ? "ring-2 ring-primary" : ""}`}
                       onClick={() => !isDragging && setCurrentFolderId(folder.id)}
                       onDragOver={(e) => { e.preventDefault(); setDragOverId(folder.id); }}
                       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverId(null); }}
                       onDrop={(e) => { e.preventDefault(); handleDropOnFolder(folder.id); }}
                     >
-                      <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
-                        <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>folder</span>
+                      {/* Folder icon — large, filled, amber like a real folder */}
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="material-symbols-outlined text-[44px] text-amber-400 dark:text-amber-500 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors" style={{ fontVariationSettings: "'FILL' 1" }}>folder</span>
+                        <span className="text-xs font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-[#242736] rounded-full px-2 py-0.5">{qrCount}</span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h4 className="font-headline font-bold text-slate-900 truncate">{folder.name}</h4>
-                        <p className="text-xs font-medium text-slate-400">{qrCount} Assets</p>
+                        <h4 className="font-headline font-bold text-slate-900 dark:text-slate-100 truncate text-sm leading-tight">{folder.name}</h4>
+                        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mt-0.5">{qrCount} {qrCount === 1 ? "QR Code" : "QR Codes"}</p>
                       </div>
                       {!isReader && (() => {
                         const folderHasActive = isFolderActive(folder);
@@ -589,7 +591,7 @@ export default function CodesPage() {
                             onClick={(e) => { e.stopPropagation(); handleToggleFolder(folder); }}
                             disabled={togglingFolder === folder.id}
                             title={folderHasActive ? "Pause all QRs in folder" : "Activate all QRs in folder"}
-                            className={`opacity-0 group-hover:opacity-100 shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border transition-all disabled:opacity-30 ${folderHasActive ? "border-amber-100 text-amber-500 hover:bg-amber-50" : "border-green-100 text-green-500 hover:bg-green-50"}`}
+                            className={`absolute top-3 right-3 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg transition-all disabled:opacity-30 ${folderHasActive ? "text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20" : "text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"}`}
                           >
                             {togglingFolder === folder.id
                               ? <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
