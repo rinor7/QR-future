@@ -11,7 +11,7 @@ import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
-import { getAllFolders, buildTree, assignQrToFolder, createFolder, type FolderWithStats } from "@/lib/folders";
+import { getAllFolders, buildTree, assignQrToFolder, createFolder, subtreeIds, type FolderWithStats } from "@/lib/folders";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 // ── Folder picker tree (recursive) ───────────────────────────────────────────
@@ -234,8 +234,7 @@ export default function CodesPage() {
   }
 
   function isFolderActive(node: FolderWithStats): boolean {
-    const { subtreeIds: getSubtreeIds } = require("@/lib/folders") as typeof import("@/lib/folders");
-    const idSet = new Set(getSubtreeIds(node));
+    const idSet = new Set(subtreeIds(node));
     return contacts.some((c) => {
       const cFolderId = contactFolders[c.id];
       return cFolderId && idSet.has(cFolderId) && c.isActive !== false;
@@ -331,7 +330,6 @@ export default function CodesPage() {
   async function handleToggleFolder(node: FolderWithStats) {
     setTogglingFolder(node.id);
     try {
-      const { subtreeIds } = await import("@/lib/folders");
       const ids = subtreeIds(node);
       const idSet = new Set(ids);
       // Determine current state: if ANY contact in this folder is active, we pause all; if all paused, we activate all
