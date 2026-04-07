@@ -566,6 +566,9 @@ export default function CodesPage() {
                 <button className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
                   <span className="material-symbols-outlined">grid_view</span>
                 </button>
+                <button className="w-10 h-10 rounded-lg bg-transparent flex items-center justify-center text-outline hover:bg-surface-container-high transition-colors">
+                  <span className="material-symbols-outlined">list</span>
+                </button>
               </div>
             </div>
 
@@ -655,10 +658,10 @@ export default function CodesPage() {
                         </div>
                       </div>
 
-                      {/* Right QR panel (1/3) */}
-                      <div className="md:w-1/3 bg-slate-50 flex items-center justify-center p-4 relative overflow-hidden min-w-[160px]">
+                      {/* Right QR panel */}
+                      <div className="w-[140px] shrink-0 bg-slate-50 flex items-center justify-center p-3 relative overflow-hidden">
                         <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div id={`qr-${contact.id}`} className="relative z-10 p-3 bg-white rounded-xl shadow-md group-hover:scale-105 transition-transform duration-300">
+                        <div id={`qr-${contact.id}`} className="relative z-10 p-2 bg-white rounded-xl shadow-md group-hover:scale-105 transition-transform duration-300">
                           <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={96} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
                         </div>
                       </div>
@@ -682,15 +685,15 @@ export default function CodesPage() {
 
           {/* ── Pagination ── */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-10 pt-6 border-t border-outline-variant/10">
-              <p className="text-sm text-outline font-medium">
-                Showing <span className="text-on-surface">{Math.min(page * PAGE_SIZE, filtered.length)}</span> of <span className="text-on-surface">{filtered.length}</span> QR codes
+            <div className="flex items-center justify-between mt-10 pt-6" style={{ borderTop: "1px solid rgba(195,197,217,0.3)" }}>
+              <p className="text-sm text-on-surface-variant font-medium">
+                Showing <span className="font-bold text-on-surface">{Math.min(page * PAGE_SIZE, filtered.length)}</span> of <span className="font-bold text-on-surface">{filtered.length}</span> QR codes
               </p>
               <div className="flex gap-2">
-                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-4 py-2 bg-surface-container-high text-outline font-bold rounded-lg hover:bg-surface-container-highest transition-colors disabled:opacity-50">
+                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-5 py-2.5 bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-bold rounded-xl hover:bg-surface-container-low transition-colors disabled:opacity-40 shadow-sm">
                   Previous
                 </button>
-                <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-4 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary-container transition-colors shadow-md shadow-primary/10 disabled:opacity-50">
+                <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-5 py-2.5 text-white font-bold rounded-xl transition-colors shadow-md disabled:opacity-40" style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
                   Next
                 </button>
               </div>

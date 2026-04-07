@@ -250,11 +250,15 @@ export default function SettingsPage() {
                   <span className="material-symbols-outlined block mb-1">light_mode</span>
                   <span className="text-xs font-bold">Light</span>
                 </div>
-                <div className="flex-1 p-4 rounded-xl border border-outline-variant/20 bg-surface text-center opacity-50 cursor-pointer">
+                <div
+                  className="flex-1 p-4 rounded-xl border border-outline-variant/20 bg-surface text-center opacity-50 cursor-not-allowed"
+                  title="Dark mode coming soon"
+                >
                   <span className="material-symbols-outlined block mb-1">dark_mode</span>
                   <span className="text-xs font-bold">Dark</span>
                 </div>
               </div>
+              <p className="text-xs text-outline">Dark mode coming soon.</p>
             </div>
           </div>
         </section>
