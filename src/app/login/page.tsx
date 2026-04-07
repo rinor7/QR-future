@@ -51,7 +51,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex !bg-gray-50" style={{ backgroundColor: "#f9fafb", color: "#111827" }}>
       {/* Left branded panel — hidden on mobile */}
       <div className="hidden lg:flex flex-col justify-between w-[45%] bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{backgroundImage:"radial-gradient(circle at 20% 80%, white 0%, transparent 50%)"}} />
@@ -158,7 +158,7 @@ function LoginForm() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-sm font-medium text-gray-700">Passwort</label>
-                  <Link href="/forgot-password" className="text-xs text-blue-600 hover:underline">
+                  <Link href="/forgot-password" className="text-xs text-blue-600 hover:underline" tabIndex={-1}>
                     Passwort vergessen?
                   </Link>
                 </div>

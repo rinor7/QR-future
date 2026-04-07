@@ -341,7 +341,7 @@ export default function CreatePage() {
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="material-symbols-outlined text-[18px] text-blue-500 shrink-0">folder</span>
-                    <span className={`truncate ${selectedFolder ? "text-slate-800 dark:text-slate-200 font-medium" : "text-slate-400"}`}>
+                    <span className={`truncate ${selectedFolder ? "text-slate-800 dark:text-slate-200 font-medium" : "text-slate-400 dark:text-slate-500"}`}>
                       {selectedFolder ? selectedFolder.name : "No folder selected"}
                     </span>
                   </div>

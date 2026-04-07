@@ -183,15 +183,15 @@ export default function UpgradePage() {
         </div>
       </section>
 
-      {/* CTA glass panel */}
-      <div className="max-w-7xl mx-auto glass-panel p-12 rounded-3xl border border-white flex flex-col md:flex-row items-center justify-between gap-8 mb-12 overflow-hidden relative" style={{ boxShadow: "0px 20px 40px rgba(25,28,30,0.06)" }}>
+      {/* CTA panel */}
+      <div className="max-w-7xl mx-auto bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] p-10 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-8 mb-12 overflow-hidden relative shadow-ambient-sm">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
         <div className="relative z-10 max-w-lg">
-          <h6 className="text-2xl font-bold font-headline mb-4">Unsure which plan fits your scale?</h6>
-          <p className="text-on-surface-variant">Our solution architects can provide a customized audit of your current QR volume and predict future scaling needs.</p>
+          <h6 className="text-2xl font-bold font-headline mb-4 text-slate-900 dark:text-slate-100">Unsure which plan fits your scale?</h6>
+          <p className="text-slate-500 dark:text-slate-400">Our solution architects can provide a customized audit of your current QR volume and predict future scaling needs.</p>
         </div>
         <div className="relative z-10 flex gap-4">
-          <button className="bg-surface-container-high px-8 py-4 rounded-xl font-bold hover:bg-surface-container-highest transition-colors">View FAQ</button>
+          <button className="bg-slate-100 dark:bg-[#242736] text-slate-700 dark:text-slate-300 px-8 py-4 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-[#2a2e3e] transition-colors">View FAQ</button>
           <button className="text-white px-8 py-4 rounded-xl font-bold shadow-lg transition-transform active:scale-95" style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>Schedule a Demo</button>
         </div>
       </div>

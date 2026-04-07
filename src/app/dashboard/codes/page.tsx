@@ -567,20 +567,20 @@ export default function CodesPage() {
                   return (
                     <div
                       key={folder.id}
-                      className={`relative bg-white dark:bg-[#1a1d27] rounded-2xl flex flex-col p-5 border border-slate-100 dark:border-[#242736] shadow-sm hover:shadow-md hover:border-primary/30 dark:hover:border-primary/40 transition-all cursor-pointer group ${isDragTarget ? "ring-2 ring-primary" : ""}`}
+                      className={`relative rounded-2xl flex flex-col items-center justify-center p-5 pb-4 shadow-sm hover:shadow-md transition-all cursor-pointer group overflow-hidden ${isDragTarget ? "ring-2 ring-white/50" : ""}`}
+                      style={{ background: "linear-gradient(145deg, #5b7fff 0%, #3d5cff 60%, #2f4de0 100%)" }}
                       onClick={() => !isDragging && setCurrentFolderId(folder.id)}
                       onDragOver={(e) => { e.preventDefault(); setDragOverId(folder.id); }}
                       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverId(null); }}
                       onDrop={(e) => { e.preventDefault(); handleDropOnFolder(folder.id); }}
                     >
-                      {/* Folder icon — large, filled, amber like a real folder */}
-                      <div className="flex items-start justify-between mb-3">
-                        <span className="material-symbols-outlined text-[44px] text-amber-400 dark:text-amber-500 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors" style={{ fontVariationSettings: "'FILL' 1" }}>folder</span>
-                        <span className="text-xs font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-[#242736] rounded-full px-2 py-0.5">{qrCount}</span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="font-headline font-bold text-slate-900 dark:text-slate-100 truncate text-sm leading-tight">{folder.name}</h4>
-                        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mt-0.5">{qrCount} {qrCount === 1 ? "QR Code" : "QR Codes"}</p>
+                      {/* Subtle inner highlight */}
+                      <div className="absolute top-0 left-0 right-0 h-1/2 bg-white/10 rounded-t-2xl pointer-events-none" />
+                      {/* Folder icon */}
+                      <span className="material-symbols-outlined text-[52px] text-white/90 group-hover:text-white transition-colors mb-2 relative z-10" style={{ fontVariationSettings: "'FILL' 1" }}>folder_open</span>
+                      <div className="text-center relative z-10 w-full min-w-0">
+                        <h4 className="font-headline font-bold text-white truncate text-sm leading-tight">{folder.name}</h4>
+                        <p className="text-xs font-medium text-blue-100 mt-0.5">{qrCount} {qrCount === 1 ? "QR Code" : "QR Codes"}</p>
                       </div>
                       {!isReader && (() => {
                         const folderHasActive = isFolderActive(folder);
@@ -589,7 +589,7 @@ export default function CodesPage() {
                             onClick={(e) => { e.stopPropagation(); handleToggleFolder(folder); }}
                             disabled={togglingFolder === folder.id}
                             title={folderHasActive ? "Pause all QRs in folder" : "Activate all QRs in folder"}
-                            className={`absolute top-3 right-3 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg transition-all disabled:opacity-30 ${folderHasActive ? "text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20" : "text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"}`}
+                            className={`absolute top-2 right-2 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg transition-all disabled:opacity-30 hover:bg-white/20 ${folderHasActive ? "text-white" : "text-green-200"}`}
                           >
                             {togglingFolder === folder.id
                               ? <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
@@ -700,41 +700,31 @@ export default function CodesPage() {
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
-                            {/* Edit button */}
-                            {!isReader ? (
-                              <Link href={`/dashboard/edit/${contact.id}`} className="flex items-center gap-1.5 text-xs font-bold text-primary hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
-                                <span className="material-symbols-outlined text-[15px]">edit</span>
-                                Edit
+                          <div className="flex items-center gap-1 mt-5 pt-4 border-t border-slate-100 dark:border-[#242736]">
+                            {!isReader && (
+                              <Link href={`/dashboard/edit/${contact.id}`} title="Edit" className="w-8 h-8 flex items-center justify-center text-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                                <span className="material-symbols-outlined text-[17px]">edit</span>
                               </Link>
-                            ) : <span />}
-                            {/* Icon actions */}
-                            <div className="flex items-center gap-1">
-                              <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
-                                <span className="material-symbols-outlined text-[17px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
+                            )}
+                            <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                              <span className="material-symbols-outlined text-[17px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
+                            </button>
+                            <a href={`/qr/${contact.id}`} target="_blank" title="Open page" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                              <span className="material-symbols-outlined text-[17px]">open_in_new</span>
+                            </a>
+                            <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                              <span className="material-symbols-outlined text-[17px]">download</span>
+                            </button>
+                            {!isReader && (
+                              <button onClick={() => handleTogglePause(contact.id, contact.isActive !== false)} disabled={togglingId === contact.id} title={contact.isActive !== false ? "Pause" : "Activate"} className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20" : "text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"}`}>
+                                <span className="material-symbols-outlined text-[17px]">{contact.isActive !== false ? "pause" : "play_arrow"}</span>
                               </button>
-                              <a href={`/qr/${contact.id}`} target="_blank" title="Open page" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
-                                <span className="material-symbols-outlined text-[17px]">open_in_new</span>
-                              </a>
-                              <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
-                                <span className="material-symbols-outlined text-[17px]">download</span>
+                            )}
+                            {isAdmin && (
+                              <button onClick={() => setDeleteModal(contact.id)} title="Delete" className="w-8 h-8 flex items-center justify-center text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                                <span className="material-symbols-outlined text-[17px]">delete</span>
                               </button>
-                              {!isReader && (
-                                <button
-                                  onClick={() => handleTogglePause(contact.id, contact.isActive !== false)}
-                                  disabled={togglingId === contact.id}
-                                  title={contact.isActive !== false ? "Pause" : "Activate"}
-                                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "text-amber-500 hover:bg-amber-50" : "text-green-500 hover:bg-green-50"}`}
-                                >
-                                  <span className="material-symbols-outlined text-[17px]">{contact.isActive !== false ? "pause" : "play_arrow"}</span>
-                                </button>
-                              )}
-                              {isAdmin && (
-                                <button onClick={() => setDeleteModal(contact.id)} title="Delete" className="w-8 h-8 flex items-center justify-center text-red-400 rounded-lg hover:bg-red-50 transition-colors">
-                                  <span className="material-symbols-outlined text-[17px]">delete</span>
-                                </button>
-                              )}
-                            </div>
+                            )}
                           </div>
                         </div>
                         {/* Right QR panel — dark */}

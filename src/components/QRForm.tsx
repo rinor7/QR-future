@@ -896,7 +896,7 @@ function Field({
 }
 
 const input =
-  "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400";
+  "w-full border border-gray-200 dark:border-slate-700 dark:bg-[#242736] dark:text-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-slate-500";
 
 function PrefixInput({
   prefix,
