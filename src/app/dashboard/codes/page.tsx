@@ -656,10 +656,10 @@ export default function CodesPage() {
                       </div>
 
                       {/* Right QR panel (1/3) */}
-                      <div className="md:w-1/3 bg-slate-50 flex items-center justify-center p-8 relative overflow-hidden">
+                      <div className="md:w-1/3 bg-slate-50 flex items-center justify-center p-4 relative overflow-hidden min-w-[160px]">
                         <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div id={`qr-${contact.id}`} className="relative z-10 p-4 bg-white rounded-xl shadow-md group-hover:scale-105 transition-transform duration-300">
-                          <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={128} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
+                        <div id={`qr-${contact.id}`} className="relative z-10 p-3 bg-white rounded-xl shadow-md group-hover:scale-105 transition-transform duration-300">
+                          <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={96} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
                         </div>
                       </div>
                     </div>

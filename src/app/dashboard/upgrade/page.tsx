@@ -26,11 +26,10 @@ const PLAN_META: Record<Plan, PlanMeta> = {
 interface PlanConfig { plan: Plan; price: number; features: string[]; }
 
 const COMPARE_ROWS = [
-  { label: "QR Code Lifetime", free: "30 Days", star: "1 Year", premium: "Unlimited", platinum: "Unlimited" },
-  { label: "Dedicated QR Codes", free: false, star: true, premium: true, platinum: true },
-  { label: "Analytics", free: false, star: false, premium: true, platinum: true },
-  { label: "API Webhooks", free: false, star: false, premium: true, platinum: true },
-  { label: "White-label Domains", free: false, star: false, premium: false, platinum: true },
+  { label: "Dynamic QR Lifetime", sub: "Edit destination URLs anytime", free: false, star: true, premium: true, platinum: true },
+  { label: "Data Retention", sub: "Historical analytics storage", free: "30 Days", star: "1 Year", premium: "Unlimited", platinum: "Unlimited" },
+  { label: "API Webhooks", sub: "Real-time event integration", free: false, star: true, premium: true, platinum: true },
+  { label: "White-label Domains", sub: "Custom short-link URLs", free: false, star: false, premium: true, platinum: true },
 ];
 
 export default function UpgradePage() {
@@ -163,6 +162,7 @@ export default function UpgradePage() {
             <div key={row.label} className="grid grid-cols-5 py-6 px-6 items-center hover:bg-surface-container-low transition-colors rounded-xl">
               <div className="col-span-2">
                 <p className="font-bold text-on-surface">{row.label}</p>
+                {row.sub && <p className="text-xs text-outline mt-0.5">{row.sub}</p>}
               </div>
               {(["free", "star", "premium"] as Plan[]).map((p) => {
                 const val = row[p as keyof typeof row];
