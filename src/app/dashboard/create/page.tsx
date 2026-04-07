@@ -162,6 +162,20 @@ function PhonePreview({ form }: { form: Partial<CreateQRContact> }) {
                   {form.facebookUrl && <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: btnBg }}><Facebook className="w-3 h-3" style={{ color: btnText }} /></div>}
                 </div>
               )}
+
+              {/* Links / PDFs */}
+              {form.links && form.links.length > 0 && (
+                <div className="pt-1 space-y-1">
+                  {form.links.map((link, i) => (
+                    <div key={i} className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: btnBg }}>
+                      <span className="material-symbols-outlined text-[13px] shrink-0" style={{ color: btnText }}>
+                        {link.type === "file" ? "picture_as_pdf" : "link"}
+                      </span>
+                      <span className="text-xs truncate" style={{ color: btnText }}>{link.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -423,7 +437,7 @@ export default function CreatePage() {
         </div>
 
         {/* ── Right: live preview ─────────────────────────────────────────── */}
-        <div className="hidden lg:flex flex-col items-center sticky top-24 w-64 shrink-0">
+        <div className="hidden lg:flex flex-col items-center self-start sticky top-24 w-64 shrink-0">
           <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] p-6 w-full">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-5 text-center">Live Preview</p>
             <PhonePreview form={formData} />

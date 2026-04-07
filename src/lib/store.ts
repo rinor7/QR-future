@@ -310,6 +310,25 @@ function extractStoragePath(url: string): string | null {
   return url.slice(idx + marker.length);
 }
 
+export async function toggleContactActive(id: string, isActive: boolean): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  const { error } = await supabase
+    .from("contacts")
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function setFolderContactsActive(folderIds: string[], organizationId: string, isActive: boolean): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  const { error } = await supabase
+    .from("contacts")
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq("user_id", organizationId)
+    .in("folder_id", folderIds);
+  if (error) throw new Error(error.message);
+}
+
 export async function deleteContact(id: string): Promise<void> {
   const supabase = getSupabaseBrowser();
 

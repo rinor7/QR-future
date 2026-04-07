@@ -294,56 +294,49 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           </Field>
         </div>
 
-        {/* Expandable: Title */}
-        {isFieldOpen("title") ? (
-          <Field label={tr.field_title}>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => set("title", e.target.value)}
-              placeholder="z.B. Geschäftsführer"
-              className={input}
-              autoFocus
-            />
-          </Field>
+        {/* Expandable: Title / Company / Description — closed buttons shown inline */}
+        {(isFieldOpen("title") || isFieldOpen("company") || isFieldOpen("description")) ? (
+          <>
+            {isFieldOpen("title") ? (
+              <Field label={tr.field_title}>
+                <input type="text" value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="z.B. Geschäftsführer" className={input} autoFocus />
+              </Field>
+            ) : (
+              <button type="button" onClick={() => openField("title")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+                <Plus className="w-3.5 h-3.5" /> {tr.field_title}
+              </button>
+            )}
+            {isFieldOpen("company") ? (
+              <Field label={tr.field_company}>
+                <input type="text" value={form.company} onChange={(e) => set("company", e.target.value)} placeholder="z.B. Builtech Gruppe" className={input} />
+              </Field>
+            ) : (
+              <button type="button" onClick={() => openField("company")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+                <Plus className="w-3.5 h-3.5" /> {tr.field_company}
+              </button>
+            )}
+            {isFieldOpen("description") ? (
+              <Field label={tr.field_description}>
+                <textarea value={(form as unknown as Record<string, string>).description ?? ""} onChange={(e) => set("description" as keyof CreateQRContact, e.target.value)} placeholder="Kurze Beschreibung oder Slogan…" rows={2} className={`${input} resize-none`} />
+              </Field>
+            ) : (
+              <button type="button" onClick={() => openField("description")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+                <Plus className="w-3.5 h-3.5" /> {tr.field_description}
+              </button>
+            )}
+          </>
         ) : (
-          <button type="button" onClick={() => openField("title")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
-            <Plus className="w-3.5 h-3.5" /> {tr.field_title}
-          </button>
-        )}
-
-        {/* Expandable: Company */}
-        {isFieldOpen("company") ? (
-          <Field label={tr.field_company}>
-            <input
-              type="text"
-              value={form.company}
-              onChange={(e) => set("company", e.target.value)}
-              placeholder="z.B. Builtech Gruppe"
-              className={input}
-            />
-          </Field>
-        ) : (
-          <button type="button" onClick={() => openField("company")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
-            <Plus className="w-3.5 h-3.5" /> {tr.field_company}
-          </button>
-        )}
-
-        {/* Expandable: Description */}
-        {isFieldOpen("description") ? (
-          <Field label={tr.field_description}>
-            <textarea
-              value={(form as unknown as Record<string, string>).description ?? ""}
-              onChange={(e) => set("description" as keyof CreateQRContact, e.target.value)}
-              placeholder="Kurze Beschreibung oder Slogan…"
-              rows={2}
-              className={`${input} resize-none`}
-            />
-          </Field>
-        ) : (
-          <button type="button" onClick={() => openField("description")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
-            <Plus className="w-3.5 h-3.5" /> {tr.field_description}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => openField("title")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors">
+              <Plus className="w-3.5 h-3.5" /> {tr.field_title}
+            </button>
+            <button type="button" onClick={() => openField("company")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors">
+              <Plus className="w-3.5 h-3.5" /> {tr.field_company}
+            </button>
+            <button type="button" onClick={() => openField("description")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors">
+              <Plus className="w-3.5 h-3.5" /> {tr.field_description}
+            </button>
+          </div>
         )}
 
         {/* Design: Background + Color + Logo */}
@@ -509,32 +502,49 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
 
       {/* Contact */}
       <Section title={tr.section_contact}>
-        {isFieldOpen("phone") ? (
-          <Field label={tr.field_phone}>
-            <input type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+41 123 456 789" className={input} autoFocus />
-          </Field>
+        {/* Phone / Email / Website — closed buttons shown inline */}
+        {(isFieldOpen("phone") || isFieldOpen("email") || isFieldOpen("website")) ? (
+          <>
+            {isFieldOpen("phone") ? (
+              <Field label={tr.field_phone}>
+                <input type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+41 123 456 789" className={input} autoFocus />
+              </Field>
+            ) : (
+              <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+                <Plus className="w-3.5 h-3.5" /> {tr.field_phone}
+              </button>
+            )}
+            {isFieldOpen("email") ? (
+              <Field label={tr.field_email}>
+                <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="max@qr-card.ch" className={input} />
+              </Field>
+            ) : (
+              <button type="button" onClick={() => openField("email")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+                <Plus className="w-3.5 h-3.5" /> {tr.field_email}
+              </button>
+            )}
+            {isFieldOpen("website") ? (
+              <Field label={tr.field_website}>
+                <input type="text" value={form.website} onChange={(e) => set("website", e.target.value)} onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }} placeholder="www.qr-card.ch" className={input} />
+              </Field>
+            ) : (
+              <button type="button" onClick={() => openField("website")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+                <Plus className="w-3.5 h-3.5" /> {tr.field_website}
+              </button>
+            )}
+          </>
         ) : (
-          <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
-            <Plus className="w-3.5 h-3.5" /> {tr.field_phone}
-          </button>
-        )}
-        {isFieldOpen("email") ? (
-          <Field label={tr.field_email}>
-            <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="max@qr-card.ch" className={input} />
-          </Field>
-        ) : (
-          <button type="button" onClick={() => openField("email")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
-            <Plus className="w-3.5 h-3.5" /> {tr.field_email}
-          </button>
-        )}
-        {isFieldOpen("website") ? (
-          <Field label={tr.field_website}>
-            <input type="text" value={form.website} onChange={(e) => set("website", e.target.value)} onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }} placeholder="www.qr-card.ch" className={input} />
-          </Field>
-        ) : (
-          <button type="button" onClick={() => openField("website")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
-            <Plus className="w-3.5 h-3.5" /> {tr.field_website}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors">
+              <Plus className="w-3.5 h-3.5" /> {tr.field_phone}
+            </button>
+            <button type="button" onClick={() => openField("email")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors">
+              <Plus className="w-3.5 h-3.5" /> {tr.field_email}
+            </button>
+            <button type="button" onClick={() => openField("website")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors">
+              <Plus className="w-3.5 h-3.5" /> {tr.field_website}
+            </button>
+          </div>
         )}
         <Field label="Land">
           <select

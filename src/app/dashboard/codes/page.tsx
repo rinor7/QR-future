@@ -6,7 +6,7 @@ import {
   Check, Folder as FolderIcon, ChevronRight,
   X, ChevronDown,
 } from "lucide-react";
-import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
+import { getAllContacts, deleteContact, getUserProfile, toggleContactActive, setFolderContactsActive } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
@@ -155,6 +155,8 @@ export default function CodesPage() {
 
   // View mode: grid or list
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [togglingFolder, setTogglingFolder] = useState<string | null>(null);
   const PAGE_SIZE = 12;
 
   // New folder creation
@@ -305,6 +307,34 @@ export default function CodesPage() {
     await deleteContact(id);
     setContacts((prev) => prev.filter((c) => c.id !== id));
     setDeleteModal(null);
+  }
+
+  async function handleTogglePause(id: string, currentlyActive: boolean) {
+    setTogglingId(id);
+    try {
+      await toggleContactActive(id, !currentlyActive);
+      setContacts((prev) => prev.map((c) => c.id === id ? { ...c, isActive: !currentlyActive } : c));
+    } finally {
+      setTogglingId(null);
+    }
+  }
+
+  async function handleToggleFolder(node: FolderWithStats, currentlyActive: boolean) {
+    setTogglingFolder(node.id);
+    try {
+      const { subtreeIds } = await import("@/lib/folders");
+      const ids = subtreeIds(node);
+      await setFolderContactsActive(ids, orgId, !currentlyActive);
+      // Update local contacts state
+      const idSet = new Set(ids);
+      setContacts((prev) => prev.map((c) => {
+        const cFolderId = contactFolders[c.id];
+        if (cFolderId && idSet.has(cFolderId)) return { ...c, isActive: !currentlyActive };
+        return c;
+      }));
+    } finally {
+      setTogglingFolder(null);
+    }
   }
 
   async function handleAssignFolder(contactId: string, folderId: string | null) {
@@ -533,10 +563,23 @@ export default function CodesPage() {
                       <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
                         <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>folder</span>
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <h4 className="font-headline font-bold text-slate-900 truncate">{folder.name}</h4>
                         <p className="text-xs font-medium text-slate-400">{qrCount} Assets</p>
                       </div>
+                      {!isReader && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleToggleFolder(folder, true); }}
+                          disabled={togglingFolder === folder.id}
+                          title="Pause / activate all QRs in folder"
+                          className="opacity-0 group-hover:opacity-100 shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border border-amber-100 text-amber-500 hover:bg-amber-50 transition-all disabled:opacity-30"
+                        >
+                          {togglingFolder === folder.id
+                            ? <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+                            : <span className="material-symbols-outlined text-[16px]">pause_circle</span>
+                          }
+                        </button>
+                      )}
                     </div>
                   );
                 })}
@@ -652,6 +695,16 @@ export default function CodesPage() {
                             <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors">
                               <span className="material-symbols-outlined text-[18px]">download</span>
                             </button>
+                            {!isReader && (
+                              <button
+                                onClick={() => handleTogglePause(contact.id, contact.isActive !== false)}
+                                disabled={togglingId === contact.id}
+                                title={contact.isActive !== false ? "Pause QR" : "Activate QR"}
+                                className={`w-9 h-9 border flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "border-amber-100 text-amber-500 hover:bg-amber-50 hover:border-amber-300" : "border-green-100 text-green-500 hover:bg-green-50 hover:border-green-300"}`}
+                              >
+                                <span className="material-symbols-outlined text-[18px]">{contact.isActive !== false ? "pause" : "play_arrow"}</span>
+                              </button>
+                            )}
                             {isAdmin && (
                               <button onClick={() => setDeleteModal(contact.id)} className="w-9 h-9 border border-red-100 flex items-center justify-center text-red-400 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors">
                                 <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -708,6 +761,16 @@ export default function CodesPage() {
                           <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="w-8 h-8 border border-slate-200 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary transition-colors">
                             <span className="material-symbols-outlined text-[16px]">download</span>
                           </button>
+                          {!isReader && (
+                            <button
+                              onClick={() => handleTogglePause(contact.id, contact.isActive !== false)}
+                              disabled={togglingId === contact.id}
+                              title={contact.isActive !== false ? "Pause QR" : "Activate QR"}
+                              className={`w-8 h-8 border flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "border-amber-100 text-amber-500 hover:bg-amber-50" : "border-green-100 text-green-500 hover:bg-green-50"}`}
+                            >
+                              <span className="material-symbols-outlined text-[16px]">{contact.isActive !== false ? "pause" : "play_arrow"}</span>
+                            </button>
+                          )}
                           {isAdmin && (
                             <button onClick={() => setDeleteModal(contact.id)} className="w-8 h-8 border border-red-100 flex items-center justify-center text-red-400 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
                               <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -791,22 +854,27 @@ function SidebarFolderNode({
   node,
   currentFolderId,
   onSelect,
+  onToggle,
+  togglingFolder,
   depth,
 }: {
   node: FolderWithStats;
   currentFolderId: string | null;
   onSelect: (id: string) => void;
+  onToggle?: (node: FolderWithStats, currentlyActive: boolean) => void;
+  togglingFolder?: string | null;
   depth: number;
 }) {
   const [expanded, setExpanded] = useState(false);
   const isActive = currentFolderId === node.id;
   const hasChildren = node.children.length > 0;
 
+  // Determine if any contacts in this folder are active (we check via node.qrCount as proxy — just show toggle always)
   return (
     <div>
       <div
-        className={`flex items-center gap-2 cursor-pointer transition-colors text-sm font-medium ${isActive ? "text-white" : "text-brand-text-secondary hover:bg-brand-surface-low hover:text-brand-text"}`}
-        style={{ paddingLeft: `${depth * 12 + 16}px`, paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", ...(isActive ? { background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", borderRadius: "0.75rem" } : {}) }}
+        className={`flex items-center gap-1 cursor-pointer transition-colors text-sm font-medium ${isActive ? "text-white" : "text-brand-text-secondary hover:bg-brand-surface-low hover:text-brand-text"}`}
+        style={{ paddingLeft: `${depth * 12 + 16}px`, paddingRight: "8px", paddingTop: "8px", paddingBottom: "8px", ...(isActive ? { background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", borderRadius: "0.75rem" } : {}) }}
         onClick={() => onSelect(node.id)}
       >
         {hasChildren ? (
@@ -816,9 +884,19 @@ function SidebarFolderNode({
         ) : <span className="w-3.5 h-3.5 shrink-0" />}
         <FolderIcon className="w-3.5 h-3.5 shrink-0" />
         <span className="truncate flex-1">{node.name}</span>
+        {onToggle && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggle(node, true); }}
+            disabled={togglingFolder === node.id}
+            title="Pause all QRs in this folder"
+            className={`shrink-0 w-5 h-5 flex items-center justify-center rounded transition-colors opacity-0 group-hover:opacity-100 hover:!opacity-100 disabled:opacity-30 ${isActive ? "text-white/70 hover:text-white" : "text-brand-outline hover:text-amber-500"}`}
+          >
+            <span className="material-symbols-outlined text-[14px]">pause_circle</span>
+          </button>
+        )}
       </div>
       {expanded && node.children.map((child) => (
-        <SidebarFolderNode key={child.id} node={child} currentFolderId={currentFolderId} onSelect={onSelect} depth={depth + 1} />
+        <SidebarFolderNode key={child.id} node={child} currentFolderId={currentFolderId} onSelect={onSelect} onToggle={onToggle} togglingFolder={togglingFolder} depth={depth + 1} />
       ))}
     </div>
   );
