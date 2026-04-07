@@ -381,6 +381,45 @@ export default function CreatePage() {
             hideActions
             onFormChange={(data) => setFormData(data)}
           />
+
+          {/* ── Bottom action bar ─────────────────────────────────────── */}
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] px-6 py-5">
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5">error</span>
+                <span>{error}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={triggerSubmit}
+                disabled={submitting}
+                className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-60 shadow-lg"
+                style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
+              >
+                {submitting ? (
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                ) : (
+                  <span className="material-symbols-outlined text-[18px]">qr_code_2</span>
+                )}
+                {submitting ? "Generating your QR Code..." : "Finish & Generate QR Code"}
+              </button>
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="px-5 py-3 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+            <p className="mt-3 text-xs text-slate-400">
+              Your QR Code will be saved and you&apos;ll be taken to the edit page where you can download or share it.
+            </p>
+          </div>
         </div>
 
         {/* ── Right: live preview ─────────────────────────────────────────── */}

@@ -161,6 +161,14 @@ export function buildTree(
     }
   });
 
+  // Roll up child counts into parent so displayed count is total for the subtree
+  function rollUp(node: FolderWithStats): number {
+    const childTotal = node.children.reduce((sum, c) => sum + rollUp(c), 0);
+    node.qrCount = (stats[node.id]?.qrs ?? 0) + childTotal;
+    return node.qrCount;
+  }
+  roots.forEach(rollUp);
+
   return roots;
 }
 

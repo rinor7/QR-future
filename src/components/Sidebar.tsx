@@ -113,7 +113,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
             style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
           >
             <span className="material-symbols-outlined text-lg">add</span>
-            + Create QR Code
+            Create QR Code
           </Link>
         </div>
       )}
