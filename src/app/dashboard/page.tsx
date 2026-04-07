@@ -13,7 +13,7 @@ import { useRole } from "@/lib/useRole";
 export default function DashboardPage() {
   const { tr } = useLang();
   const router = useRouter();
-  const { isAdmin, isReader, loading: roleLoading } = useRole();
+  const { isReader, loading: roleLoading } = useRole();
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState<string | null>(null);

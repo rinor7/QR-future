@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Minus, HelpCircle, Calendar } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { getUserProfile } from "@/lib/store";
 import { Plan } from "@/lib/types";
@@ -98,7 +97,6 @@ export default function UpgradePage() {
           const meta = PLAN_META[config.plan];
           const isCurrent = config.plan === currentPlan;
           const planName = config.plan.charAt(0).toUpperCase() + config.plan.slice(1);
-          const isPremium = config.plan === "premium";
           const isPlatinum = config.plan === "platinum";
 
           return (

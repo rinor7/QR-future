@@ -6,7 +6,7 @@ import { useRole } from "@/lib/useRole";
 import { getTeamMembers, updateTeamMemberRole, getUserProfile } from "@/lib/store";
 import { TeamMember, Role } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { UserPlus, Trash2, Download, Shield, Users, Clock, UserX, X } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 
 function getInitials(firstName: string, lastName: string, email: string) {
   if (firstName || lastName) return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase();
@@ -120,7 +120,6 @@ export default function UsersPage() {
 
   const adminCount = members.filter((m) => m.role === "admin" || m.role === "owner").length;
   const pendingCount = 0;
-  const inputStyle = { border: "1px solid rgba(195,197,217,0.5)" };
 
   if (roleLoading || loading) {
     return (

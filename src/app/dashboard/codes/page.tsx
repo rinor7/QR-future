@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  Plus, Pencil, Trash2, ExternalLink, Copy, Check, Download,
-  BarChart2, FolderOpen, Folder as FolderIcon, ChevronRight,
-  ArrowLeft, FolderPlus, X, ChevronDown,
+  Check, Folder as FolderIcon, ChevronRight,
+  X, ChevronDown,
 } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
@@ -297,15 +296,7 @@ export default function CodesPage() {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-  function getQRUrl(id: string) {
-    return `${window.location.origin}/qr/${id}`;
-  }
 
-  function handleCopy(id: string) {
-    navigator.clipboard.writeText(getQRUrl(id));
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  }
 
   async function handleDelete(id: string) {
     await deleteContact(id);

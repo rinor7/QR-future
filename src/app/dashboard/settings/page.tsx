@@ -7,20 +7,6 @@ import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { getUserProfile } from "@/lib/store";
 import { Plan, PLAN_LABELS } from "@/lib/types";
 import { useLang } from "@/lib/language";
-import { Zap, CreditCard, AlertTriangle } from "lucide-react";
-
-const PLAN_COLORS: Record<Plan, { bg: string; text: string }> = {
-  free:     { bg: "rgba(115,118,136,0.1)", text: "#737688" },
-  star:     { bg: "rgba(180,83,9,0.1)",    text: "#b45309" },
-  premium:  { bg: "rgba(0,62,199,0.1)",    text: "#003ec7" },
-  platinum: { bg: "rgba(107,33,168,0.1)",  text: "#6b21a8" },
-};
-
-const inputClass = "w-full bg-brand-bg rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary placeholder:text-brand-outline text-brand-text";
-const inputStyle = { border: "1px solid rgba(195,197,217,0.5)" };
-const labelClass = "block text-xs font-semibold text-brand-outline uppercase tracking-wide mb-1.5";
-const cardClass = "bg-brand-surface rounded-2xl p-5 shadow-ambient-sm";
-const cardStyle = { border: "1px solid rgba(195,197,217,0.35)" };
 
 export default function SettingsPage() {
   const { tr, lang, toggleLang } = useLang();
@@ -30,7 +16,6 @@ export default function SettingsPage() {
   const [isOwner, setIsOwner] = useState(false);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [userRole, setUserRole] = useState<string>("");
-  const [planLimit, setPlanLimit] = useState<number | string>("-");
   const [planUsed, setPlanUsed] = useState(0);
 
   const [supportEmail, setSupportEmail] = useState("");
@@ -114,8 +99,6 @@ export default function SettingsPage() {
     }
     setPwLoading(false);
   }
-
-  const planColor = PLAN_COLORS[plan];
 
   return (
     <div className="pt-8 pb-12 px-10 max-w-6xl mx-auto">
