@@ -667,7 +667,7 @@ export default function CodesPage() {
                         className={`bg-white rounded-2xl flex flex-row overflow-hidden group border border-slate-100 shadow-sm hover:shadow-[0px_8px_32px_rgba(25,28,30,0.10)] transition-shadow ${dragContactId === contact.id ? "opacity-50" : ""} cursor-grab active:cursor-grabbing`}
                       >
                         {/* Left content */}
-                        <div className="flex-1 p-8 flex flex-col justify-between min-w-0">
+                        <div className="flex-1 p-6 flex flex-col justify-between min-w-0">
                           <div>
                             <div className="flex items-center gap-2 mb-4">
                               <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-extrabold uppercase tracking-wider">Business Card</span>
@@ -700,34 +700,41 @@ export default function CodesPage() {
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 mt-6">
-                            {!isReader && (
-                              <Link href={`/dashboard/edit/${contact.id}`} className="text-primary font-bold font-headline text-sm hover:underline mr-2">Bearbeiten</Link>
-                            )}
-                            <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors">
-                              <span className="material-symbols-outlined text-[18px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
-                            </button>
-                            <a href={`/qr/${contact.id}`} target="_blank" className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors">
-                              <span className="material-symbols-outlined text-[18px]">share</span>
-                            </a>
-                            <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors">
-                              <span className="material-symbols-outlined text-[18px]">download</span>
-                            </button>
-                            {!isReader && (
-                              <button
-                                onClick={() => handleTogglePause(contact.id, contact.isActive !== false)}
-                                disabled={togglingId === contact.id}
-                                title={contact.isActive !== false ? "Pause QR" : "Activate QR"}
-                                className={`w-9 h-9 border flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "border-amber-100 text-amber-500 hover:bg-amber-50 hover:border-amber-300" : "border-green-100 text-green-500 hover:bg-green-50 hover:border-green-300"}`}
-                              >
-                                <span className="material-symbols-outlined text-[18px]">{contact.isActive !== false ? "pause" : "play_arrow"}</span>
+                          <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
+                            {/* Edit button */}
+                            {!isReader ? (
+                              <Link href={`/dashboard/edit/${contact.id}`} className="flex items-center gap-1.5 text-xs font-bold text-primary hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
+                                <span className="material-symbols-outlined text-[15px]">edit</span>
+                                Edit
+                              </Link>
+                            ) : <span />}
+                            {/* Icon actions */}
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
+                                <span className="material-symbols-outlined text-[17px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
                               </button>
-                            )}
-                            {isAdmin && (
-                              <button onClick={() => setDeleteModal(contact.id)} className="w-9 h-9 border border-red-100 flex items-center justify-center text-red-400 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors">
-                                <span className="material-symbols-outlined text-[18px]">delete</span>
+                              <a href={`/qr/${contact.id}`} target="_blank" title="Open page" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
+                                <span className="material-symbols-outlined text-[17px]">open_in_new</span>
+                              </a>
+                              <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
+                                <span className="material-symbols-outlined text-[17px]">download</span>
                               </button>
-                            )}
+                              {!isReader && (
+                                <button
+                                  onClick={() => handleTogglePause(contact.id, contact.isActive !== false)}
+                                  disabled={togglingId === contact.id}
+                                  title={contact.isActive !== false ? "Pause" : "Activate"}
+                                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "text-amber-500 hover:bg-amber-50" : "text-green-500 hover:bg-green-50"}`}
+                                >
+                                  <span className="material-symbols-outlined text-[17px]">{contact.isActive !== false ? "pause" : "play_arrow"}</span>
+                                </button>
+                              )}
+                              {isAdmin && (
+                                <button onClick={() => setDeleteModal(contact.id)} title="Delete" className="w-8 h-8 flex items-center justify-center text-red-400 rounded-lg hover:bg-red-50 transition-colors">
+                                  <span className="material-symbols-outlined text-[17px]">delete</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                         {/* Right QR panel — dark */}
