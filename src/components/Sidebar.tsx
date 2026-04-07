@@ -118,14 +118,15 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-l-xl text-sm font-semibold transition-all ${
                 active
-                  ? "text-white shadow-ambient-sm"
+                  ? dark
+                    ? "text-blue-400 bg-blue-900/20 border-r-4 border-blue-400"
+                    : "text-primary bg-blue-50 border-r-4 border-primary"
                   : dark
-                  ? "text-gray-400 hover:bg-gray-800 hover:text-white"
-                  : "text-brand-text-secondary hover:bg-brand-surface-low hover:text-brand-text"
+                  ? "text-gray-400 hover:bg-gray-800 hover:text-white rounded-xl"
+                  : "text-brand-text-secondary hover:bg-brand-surface-low hover:text-brand-text rounded-xl"
               }`}
-              style={active ? { background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" } : undefined}
             >
               <Icon className="w-[18px] h-[18px] shrink-0" />
               {label}
