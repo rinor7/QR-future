@@ -233,6 +233,15 @@ export default function CodesPage() {
     return Object.values(contactFolders).filter((v) => v === folderId).length;
   }
 
+  function isFolderActive(node: FolderWithStats): boolean {
+    const { subtreeIds: getSubtreeIds } = require("@/lib/folders") as typeof import("@/lib/folders");
+    const idSet = new Set(getSubtreeIds(node));
+    return contacts.some((c) => {
+      const cFolderId = contactFolders[c.id];
+      return cFolderId && idSet.has(cFolderId) && c.isActive !== false;
+    });
+  }
+
   // Get siblings at the current creation level (for duplicate check)
   function getSiblings(): FolderWithStats[] {
     if (currentFolderId) {
@@ -319,17 +328,23 @@ export default function CodesPage() {
     }
   }
 
-  async function handleToggleFolder(node: FolderWithStats, currentlyActive: boolean) {
+  async function handleToggleFolder(node: FolderWithStats) {
     setTogglingFolder(node.id);
     try {
       const { subtreeIds } = await import("@/lib/folders");
       const ids = subtreeIds(node);
-      await setFolderContactsActive(ids, orgId, !currentlyActive);
-      // Update local contacts state
       const idSet = new Set(ids);
+      // Determine current state: if ANY contact in this folder is active, we pause all; if all paused, we activate all
+      const folderContacts = contacts.filter((c) => {
+        const cFolderId = contactFolders[c.id];
+        return cFolderId && idSet.has(cFolderId);
+      });
+      const anyActive = folderContacts.some((c) => c.isActive !== false);
+      const newState = !anyActive; // if any active → pause all; if all paused → activate all
+      await setFolderContactsActive(ids, orgId, newState);
       setContacts((prev) => prev.map((c) => {
         const cFolderId = contactFolders[c.id];
-        if (cFolderId && idSet.has(cFolderId)) return { ...c, isActive: !currentlyActive };
+        if (cFolderId && idSet.has(cFolderId)) return { ...c, isActive: newState };
         return c;
       }));
     } finally {
@@ -567,19 +582,22 @@ export default function CodesPage() {
                         <h4 className="font-headline font-bold text-slate-900 truncate">{folder.name}</h4>
                         <p className="text-xs font-medium text-slate-400">{qrCount} Assets</p>
                       </div>
-                      {!isReader && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleToggleFolder(folder, true); }}
-                          disabled={togglingFolder === folder.id}
-                          title="Pause / activate all QRs in folder"
-                          className="opacity-0 group-hover:opacity-100 shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border border-amber-100 text-amber-500 hover:bg-amber-50 transition-all disabled:opacity-30"
-                        >
-                          {togglingFolder === folder.id
-                            ? <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
-                            : <span className="material-symbols-outlined text-[16px]">pause_circle</span>
-                          }
-                        </button>
-                      )}
+                      {!isReader && (() => {
+                        const folderHasActive = isFolderActive(folder);
+                        return (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleToggleFolder(folder); }}
+                            disabled={togglingFolder === folder.id}
+                            title={folderHasActive ? "Pause all QRs in folder" : "Activate all QRs in folder"}
+                            className={`opacity-0 group-hover:opacity-100 shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border transition-all disabled:opacity-30 ${folderHasActive ? "border-amber-100 text-amber-500 hover:bg-amber-50" : "border-green-100 text-green-500 hover:bg-green-50"}`}
+                          >
+                            {togglingFolder === folder.id
+                              ? <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+                              : <span className="material-symbols-outlined text-[16px]">{folderHasActive ? "pause_circle" : "play_circle"}</span>
+                            }
+                          </button>
+                        );
+                      })()}
                     </div>
                   );
                 })}
