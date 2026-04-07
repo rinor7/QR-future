@@ -521,22 +521,19 @@ export default function CodesPage() {
                   return (
                     <div
                       key={folder.id}
-                      className={`bg-surface-container-low p-6 rounded-xl flex items-center justify-between group hover:bg-surface-container-high transition-all cursor-pointer ${isDragTarget ? "ring-2 ring-primary" : ""}`}
+                      className={`bg-white p-5 rounded-2xl flex items-center gap-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-primary/20 transition-all cursor-pointer group ${isDragTarget ? "ring-2 ring-primary" : ""}`}
                       onClick={() => !isDragging && setCurrentFolderId(folder.id)}
                       onDragOver={(e) => { e.preventDefault(); setDragOverId(folder.id); }}
                       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverId(null); }}
                       onDrop={(e) => { e.preventDefault(); handleDropOnFolder(folder.id); }}
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
-                          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>folder</span>
-                        </div>
-                        <div>
-                          <h4 className="font-headline font-bold text-slate-900">{folder.name}</h4>
-                          <p className="text-xs font-medium text-outline">{qrCount} Assets</p>
-                        </div>
+                      <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                        <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>folder</span>
                       </div>
-                      <span className="material-symbols-outlined text-outline opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>
+                      <div className="min-w-0">
+                        <h4 className="font-headline font-bold text-slate-900 truncate">{folder.name}</h4>
+                        <p className="text-xs font-medium text-slate-400">{qrCount} Assets</p>
+                      </div>
                     </div>
                   );
                 })}
@@ -596,73 +593,79 @@ export default function CodesPage() {
                       draggable
                       onDragStart={(e) => handleDragStart(e, contact.id)}
                       onDragEnd={handleDragEnd}
-                      className={`bg-surface-container-lowest rounded-xl flex flex-col md:flex-row overflow-hidden group border border-outline-variant/10 cursor-grab active:cursor-grabbing transition-shadow hover:shadow-[0px_20px_40px_rgba(25,28,30,0.08)] ${dragContactId === contact.id ? "opacity-50" : ""}`}
+                      className={`bg-white rounded-2xl flex flex-row overflow-hidden group border border-slate-100 shadow-sm hover:shadow-[0px_8px_32px_rgba(25,28,30,0.10)] transition-shadow ${dragContactId === contact.id ? "opacity-50" : ""} cursor-grab active:cursor-grabbing`}
                     >
-                      {/* Left content (2/3) */}
-                      <div className="p-8 md:w-2/3 flex flex-col justify-between">
+                      {/* Left content */}
+                      <div className="flex-1 p-8 flex flex-col justify-between min-w-0">
                         <div>
+                          {/* Badges */}
                           <div className="flex items-center gap-2 mb-4">
                             <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-extrabold uppercase tracking-wider">Business Card</span>
                             <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${contact.isActive !== false ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
                               {contact.isActive !== false ? "Active" : "Paused"}
                             </span>
                           </div>
-                          <h4 className="text-2xl font-headline font-bold text-slate-900 mb-1">
+                          {/* Name */}
+                          <h4 className="text-2xl font-headline font-bold text-slate-900 mb-1 leading-tight">
                             {`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}
                           </h4>
-                          {contact.title && <p className="text-primary font-semibold text-sm mb-1">{contact.title}</p>}
-                          {contact.company && <p className="text-outline text-sm mb-6">{contact.company}</p>}
-                          <div className="flex items-center gap-6 mt-4">
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-extrabold uppercase text-outline tracking-wider">Created</span>
-                              <span className="text-sm font-semibold">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</span>
+                          {contact.title && <p className="text-primary font-semibold text-sm mb-0.5">{contact.title}</p>}
+                          {contact.company && <p className="text-slate-500 text-sm mb-5">{contact.company}</p>}
+                          {/* Stats */}
+                          <div className="flex items-center gap-8 mt-2">
+                            <div>
+                              <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Created</span>
+                              <span className="text-sm font-semibold text-slate-800">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</span>
                             </div>
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-extrabold uppercase text-outline tracking-wider">Scans</span>
-                              <span className="text-sm font-semibold flex items-center gap-1">
-                                <span className="material-symbols-outlined text-xs">trending_up</span>
+                            <div>
+                              <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Scans</span>
+                              <span className="text-sm font-semibold text-slate-800 flex items-center gap-1">
+                                <span className="material-symbols-outlined text-xs text-slate-500">trending_up</span>
                                 {scanCounts[contact.id] ?? 0} Scans
                               </span>
                             </div>
                             {hasFolders && (
-                              <div className="flex flex-col">
-                                <span className="text-[10px] font-extrabold uppercase text-outline tracking-wider">Folder</span>
+                              <div>
+                                <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Folder</span>
                                 <button onClick={() => setPickerContactId(contact.id)} className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-                                  <span className="material-symbols-outlined text-xs">folder</span>
                                   {folderName ?? "None"}
                                 </button>
                               </div>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 mt-8">
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 mt-6">
                           {!isReader && (
-                            <Link href={`/dashboard/edit/${contact.id}`} className="flex-1 bg-surface-container-low hover:bg-surface-container-high text-primary py-2.5 rounded-lg text-sm font-bold font-headline transition-colors text-center">
+                            <Link href={`/dashboard/edit/${contact.id}`} className="text-primary font-bold font-headline text-sm hover:underline mr-2">
                               Bearbeiten
                             </Link>
                           )}
-                          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} className="w-10 h-10 bg-surface-container-low flex items-center justify-center text-outline rounded-lg hover:text-primary transition-colors">
-                            <span className="material-symbols-outlined text-base">{copiedId === contact.id ? "check" : "content_copy"}</span>
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }}
+                            className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
                           </button>
-                          <a href={`/qr/${contact.id}`} target="_blank" className="w-10 h-10 bg-surface-container-low flex items-center justify-center text-outline rounded-lg hover:text-primary transition-colors">
-                            <span className="material-symbols-outlined text-base">share</span>
+                          <a href={`/qr/${contact.id}`} target="_blank" className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors">
+                            <span className="material-symbols-outlined text-[18px]">share</span>
                           </a>
-                          <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="w-10 h-10 bg-surface-container-low flex items-center justify-center text-outline rounded-lg hover:text-primary transition-colors">
-                            <span className="material-symbols-outlined text-base">download</span>
+                          <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors">
+                            <span className="material-symbols-outlined text-[18px]">download</span>
                           </button>
                           {isAdmin && (
-                            <button onClick={() => setDeleteModal(contact.id)} className="w-10 h-10 bg-surface-container-low flex items-center justify-center text-error/60 rounded-lg hover:bg-error-container hover:text-error transition-colors">
-                              <span className="material-symbols-outlined text-base">delete</span>
+                            <button onClick={() => setDeleteModal(contact.id)} className="w-9 h-9 border border-red-100 flex items-center justify-center text-red-400 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors">
+                              <span className="material-symbols-outlined text-[18px]">delete</span>
                             </button>
                           )}
                         </div>
                       </div>
 
-                      {/* Right QR panel */}
-                      <div className="w-[140px] shrink-0 bg-slate-50 flex items-center justify-center p-3 relative overflow-hidden">
-                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div id={`qr-${contact.id}`} className="relative z-10 p-2 bg-white rounded-xl shadow-md group-hover:scale-105 transition-transform duration-300">
-                          <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={96} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
+                      {/* Right QR panel — dark phone style */}
+                      <div className="w-[130px] shrink-0 flex items-center justify-center p-4 relative" style={{ background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)" }}>
+                        <div id={`qr-${contact.id}`} className="relative z-10 p-2 bg-white rounded-lg shadow-lg group-hover:scale-105 transition-transform duration-300">
+                          <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={90} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
                         </div>
                       </div>
                     </div>
@@ -671,12 +674,12 @@ export default function CodesPage() {
 
                 {/* New QR Code dashed card */}
                 {!isReader && !limitReached && (
-                  <Link href="/dashboard/create" className="bg-surface-container border-2 border-dashed border-outline-variant/50 rounded-xl flex flex-col items-center justify-center p-8 text-center group hover:border-primary/50 transition-colors cursor-pointer min-h-[320px]">
-                    <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform shadow-sm">
-                      <span className="material-symbols-outlined text-3xl">add</span>
+                  <Link href="/dashboard/create" className="bg-white border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center p-10 text-center group hover:border-primary/40 hover:bg-blue-50/30 transition-all cursor-pointer min-h-[280px]">
+                    <div className="w-14 h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform shadow-sm">
+                      <span className="material-symbols-outlined text-2xl">add</span>
                     </div>
-                    <h4 className="font-headline font-bold text-slate-900 mb-2">New QR Code</h4>
-                    <p className="text-sm text-outline max-w-[200px]">Create a new digital business card or redirect link.</p>
+                    <h4 className="font-headline font-bold text-slate-900 mb-1 text-lg">New QR Code</h4>
+                    <p className="text-sm text-slate-400 max-w-[200px]">Create a new digital business card or redirect link.</p>
                   </Link>
                 )}
               </div>
