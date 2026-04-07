@@ -414,227 +414,149 @@ export default function CodesPage() {
   const pickerContact = pickerContactId ? contacts.find((c) => c.id === pickerContactId) : null;
 
   return (
-    <div className="flex h-full min-h-screen">
-      {/* ── Left folder panel ── */}
-      <div className="hidden md:flex flex-col w-56 shrink-0 bg-brand-surface border-r"
-        style={{ borderColor: "rgba(195,197,217,0.35)", minHeight: "100vh" }}>
-        <div className="px-4 py-5" style={{ borderBottom: "1px solid rgba(195,197,217,0.35)" }}>
-          <p className="text-xs font-semibold text-brand-outline uppercase tracking-wide">Ordner</p>
-        </div>
-        <div className="flex-1 overflow-y-auto py-2">
-          {/* All QR codes */}
-          <button
-            onClick={() => setCurrentFolderId(null)}
-            className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium transition-colors ${
-              currentFolderId === null ? "text-white" : "text-brand-text-secondary hover:bg-brand-surface-low hover:text-brand-text"
-            }`}
-            style={currentFolderId === null ? { background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", borderRadius: "0.75rem", margin: "0 8px", width: "calc(100% - 16px)" } : undefined}
-          >
-            <FolderOpen className="w-4 h-4 shrink-0" />
-            Alle QR Codes
-          </button>
-          {/* Folder list */}
-          {displayTree.map((folder) => (
-            <SidebarFolderNode
-              key={folder.id}
-              node={folder}
-              currentFolderId={currentFolderId}
-              onSelect={setCurrentFolderId}
-              depth={0}
-            />
-          ))}
-        </div>
-        {canCreateFolder && (
-          <div className="p-3" style={{ borderTop: "1px solid rgba(195,197,217,0.35)" }}>
-            <button
-              onClick={() => { setCreatingFolder(true); setFolderNameError(null); setNewFolderName(""); }}
-              className="w-full flex items-center gap-2 text-xs font-semibold text-brand-primary hover:bg-brand-surface-low px-3 py-2 rounded-xl transition-colors"
-              style={{ border: "1px dashed rgba(0,62,199,0.3)" }}
-            >
-              <FolderPlus className="w-3.5 h-3.5" />
-              Neuer Ordner
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* ── Main content ── */}
-      <div className="flex-1 min-w-0 p-4 wide:p-8">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <div className="pt-6 pb-12 px-8 max-w-7xl mx-auto">
+      {/* ── Header ── */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <div>
-          <h1 className="font-headline text-3xl font-bold text-brand-text">QR Codes</h1>
-          <p className="text-brand-outline mt-1">{contacts.length} {tr.codes_total}</p>
+          <h1 className="font-headline text-[3.5rem] font-bold leading-none tracking-tighter mb-2">QR Codes</h1>
+          <p className="text-on-surface-variant font-medium">Manage and monitor your enterprise QR infrastructure.</p>
         </div>
-        {!loading && !isReader && (
-          limitReached ? (
-            <div className="flex items-center gap-2 rounded-xl px-4 py-2.5" style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
-              <span className="text-sm text-white/90">{tr.plan_limit_reached} — </span>
-              {isOwner ? (
-                <Link href="/dashboard/upgrade" className="text-sm font-semibold text-white hover:text-white/80 transition-colors">{tr.free_plan_upgrade}</Link>
-              ) : (
-                <span className="text-sm text-white/90">
-                  {tr.plan_limit_ask_owner}{" "}
-                  <Link href="/dashboard/upgrade" className="font-semibold underline hover:text-white/80 transition-colors">{tr.see_plans}</Link>.
-                </span>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <a href="/api/scan/export" download="scan-data.csv" className="flex items-center gap-1.5 bg-brand-surface hover:bg-brand-surface-low text-brand-text-secondary px-3 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-ambient-sm" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
-                <Download className="w-4 h-4" />
-                {tr.export_csv}
-              </a>
-              <Link href="/dashboard/create" className="btn-primary flex items-center gap-2">
-                <Plus className="w-5 h-5" />
-                {tr.create_qr}
-              </Link>
-            </div>
-          )
-        )}
+        <div className="flex items-center gap-3">
+          <a href="/api/scan/export" download="scan-data.csv" className="flex items-center gap-2 bg-surface-container-high px-5 py-3 rounded-xl font-headline font-semibold text-primary hover:bg-surface-container-highest transition-colors">
+            <span className="material-symbols-outlined">file_download</span>
+            CSV export
+          </a>
+          {!isReader && !limitReached && (
+            <Link href="/dashboard/create" className="btn-primary flex items-center gap-2 px-6 py-3 font-headline font-bold shadow-lg">
+              <span className="material-symbols-outlined">add_circle</span>
+              {tr.create_qr}
+            </Link>
+          )}
+          {limitReached && isOwner && (
+            <Link href="/dashboard/upgrade" className="btn-primary flex items-center gap-2 px-6 py-3 font-headline font-bold shadow-lg">
+              Upgrade Plan →
+            </Link>
+          )}
+        </div>
       </div>
 
-      {/* Breadcrumb */}
+      {/* ── Breadcrumb ── */}
       {breadcrumb.length > 0 && (
-        <div className="flex items-center gap-1.5 mb-5 text-sm">
-          <button onClick={() => setCurrentFolderId(null)} className="flex items-center gap-1.5 text-brand-outline hover:text-brand-primary transition-colors font-medium">
-            <ArrowLeft className="w-4 h-4" />
+        <div className="flex items-center gap-2 mb-8 text-sm">
+          <button onClick={() => setCurrentFolderId(null)} className="flex items-center gap-1.5 text-outline hover:text-primary transition-colors font-medium">
+            <span className="material-symbols-outlined text-base">arrow_back</span>
             QR Codes
           </button>
           {breadcrumb.map((seg, i) => (
-            <span key={seg.id} className="flex items-center gap-1.5">
-              <ChevronRight className="w-4 h-4 text-brand-outline-variant" />
+            <span key={seg.id} className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-base text-outline">chevron_right</span>
               {i === breadcrumb.length - 1 ? (
-                <span className="font-semibold text-brand-text">{seg.name}</span>
+                <span className="font-semibold text-on-surface">{seg.name}</span>
               ) : (
-                <button onClick={() => setCurrentFolderId(seg.id)} className="text-brand-outline hover:text-brand-primary transition-colors">{seg.name}</button>
+                <button onClick={() => setCurrentFolderId(seg.id)} className="text-outline hover:text-primary transition-colors">{seg.name}</button>
               )}
             </span>
           ))}
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        <input
-          type="text"
-          placeholder={tr.search_placeholder}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-[200px] max-w-md bg-brand-surface rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary placeholder:text-brand-outline text-brand-text"
-          style={{ border: "1px solid rgba(195,197,217,0.5)" }}
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "paused")}
-          className="bg-brand-surface rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary text-brand-text-secondary"
-          style={{ border: "1px solid rgba(195,197,217,0.5)" }}
-        >
+      {/* ── Filters ── */}
+      <div className="flex flex-wrap items-center gap-3 mb-8">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
+          <input
+            type="text"
+            placeholder={tr.search_placeholder}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-surface-container-low border-none rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary transition-all"
+          />
+        </div>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "paused")} className="bg-surface-container-low border-none rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary text-on-surface-variant">
           <option value="all">{tr.filter_all}</option>
           <option value="active">{tr.filter_active}</option>
           <option value="paused">{tr.filter_paused}</option>
         </select>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as "newest" | "oldest" | "name")}
-          className="bg-brand-surface rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary text-brand-text-secondary"
-          style={{ border: "1px solid rgba(195,197,217,0.5)" }}
-        >
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as "newest" | "oldest" | "name")} className="bg-surface-container-low border-none rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary text-on-surface-variant">
           <option value="newest">{tr.sort_newest}</option>
           <option value="oldest">{tr.sort_oldest}</option>
           <option value="name">{tr.sort_name}</option>
         </select>
+        {canCreateFolder && (
+          <button onClick={() => { setCreatingFolder(true); setFolderNameError(null); setNewFolderName(""); }} className="flex items-center gap-2 bg-surface-container-low border-none rounded-xl px-4 py-2.5 text-sm font-semibold text-primary hover:bg-surface-container transition-colors">
+            <span className="material-symbols-outlined text-base">create_new_folder</span>
+            Neuer Ordner
+          </button>
+        )}
       </div>
+
+      {/* ── New folder form ── */}
+      {creatingFolder && (
+        <form onSubmit={handleCreateFolder} className="mb-8 bg-surface-container-lowest rounded-xl px-5 py-4 shadow-sm border border-primary/20">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-primary">create_new_folder</span>
+            <input autoFocus value={newFolderName} onChange={(e) => { setNewFolderName(e.target.value); setFolderNameError(null); }}
+              placeholder={currentFolderId ? "Unterordner-Name" : "Ordner-Name"}
+              className="flex-1 text-sm focus:outline-none bg-transparent text-on-surface" />
+            <button type="submit" disabled={savingFolder || !newFolderName.trim()} className="btn-primary flex items-center gap-1.5 text-sm px-4 py-2 disabled:opacity-50">
+              {savingFolder ? <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <span className="material-symbols-outlined text-sm">check</span>}
+              Erstellen
+            </button>
+            <button type="button" onClick={() => { setCreatingFolder(false); setNewFolderName(""); setFolderNameError(null); }} className="p-2 text-outline hover:text-on-surface rounded-xl hover:bg-surface-container-low transition-colors">
+              <span className="material-symbols-outlined text-base">close</span>
+            </button>
+          </div>
+          {folderNameError && <p className="mt-2 text-xs text-error">{folderNameError}</p>}
+        </form>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full" />
+          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
         </div>
       ) : (
         <>
-          {/* New folder form */}
-          {creatingFolder && (
-            <form onSubmit={handleCreateFolder} className="mb-5 bg-brand-surface rounded-2xl px-4 py-3 shadow-ambient-sm" style={{ border: "1px solid rgba(0,62,199,0.2)" }}>
-              <div className="flex items-center gap-2">
-                <FolderPlus className="w-5 h-5 text-brand-primary shrink-0" />
-                <input
-                  autoFocus
-                  value={newFolderName}
-                  onChange={(e) => { setNewFolderName(e.target.value); setFolderNameError(null); }}
-                  placeholder={currentFolderId ? "Unterordner-Name" : "Ordner-Name"}
-                  className="flex-1 text-sm focus:outline-none placeholder:text-brand-outline text-brand-text bg-transparent"
-                />
-                <button
-                  type="submit"
-                  disabled={savingFolder || !newFolderName.trim()}
-                  className="btn-primary flex items-center gap-1.5 text-sm px-3 py-1.5 disabled:opacity-50"
-                >
-                  {savingFolder
-                    ? <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    : <Check className="w-3.5 h-3.5" />}
-                  Erstellen
-                </button>
-                <button type="button" onClick={() => { setCreatingFolder(false); setNewFolderName(""); setFolderNameError(null); }} className="p-1.5 text-brand-outline hover:text-brand-text rounded-xl hover:bg-brand-surface-low transition-colors">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              {folderNameError && <p className="mt-2 text-xs text-brand-error">{folderNameError}</p>}
-            </form>
-          )}
-
-          {/* Folder cards */}
+          {/* ── Folders section ── */}
           {!search.trim() && visibleFolders.length > 0 && (
-            <div className="mb-8">
-              <p className="text-xs font-semibold text-brand-outline uppercase tracking-wide mb-3">Ordner</p>
-              <div className="flex flex-wrap gap-4">
+            <section className="mb-12">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-headline text-xs font-extrabold uppercase tracking-widest text-outline">ORDNER</h3>
+                <button className="text-primary text-sm font-semibold hover:underline">View all folders</button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {visibleFolders.map((folder) => {
                   const isDragTarget = dragOverId === folder.id;
                   const qrCount = countInFolder(folder.id);
                   return (
                     <div
                       key={folder.id}
-                      className="flex flex-col items-center cursor-pointer group select-none"
-                      style={{ width: "110px" }}
+                      className={`bg-surface-container-low p-6 rounded-xl flex items-center justify-between group hover:bg-surface-container-high transition-all cursor-pointer ${isDragTarget ? "ring-2 ring-primary" : ""}`}
                       onClick={() => !isDragging && setCurrentFolderId(folder.id)}
                       onDragOver={(e) => { e.preventDefault(); setDragOverId(folder.id); }}
                       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverId(null); }}
                       onDrop={(e) => { e.preventDefault(); handleDropOnFolder(folder.id); }}
                     >
-                      <div className={`w-full relative transition-all duration-150 ${isDragTarget ? "scale-110" : "group-hover:scale-105"}`} style={{ aspectRatio: "1.1" }}>
-                        <div className={`absolute top-0 left-0 w-10 h-4 rounded-t-lg transition-all ${isDragTarget ? "" : ""}`}
-                          style={{ background: isDragTarget ? "#003ec7" : "#4459a8" }} />
-                        <div className={`absolute bottom-0 left-0 right-0 top-2 rounded-b-2xl rounded-tr-2xl flex items-center justify-center transition-all shadow-ambient-sm`}
-                          style={{
-                            background: isDragTarget
-                              ? "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)"
-                              : "linear-gradient(135deg, #4459a8 0%, #003ec7 100%)",
-                            border: isDragTarget ? "2px dashed rgba(255,255,255,0.4)" : "none",
-                          }}>
-                          {isDragTarget ? (
-                            <span className="text-white text-xs font-semibold">Ablegen</span>
-                          ) : (
-                            <FolderOpen className="w-8 h-8 text-white/80" />
-                          )}
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>folder</span>
                         </div>
-                        {qrCount > 0 && (
-                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-brand-surface rounded-full flex items-center justify-center shadow-ambient-sm" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
-                            <span className="text-xs font-bold text-brand-primary">{qrCount}</span>
-                          </div>
-                        )}
+                        <div>
+                          <h4 className="font-headline font-bold text-slate-900">{folder.name}</h4>
+                          <p className="text-xs font-medium text-outline">{qrCount} Assets</p>
+                        </div>
                       </div>
-                      <p className="text-sm font-medium text-brand-text text-center mt-2 truncate w-full px-1">{folder.name}</p>
-                      <p className="text-xs text-brand-outline text-center">{qrCount} QR-Codes</p>
+                      <span className="material-symbols-outlined text-outline opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>
                     </div>
                   );
                 })}
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Remove-from-folder drop zone (when dragging inside a folder) */}
+          {/* Remove-from-folder drop zone */}
           {currentFolder && isDragging && (
             <div
-              className={`mb-5 border-2 border-dashed rounded-2xl p-4 text-center text-sm font-medium transition-colors ${dragOverId === "__remove__" ? "border-brand-error bg-brand-error-container text-brand-error" : "border-brand-outline-variant text-brand-outline"}`}
+              className={`mb-6 border-2 border-dashed rounded-2xl p-4 text-center text-sm font-medium transition-colors ${dragOverId === "__remove__" ? "border-error bg-error-container/20 text-error" : "border-outline-variant/50 text-outline"}`}
               onDragOver={(e) => { e.preventDefault(); setDragOverId("__remove__"); }}
               onDragLeave={() => setDragOverId(null)}
               onDrop={(e) => { e.preventDefault(); handleDropOnRoot(); }}
@@ -643,201 +565,150 @@ export default function CodesPage() {
             </div>
           )}
 
-          {/* QR codes label */}
-          {!search.trim() && hasFolders && (
-            <p className="text-xs font-semibold text-brand-outline uppercase tracking-wide mb-3">
-              {currentFolder ? `QR-Codes in ${currentFolder.name}` : "Nicht zugeordnet"}
-            </p>
-          )}
-
-          {filtered.length === 0 ? (
-            <div className="text-center py-16 text-brand-outline">
-              {currentFolder ? (
-                <>
-                  <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                  <p className="text-base font-medium">Ordner ist leer</p>
-                  <p className="text-sm mt-1">QR-Code hinziehen oder über den Ordner-Button verschieben.</p>
-                </>
-              ) : (
-                <p className="text-lg">{tr.no_results}</p>
-              )}
-            </div>
-          ) : (
-            <div className="bg-brand-surface rounded-2xl overflow-hidden shadow-ambient-sm" style={{ border: "1px solid rgba(195,197,217,0.35)" }}>
-              {/* Table header */}
-              <div className="hidden sm:grid grid-cols-[1fr_140px_100px_auto] gap-4 px-5 py-3 text-xs font-semibold text-brand-outline uppercase tracking-wide" style={{ background: "#f7f9fb", borderBottom: "1px solid rgba(195,197,217,0.35)" }}>
-                <span>{tr.col_name}</span>
-                <span>{tr.col_created}</span>
-                <span>{tr.scans_label}</span>
-                <span className="text-right">{tr.col_actions}</span>
+          {/* ── QR Codes grid ── */}
+          <section>
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="font-headline text-xs font-extrabold uppercase tracking-widest text-outline">
+                {currentFolder ? `QR-CODES IN ${currentFolder.name.toUpperCase()}` : "RECENT QR CODES"}
+              </h3>
+              <div className="flex gap-2">
+                <button className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+                  <span className="material-symbols-outlined">grid_view</span>
+                </button>
               </div>
-
-              {paginated.map((contact, idx) => {
-                const isBeingAssigned = assigningFolder === contact.id;
-                const folderId = contactFolders[contact.id];
-                const folderNode = folderId ? findNode(displayTree, folderId) : null;
-                const folderName = folderNode?.name ?? null;
-
-                return (
-                  <div
-                    key={contact.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, contact.id)}
-                    onDragEnd={handleDragEnd}
-                    className={`flex items-center gap-4 px-5 py-4 transition-colors cursor-grab active:cursor-grabbing ${
-                      dragContactId === contact.id ? "opacity-50 bg-brand-surface-low" : "hover:bg-brand-bg"
-                    }`}
-                    style={idx < paginated.length - 1 ? { borderBottom: "1px solid rgba(195,197,217,0.25)" } : undefined}
-                  >
-                    {/* QR thumbnail */}
-                    <div id={`qr-${contact.id}`} className="shrink-0">
-                      <div className="w-12 h-12 rounded-xl bg-brand-bg flex items-center justify-center overflow-hidden">
-                        <QRCodeDisplay value={getQRUrl(contact.id)} size={48} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
-                      </div>
-                    </div>
-
-                    {/* Name + meta */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {contact.qrLabel && <span className="font-semibold text-brand-text text-sm">{contact.qrLabel}</span>}
-                        <span className={`text-sm ${contact.qrLabel ? "text-brand-text-secondary" : "font-semibold text-brand-text"}`}>
-                          {`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}
-                        </span>
-                        {contact.isActive === false && (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: "rgba(186,26,26,0.08)", color: "#ba1a1a" }}>⏸ {tr.qr_paused_badge}</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 mt-0.5">
-                        {contact.company && <span className="text-xs text-brand-outline">{contact.company}</span>}
-                        {hasFolders && (
-                          <button
-                            onClick={() => setPickerContactId(contact.id)}
-                            className="flex items-center gap-1 text-xs transition-colors"
-                            style={{ color: folderName ? "#003ec7" : "#737688" }}
-                          >
-                            <FolderIcon className="w-3 h-3 shrink-0" />
-                            <span className="max-w-[100px] truncate">{folderName ?? "Ordner wählen"}</span>
-                          </button>
-                        )}
-                        {isBeingAssigned && (
-                          <span className="flex items-center gap-1 text-xs text-brand-primary">
-                            <span className="w-3 h-3 border border-brand-primary border-t-transparent rounded-full animate-spin" />
-                            Verschoben...
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Date */}
-                    <div className="hidden sm:block w-[130px] shrink-0">
-                      <p className="text-xs text-brand-text-secondary font-mono">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</p>
-                      {contact.createdBy && <p className="text-xs text-brand-outline mt-0.5">{contact.createdBy.split("@")[0]}</p>}
-                    </div>
-
-                    {/* Scans */}
-                    <div className="hidden sm:flex w-[90px] shrink-0 items-center gap-1 text-xs text-brand-outline">
-                      <BarChart2 className="w-3.5 h-3.5" />
-                      {scanCounts[contact.id] ?? 0}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-1 shrink-0">
-                      {contact.logoUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={contact.logoUrl} alt="Logo" className="w-7 h-7 object-contain rounded-lg mr-1" />
-                      )}
-                      {!isReader && (
-                        <Link href={`/dashboard/edit/${contact.id}`} className="p-2 rounded-xl text-brand-outline hover:text-brand-primary hover:bg-brand-surface-low transition-colors">
-                          <Pencil className="w-4 h-4" />
-                        </Link>
-                      )}
-                      <button onClick={() => handleCopy(contact.id)} className="p-2 rounded-xl text-brand-outline hover:bg-brand-surface-low transition-colors">
-                        {copiedId === contact.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                      </button>
-                      <a href={`/qr/${contact.id}`} target="_blank" className="p-2 rounded-xl text-brand-outline hover:bg-brand-surface-low transition-colors">
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                      <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="p-2 rounded-xl text-brand-outline hover:bg-brand-surface-low transition-colors">
-                        <Download className="w-4 h-4" />
-                      </button>
-                      {isAdmin && (
-                        <button onClick={() => setDeleteModal(contact.id)} className="p-2 rounded-xl text-brand-outline hover:bg-brand-error-container hover:text-brand-error transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* New QR Code row at bottom */}
-              {!isReader && !limitReached && (
-                <Link
-                  href="/dashboard/create"
-                  className="flex items-center gap-3 px-5 py-4 hover:bg-brand-bg transition-colors"
-                  style={{ borderTop: "1px solid rgba(195,197,217,0.25)" }}
-                >
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ border: "2px dashed rgba(0,62,199,0.3)", background: "rgba(0,62,199,0.04)" }}>
-                    <Plus className="w-5 h-5 text-brand-primary opacity-60" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-brand-primary">Neuer QR Code</p>
-                    <p className="text-xs text-brand-outline">Klicken um einen QR Code zu erstellen</p>
-                  </div>
-                </Link>
-              )}
             </div>
-          )}
 
-          {/* Pagination */}
+            {filtered.length === 0 ? (
+              <div className="text-center py-20 text-outline">
+                {currentFolder ? (
+                  <>
+                    <span className="material-symbols-outlined text-5xl text-slate-300 block mb-3">folder_open</span>
+                    <p className="text-base font-medium">Ordner ist leer</p>
+                    <p className="text-sm mt-1">QR-Code hinziehen oder über den Ordner-Button verschieben.</p>
+                  </>
+                ) : (
+                  <p className="text-lg">{tr.no_results}</p>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-8">
+                {paginated.map((contact) => {
+                  const folderId = contactFolders[contact.id];
+                  const folderNode = folderId ? findNode(displayTree, folderId) : null;
+                  const folderName = folderNode?.name ?? null;
+                  return (
+                    <div
+                      key={contact.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, contact.id)}
+                      onDragEnd={handleDragEnd}
+                      className={`bg-surface-container-lowest rounded-xl flex flex-col md:flex-row overflow-hidden group border border-outline-variant/10 cursor-grab active:cursor-grabbing transition-shadow hover:shadow-[0px_20px_40px_rgba(25,28,30,0.08)] ${dragContactId === contact.id ? "opacity-50" : ""}`}
+                    >
+                      {/* Left content (2/3) */}
+                      <div className="p-8 md:w-2/3 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 mb-4">
+                            <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-extrabold uppercase tracking-wider">Business Card</span>
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${contact.isActive !== false ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                              {contact.isActive !== false ? "Active" : "Paused"}
+                            </span>
+                          </div>
+                          <h4 className="text-2xl font-headline font-bold text-slate-900 mb-1">
+                            {`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}
+                          </h4>
+                          {contact.title && <p className="text-primary font-semibold text-sm mb-1">{contact.title}</p>}
+                          {contact.company && <p className="text-outline text-sm mb-6">{contact.company}</p>}
+                          <div className="flex items-center gap-6 mt-4">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-extrabold uppercase text-outline tracking-wider">Created</span>
+                              <span className="text-sm font-semibold">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-extrabold uppercase text-outline tracking-wider">Scans</span>
+                              <span className="text-sm font-semibold flex items-center gap-1">
+                                <span className="material-symbols-outlined text-xs">trending_up</span>
+                                {scanCounts[contact.id] ?? 0} Scans
+                              </span>
+                            </div>
+                            {hasFolders && (
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-extrabold uppercase text-outline tracking-wider">Folder</span>
+                                <button onClick={() => setPickerContactId(contact.id)} className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-xs">folder</span>
+                                  {folderName ?? "None"}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-8">
+                          {!isReader && (
+                            <Link href={`/dashboard/edit/${contact.id}`} className="flex-1 bg-surface-container-low hover:bg-surface-container-high text-primary py-2.5 rounded-lg text-sm font-bold font-headline transition-colors text-center">
+                              Bearbeiten
+                            </Link>
+                          )}
+                          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} className="w-10 h-10 bg-surface-container-low flex items-center justify-center text-outline rounded-lg hover:text-primary transition-colors">
+                            <span className="material-symbols-outlined text-base">{copiedId === contact.id ? "check" : "content_copy"}</span>
+                          </button>
+                          <a href={`/qr/${contact.id}`} target="_blank" className="w-10 h-10 bg-surface-container-low flex items-center justify-center text-outline rounded-lg hover:text-primary transition-colors">
+                            <span className="material-symbols-outlined text-base">share</span>
+                          </a>
+                          <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="w-10 h-10 bg-surface-container-low flex items-center justify-center text-outline rounded-lg hover:text-primary transition-colors">
+                            <span className="material-symbols-outlined text-base">download</span>
+                          </button>
+                          {isAdmin && (
+                            <button onClick={() => setDeleteModal(contact.id)} className="w-10 h-10 bg-surface-container-low flex items-center justify-center text-error/60 rounded-lg hover:bg-error-container hover:text-error transition-colors">
+                              <span className="material-symbols-outlined text-base">delete</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right QR panel (1/3) */}
+                      <div className="md:w-1/3 bg-slate-50 flex items-center justify-center p-8 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div id={`qr-${contact.id}`} className="relative z-10 p-4 bg-white rounded-xl shadow-md group-hover:scale-105 transition-transform duration-300">
+                          <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={128} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* New QR Code dashed card */}
+                {!isReader && !limitReached && (
+                  <Link href="/dashboard/create" className="bg-surface-container border-2 border-dashed border-outline-variant/50 rounded-xl flex flex-col items-center justify-center p-8 text-center group hover:border-primary/50 transition-colors cursor-pointer min-h-[320px]">
+                    <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform shadow-sm">
+                      <span className="material-symbols-outlined text-3xl">add</span>
+                    </div>
+                    <h4 className="font-headline font-bold text-slate-900 mb-2">New QR Code</h4>
+                    <p className="text-sm text-outline max-w-[200px]">Create a new digital business card or redirect link.</p>
+                  </Link>
+                )}
+              </div>
+            )}
+          </section>
+
+          {/* ── Pagination ── */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-1.5 mt-8">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-2 rounded-xl text-sm text-brand-text-secondary hover:bg-brand-surface-low disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                style={{ border: "1px solid rgba(195,197,217,0.5)" }}
-              >
-                ←
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
-                // Show first, last, current ±1, and ellipsis
-                const show = p === 1 || p === totalPages || Math.abs(p - page) <= 1;
-                const showEllipsisBefore = p === page - 2 && page - 2 > 1;
-                const showEllipsisAfter = p === page + 2 && page + 2 < totalPages;
-                if (!show && !showEllipsisBefore && !showEllipsisAfter) return null;
-                if (showEllipsisBefore || showEllipsisAfter) {
-                  return <span key={`ellipsis-${p}`} className="px-1 text-brand-outline text-sm">…</span>;
-                }
-                return (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`w-9 h-9 rounded-xl text-sm font-medium transition-all ${
-                      p === page
-                        ? "text-white shadow-ambient-sm"
-                        : "text-brand-text-secondary hover:bg-brand-surface-low"
-                    }`}
-                    style={p === page ? { background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", border: "none" } : { border: "1px solid rgba(195,197,217,0.5)" }}
-                  >
-                    {p}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-2 rounded-xl text-sm text-brand-text-secondary hover:bg-brand-surface-low disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                style={{ border: "1px solid rgba(195,197,217,0.5)" }}
-              >
-                →
-              </button>
+            <div className="flex items-center justify-between mt-10 pt-6 border-t border-outline-variant/10">
+              <p className="text-sm text-outline font-medium">
+                Showing <span className="text-on-surface">{Math.min(page * PAGE_SIZE, filtered.length)}</span> of <span className="text-on-surface">{filtered.length}</span> QR codes
+              </p>
+              <div className="flex gap-2">
+                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-4 py-2 bg-surface-container-high text-outline font-bold rounded-lg hover:bg-surface-container-highest transition-colors disabled:opacity-50">
+                  Previous
+                </button>
+                <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-4 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary-container transition-colors shadow-md shadow-primary/10 disabled:opacity-50">
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </>
       )}
 
-      {/* Folder picker modal */}
+      {/* ── Folder picker modal ── */}
       {pickerContactId && pickerContact && (
         <FolderPicker
           folders={displayTree}
@@ -852,28 +723,27 @@ export default function CodesPage() {
         />
       )}
 
-      {/* Delete modal */}
+      {/* ── Delete modal ── */}
       {deleteModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-brand-surface rounded-2xl shadow-ambient max-w-sm w-full p-6">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full mx-auto mb-4" style={{ background: "rgba(186,26,26,0.1)" }}>
-              <Trash2 className="w-6 h-6 text-brand-error" />
+          <div className="bg-surface-container-lowest rounded-2xl shadow-[0px_20px_40px_rgba(25,28,30,0.12)] max-w-sm w-full p-6">
+            <div className="flex items-center justify-center w-12 h-12 bg-error-container/30 rounded-full mx-auto mb-4">
+              <span className="material-symbols-outlined text-error">delete</span>
             </div>
-            <h2 className="font-headline text-lg font-bold text-brand-text text-center mb-2">{tr.delete_modal_title}</h2>
-            <p className="text-sm text-brand-outline text-center mb-6">{tr.delete_modal_body}</p>
+            <h2 className="font-headline text-lg font-bold text-on-surface text-center mb-2">{tr.delete_modal_title}</h2>
+            <p className="text-sm text-outline text-center mb-6">{tr.delete_modal_body}</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteModal(null)} className="flex-1 text-brand-text-secondary py-2.5 rounded-xl font-medium text-sm hover:bg-brand-surface-low transition-colors" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>{tr.delete_modal_cancel}</button>
-              <button onClick={() => handleDelete(deleteModal)} className="flex-1 bg-brand-error hover:opacity-90 text-white py-2.5 rounded-xl font-medium text-sm transition-opacity">{tr.delete_modal_confirm}</button>
+              <button onClick={() => setDeleteModal(null)} className="flex-1 text-on-surface-variant py-2.5 rounded-xl font-medium text-sm hover:bg-surface-container-low transition-colors border border-outline-variant/30">{tr.delete_modal_cancel}</button>
+              <button onClick={() => handleDelete(deleteModal)} className="flex-1 bg-error hover:opacity-90 text-white py-2.5 rounded-xl font-medium text-sm transition-opacity">{tr.delete_modal_confirm}</button>
             </div>
           </div>
         </div>
       )}
-      </div>{/* end main content */}
     </div>
   );
 }
 
-// ── Sidebar folder node (recursive) ──────────────────────────────────────────
+// ── Sidebar folder node kept for reference but not used in new layout ─────────
 function SidebarFolderNode({
   node,
   currentFolderId,
@@ -892,28 +762,15 @@ function SidebarFolderNode({
   return (
     <div>
       <div
-        className={`flex items-center gap-2 cursor-pointer transition-colors text-sm font-medium ${
-          isActive ? "text-white" : "text-brand-text-secondary hover:bg-brand-surface-low hover:text-brand-text"
-        }`}
-        style={{
-          paddingLeft: `${depth * 12 + 16}px`,
-          paddingRight: "12px",
-          paddingTop: "8px",
-          paddingBottom: "8px",
-          ...(isActive ? { background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", borderRadius: "0.75rem", margin: "0 8px", width: "calc(100% - 16px)" } : {}),
-        }}
+        className={`flex items-center gap-2 cursor-pointer transition-colors text-sm font-medium ${isActive ? "text-white" : "text-brand-text-secondary hover:bg-brand-surface-low hover:text-brand-text"}`}
+        style={{ paddingLeft: `${depth * 12 + 16}px`, paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", ...(isActive ? { background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", borderRadius: "0.75rem" } : {}) }}
         onClick={() => onSelect(node.id)}
       >
         {hasChildren ? (
-          <button
-            onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
-            className={`shrink-0 ${isActive ? "text-white/70" : "text-brand-outline"}`}
-          >
+          <button onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }} className={`shrink-0 ${isActive ? "text-white/70" : "text-brand-outline"}`}>
             {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
           </button>
-        ) : (
-          <span className="w-3.5 h-3.5 shrink-0" />
-        )}
+        ) : <span className="w-3.5 h-3.5 shrink-0" />}
         <FolderIcon className="w-3.5 h-3.5 shrink-0" />
         <span className="truncate flex-1">{node.name}</span>
       </div>

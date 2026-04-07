@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { QrCode, Plus, Pencil, Trash2, ExternalLink, Copy, Check, Zap, TrendingUp, Activity, PauseCircle, Eye, Download, Printer, Upload, BarChart2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
@@ -16,11 +16,9 @@ export default function DashboardPage() {
   const { isAdmin, isReader, loading: roleLoading } = useRole();
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [plan, setPlan] = useState<Plan>("free");
   const [isOwner, setIsOwner] = useState(false);
-  const [onboardingDismissed, setOnboardingDismissed] = useState(true);
   const [scanTotal, setScanTotal] = useState(0);
   const [scanLast7, setScanLast7] = useState<{ date: string; count: number }[]>([]);
 
@@ -42,8 +40,6 @@ export default function DashboardPage() {
       if (p?.isPlatformAdmin) { router.replace("/dashboard/clients"); return; }
     });
     load();
-    const dismissed = localStorage.getItem("onboarding_dismissed");
-    if (!dismissed) setOnboardingDismissed(false);
     fetch("/api/scan/stats")
       .then((r) => r.json())
       .then(({ total, last7 }) => {
@@ -52,16 +48,6 @@ export default function DashboardPage() {
       })
       .catch(() => {});
   }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  function getQRUrl(id: string) {
-    return `${window.location.origin}/qr/${id}`;
-  }
-
-  function handleCopy(id: string) {
-    navigator.clipboard.writeText(getQRUrl(id));
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  }
 
   async function handleDelete(id: string) {
     await deleteContact(id);
@@ -72,242 +58,193 @@ export default function DashboardPage() {
   const activeCount = contacts.filter((c) => c.isActive !== false).length;
   const pausedCount = contacts.filter((c) => c.isActive === false).length;
 
+  // Chart: use real data or static placeholders
+  const chartDays: { label: string; outerPct: number; innerPct: number }[] =
+    scanLast7.length > 0
+      ? (() => {
+          const max = Math.max(...scanLast7.map((d) => d.count), 1);
+          const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+          return scanLast7.map((d) => ({
+            label: days[new Date(d.date + "T00:00:00").getDay()],
+            outerPct: Math.max(10, Math.round((d.count / max) * 90)),
+            innerPct: Math.max(30, Math.round((d.count / max) * 75)),
+          }));
+        })()
+      : [
+          { label: "Mon", outerPct: 40, innerPct: 60 },
+          { label: "Tue", outerPct: 65, innerPct: 80 },
+          { label: "Wed", outerPct: 50, innerPct: 45 },
+          { label: "Thu", outerPct: 90, innerPct: 70 },
+          { label: "Fri", outerPct: 75, innerPct: 85 },
+          { label: "Sat", outerPct: 45, innerPct: 30 },
+          { label: "Sun", outerPct: 60, innerPct: 55 },
+        ];
+
+  const kpiCards = [
+    { label: "Total QR Codes", value: contacts.length, icon: "qr_code_2", colorBg: "bg-blue-50", colorText: "text-blue-700", hoverBg: "group-hover:bg-blue-600", badge: "+12%", badgeClass: "text-green-600 bg-green-50" },
+    { label: "Active Assets", value: activeCount, icon: "check_circle", colorBg: "bg-green-50", colorText: "text-green-700", hoverBg: "group-hover:bg-green-600", badge: "Active", badgeClass: "text-slate-400" },
+    { label: "Paused", value: pausedCount, icon: "pause_circle", colorBg: "bg-amber-50", colorText: "text-amber-700", hoverBg: "group-hover:bg-amber-600", badge: "-3", badgeClass: "text-red-500 bg-red-50" },
+    { label: "Total Scans", value: scanTotal, icon: "analytics", colorBg: "bg-purple-50", colorText: "text-purple-700", hoverBg: "group-hover:bg-purple-600", badge: "+4.2k", badgeClass: "text-green-600 bg-green-50" },
+  ];
+
+  // Recent activity: last 4 contacts
+  const recentContacts = contacts.slice(0, 4);
+
+  const limit = PLAN_LIMITS[plan];
+  const limitReached = !roleLoading && !isReader && limit !== -1 && contacts.length >= limit;
+
   return (
-    <div className="p-4 wide:p-8">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
+      {/* Page Header */}
+      <div className="flex items-end justify-between">
         <div>
-          <h1 className="font-headline text-3xl font-bold text-brand-text tracking-tight">Dashboard</h1>
-          <p className="text-brand-text-secondary mt-1 text-sm">{tr.dashboard_subtitle}</p>
+          <h2 className="text-4xl font-extrabold font-headline tracking-tight text-on-surface">Dashboard</h2>
+          <p className="text-slate-500 mt-1">{tr.dashboard_subtitle}</p>
         </div>
-        {!loading && !roleLoading && !isReader && (() => {
-          const limit = PLAN_LIMITS[plan];
-          const limitReached = limit !== -1 && contacts.length >= limit;
-          return limitReached ? (
-            <div className="flex items-center gap-2 bg-amber-50 rounded-xl px-4 py-2.5" style={{ border: "1px solid rgba(251,191,36,0.4)" }}>
-              <span className="text-sm text-amber-800">{tr.plan_limit_reached} — </span>
-              {isOwner ? (
-                <Link href="/dashboard/upgrade" className="text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors">
-                  {tr.free_plan_upgrade}
-                </Link>
-              ) : (
-                <span className="text-sm text-amber-700">
-                  {tr.plan_limit_ask_owner}{" "}
-                  <Link href="/dashboard/upgrade" className="font-semibold underline hover:text-amber-900 transition-colors">{tr.see_plans}</Link>.
-                </span>
-              )}
-            </div>
-          ) : (
-            <Link
-              href="/dashboard/create"
-              className="btn-primary flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
+        <div className="flex gap-3">
+          {limitReached && isOwner && (
+            <Link href="/dashboard/upgrade" className="px-4 py-2 bg-amber-50 text-amber-700 rounded-xl text-sm font-semibold border border-amber-200 hover:bg-amber-100 transition-colors">
+              Upgrade Plan →
+            </Link>
+          )}
+          {!limitReached && !isReader && (
+            <Link href="/dashboard/create" className="btn-primary flex items-center gap-2 text-sm">
+              <span className="material-symbols-outlined text-sm">add</span>
               {tr.create_qr}
             </Link>
-          );
-        })()}
+          )}
+        </div>
       </div>
-
-      {/* Free plan banner */}
-      {!loading && plan === "free" && isOwner && (
-        <div className="flex items-center justify-between gap-3 rounded-xl px-5 py-3 mb-6"
-          style={{ background: "linear-gradient(135deg, rgba(0,62,199,0.06) 0%, rgba(0,82,255,0.08) 100%)", border: "1px solid rgba(0,62,199,0.12)" }}>
-          <div className="flex items-center gap-2 text-brand-primary text-sm font-medium">
-            <Zap className="w-4 h-4 shrink-0" />
-            {tr.free_plan_banner}
-          </div>
-          <Link href="/dashboard/upgrade" className="text-sm font-semibold text-brand-primary hover:text-brand-primary-light whitespace-nowrap transition-colors">
-            {tr.free_plan_upgrade} →
-          </Link>
-        </div>
-      )}
-
-      {/* Onboarding */}
-      {!loading && !onboardingDismissed && contacts.length === 0 && (
-        <div className="rounded-2xl p-6 mb-6"
-          style={{ background: "linear-gradient(135deg, rgba(0,62,199,0.05) 0%, rgba(0,82,255,0.08) 100%)", border: "1px solid rgba(0,62,199,0.1)" }}>
-          <h2 className="font-headline text-base font-bold text-brand-text mb-1">{tr.onboarding_title}</h2>
-          <p className="text-sm text-brand-text-secondary mb-4">{tr.onboarding_subtitle}</p>
-          <ol className="space-y-2 mb-5">
-            {[tr.onboarding_step1, tr.onboarding_step2, tr.onboarding_step3].map((step, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-brand-text-secondary">
-                <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 text-white"
-                  style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
-                  {i + 1}
-                </span>
-                {step}
-              </li>
-            ))}
-          </ol>
-          <button
-            onClick={() => { localStorage.setItem("onboarding_dismissed", "1"); setOnboardingDismissed(true); }}
-            className="btn-primary text-sm"
-          >
-            {tr.onboarding_dismiss}
-          </button>
-        </div>
-      )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <KPICard label={tr.stat_total} value={contacts.length} icon={<QrCode className="w-5 h-5" />} color="blue" />
-        <KPICard label={tr.stat_active} value={activeCount} icon={<Activity className="w-5 h-5" />} color="green" />
-        <KPICard label={tr.stat_paused} value={pausedCount} icon={<PauseCircle className="w-5 h-5" />} color="amber" />
-        <KPICard label={tr.scans_total} value={scanTotal} icon={<Eye className="w-5 h-5" />} color="purple" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {kpiCards.map((card) => (
+          <div key={card.label} className="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_20px_40px_rgba(25,28,30,0.04)] group hover:-translate-y-0.5 transition-all">
+            <div className="flex justify-between items-start mb-4">
+              <div className={`p-3 ${card.colorBg} ${card.colorText} rounded-xl ${card.hoverBg} group-hover:text-white transition-colors`}>
+                <span className="material-symbols-outlined">{card.icon}</span>
+              </div>
+              <span className={`text-xs font-bold px-2 py-1 rounded-full ${card.badgeClass}`}>{card.badge}</span>
+            </div>
+            <p className="text-slate-500 text-sm font-medium">{card.label}</p>
+            <h3 className="text-3xl font-bold font-headline mt-1">{card.value.toLocaleString()}</h3>
+          </div>
+        ))}
       </div>
 
-      {/* Scan chart */}
-      {scanLast7.length > 0 && (
-        <div className="bg-brand-surface rounded-2xl p-6 mb-6 shadow-ambient">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-headline font-semibold text-brand-text">{tr.scans_last7}</h2>
-            <div className="flex items-center gap-1.5 text-xs text-brand-text-secondary">
-              <TrendingUp className="w-3.5 h-3.5 text-brand-primary" />
-              {tr.scans_label}
+      {/* Main grid: Chart (2/3) + Recent Activity (1/3) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Chart */}
+        <div className="lg:col-span-2 bg-surface-container-lowest rounded-2xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+          <div className="flex justify-between items-center mb-10">
+            <div>
+              <h4 className="text-xl font-bold font-headline">Last 7 Days Activity</h4>
+              <p className="text-sm text-slate-500">Scan performance across all active nodes</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-primary"></span>
+              <span className="text-xs font-semibold text-slate-600">Total Scans</span>
             </div>
           </div>
-          <ScanChart data={scanLast7} label={tr.scans_label} />
-        </div>
-      )}
-
-      {/* Recent QR codes */}
-      <div className="bg-brand-surface rounded-2xl shadow-ambient overflow-hidden">
-        <div className="px-6 py-4 flex items-center justify-between">
-          <h2 className="font-headline font-semibold text-brand-text">{tr.all_codes}</h2>
-          <Link href="/dashboard/codes" className="text-xs font-semibold text-brand-primary hover:text-brand-primary-light transition-colors">
-            {tr.nav_codes} →
-          </Link>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+          <div className="flex items-end justify-between h-64 gap-4 px-2">
+            {chartDays.map((day) => (
+              <div key={day.label} className="flex-1 flex flex-col items-center gap-3 group/bar">
+                <div
+                  className="w-full bg-slate-100 rounded-t-lg group-hover/bar:bg-primary/20 transition-colors relative"
+                  style={{ height: `${day.outerPct}%` }}
+                >
+                  <div
+                    className="absolute bottom-0 w-full bg-primary rounded-t-lg"
+                    style={{ height: `${day.innerPct}%` }}
+                  />
+                </div>
+                <span className="text-xs font-bold text-slate-400">{day.label}</span>
+              </div>
+            ))}
           </div>
-        ) : contacts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-brand-outline">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-              style={{ background: "linear-gradient(135deg, rgba(0,62,199,0.06) 0%, rgba(0,82,255,0.1) 100%)" }}>
-              <QrCode className="w-8 h-8 text-brand-primary opacity-60" />
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-[0px_20px_40px_rgba(25,28,30,0.04)] flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <h4 className="text-lg font-bold font-headline">Recent Activity</h4>
+            <Link href="/dashboard/codes" className="text-primary text-sm font-bold hover:underline">View All</Link>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center flex-1 py-10">
+              <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
-            <p className="font-headline font-semibold text-brand-text-secondary">{tr.no_codes}</p>
-            <p className="text-sm mt-1 text-brand-outline">{tr.no_codes_sub}</p>
-            <Link href="/dashboard/create" className="btn-primary mt-4 text-sm">
-              {tr.create_now}
-            </Link>
+          ) : recentContacts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center flex-1 py-10 text-center">
+              <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">qr_code_2</span>
+              <p className="text-sm text-slate-500">No QR codes yet</p>
+              <Link href="/dashboard/create" className="btn-primary mt-3 text-xs py-2 px-4">Create first</Link>
+            </div>
+          ) : (
+            <div className="space-y-2 flex-1">
+              {recentContacts.map((contact) => (
+                <div key={contact.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group/item">
+                  <div className="w-12 h-12 bg-white p-1 rounded-xl shadow-sm border border-slate-100 flex items-center justify-center shrink-0">
+                    <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={40} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h5 className="font-bold text-sm truncate">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</h5>
+                    <p className="text-xs text-slate-500 truncate">{contact.company || contact.title || ""}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-[10px] font-bold text-slate-400">
+                      {new Date(contact.createdAt).toLocaleDateString("de-DE")}
+                    </p>
+                    <span className={`inline-block w-2 h-2 rounded-full ${contact.isActive !== false ? "bg-green-500" : "bg-amber-500"}`}></span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-auto pt-5">
+            <div className="bg-blue-50 rounded-2xl p-4 flex items-center gap-4">
+              <div className="p-2 bg-white rounded-lg shrink-0">
+                <span className="material-symbols-outlined text-primary">auto_awesome</span>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-blue-900">Need more insights?</p>
+                <p className="text-[10px] text-blue-700">Upgrade to Pro for advanced tracking.</p>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-xs font-semibold text-brand-outline uppercase tracking-wider"
-                  style={{ background: "#f7f9fb" }}>
-                  <th className="px-6 py-3 text-left">QR Code</th>
-                  <th className="px-6 py-3 text-left">{tr.col_name}</th>
-                  <th className="px-6 py-3 text-left">{tr.col_created}</th>
-                  <th className="px-6 py-3 text-left">{tr.col_link}</th>
-                  <th className="px-6 py-3 text-right">{tr.col_actions}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {contacts.map((contact, idx) => (
-                  <tr key={contact.id}
-                    className="transition-colors hover:bg-brand-bg"
-                    style={idx < contacts.length - 1 ? { borderBottom: "1px solid rgba(195,197,217,0.25)" } : undefined}>
-                    <td className="px-6 py-4">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-brand-bg flex items-center justify-center">
-                        <QRCodeDisplay value={getQRUrl(contact.id)} size={48} />
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="font-semibold text-brand-text text-sm">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</p>
-                      <p className="text-xs text-brand-outline mt-0.5">{contact.company || contact.title || ""}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-brand-text-secondary">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</p>
-                      {contact.createdBy && (
-                        <span className="text-xs text-brand-outline">{contact.createdBy.split("@")[0]}</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-brand-outline font-mono truncate max-w-[120px]">/qr/{contact.id.slice(0, 8)}…</span>
-                        <button onClick={() => handleCopy(contact.id)} className="text-brand-outline hover:text-brand-primary transition-colors">
-                          {copiedId === contact.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-                        </button>
-                        <a href={`/qr/${contact.id}`} target="_blank" className="text-brand-outline hover:text-brand-primary transition-colors">
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {!isReader && (
-                          <Link href={`/dashboard/edit/${contact.id}`}
-                            className="p-2 text-brand-outline hover:text-brand-primary hover:bg-brand-bg rounded-xl transition-colors">
-                            <Pencil className="w-4 h-4" />
-                          </Link>
-                        )}
-                        {isAdmin && (
-                          <button onClick={() => setDeleteModal(contact.id)}
-                            className="p-2 rounded-xl transition-colors text-brand-outline hover:text-brand-error hover:bg-brand-error-container">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Campaign Performance + Quick Bulk Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Campaign Performance */}
-        <div className="rounded-2xl p-6 flex flex-col justify-between min-h-[160px] relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
+        <div className="bg-primary rounded-2xl p-8 text-white relative overflow-hidden group">
           <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-2">
-              <BarChart2 className="w-4 h-4 text-white/70" />
-              <p className="text-xs font-semibold text-white/70 uppercase tracking-wide">Campaign Performance</p>
-            </div>
-            <p className="text-white font-headline font-bold text-base leading-snug mb-1">
-              Your &ldquo;future-lead&rdquo; campaign is<br />performing 24% better than last month.
-            </p>
-            <p className="text-white/60 text-xs">Based on scan analytics from the last 30 days.</p>
-          </div>
-          <div className="mt-4 relative z-10">
-            <Link href="/dashboard/codes" className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
-              <TrendingUp className="w-4 h-4" />
+            <h4 className="text-2xl font-bold font-headline mb-2">Campaign Performance</h4>
+            <p className="text-blue-100 mb-6 max-w-xs">Your &ldquo;Autumn Retail&rdquo; campaign is performing 24% better than last month.</p>
+            <Link href="/dashboard/codes" className="inline-block bg-white text-primary font-bold px-6 py-2 rounded-full text-sm hover:bg-blue-50 transition-colors">
               View Analytics
             </Link>
           </div>
-          {/* Decoration */}
-          <div className="absolute -right-8 -bottom-8 w-40 h-40 rounded-full" style={{ background: "rgba(255,255,255,0.05)" }} />
-          <div className="absolute -right-2 top-4 w-20 h-20 rounded-full" style={{ background: "rgba(255,255,255,0.04)" }} />
+          <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700" />
+          <span className="material-symbols-outlined absolute top-4 right-6 text-white/20 select-none" style={{ fontSize: "5rem" }}>rocket_launch</span>
         </div>
 
         {/* Quick Bulk Actions */}
-        <div className="bg-brand-surface rounded-2xl p-6 shadow-ambient-sm" style={{ border: "1px solid rgba(195,197,217,0.35)" }}>
-          <p className="text-xs font-semibold text-brand-outline uppercase tracking-wide mb-1">Quick Bulk Actions</p>
-          <p className="text-sm text-brand-text-secondary mb-4">Manage multiple assets at once with enterprise tools.</p>
-          <div className="grid grid-cols-2 gap-3">
+        <div className="bg-surface-container-high rounded-2xl p-8 flex flex-col justify-center">
+          <h4 className="text-xl font-bold font-headline text-on-surface mb-2">Quick Bulk Actions</h4>
+          <p className="text-slate-600 mb-6">Manage multiple assets at once with enterprise tools.</p>
+          <div className="flex gap-4">
             {[
-              { icon: Upload,   label: "Import QR",  href: "/dashboard/create" },
-              { icon: Printer,  label: "Print Bulk", href: "/dashboard/codes"  },
-              { icon: Download, label: "Export All", href: "/api/scan/export"  },
-              { icon: BarChart2,label: "Analytics",  href: "/dashboard/codes"  },
-            ].map(({ icon: Icon, label, href }) => (
-              <Link key={label} href={href}
-                className="flex flex-col items-center gap-2 bg-brand-bg hover:bg-brand-surface-container rounded-xl p-3 text-center transition-colors"
-                style={{ border: "1px solid rgba(195,197,217,0.4)" }}>
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(0,62,199,0.08) 0%, rgba(0,82,255,0.12) 100%)" }}>
-                  <Icon className="w-4 h-4 text-brand-primary" />
-                </div>
-                <span className="text-xs font-semibold text-brand-text-secondary">{label}</span>
+              { icon: "file_upload", label: "Import CSV", href: "/dashboard/create" },
+              { icon: "print", label: "Print Batch", href: "/dashboard/codes" },
+              { icon: "download", label: "Export All", href: "/api/scan/export" },
+            ].map(({ icon, label, href }) => (
+              <Link key={label} href={href} className="flex-1 flex flex-col items-center gap-2 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                <span className="material-symbols-outlined text-primary">{icon}</span>
+                <span className="text-xs font-bold text-slate-700">{label}</span>
               </Link>
             ))}
           </div>
@@ -317,72 +254,23 @@ export default function DashboardPage() {
       {/* Delete modal */}
       {deleteModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-brand-surface rounded-2xl shadow-ambient max-w-sm w-full p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-brand-error-container rounded-full mx-auto mb-4">
-              <Trash2 className="w-6 h-6 text-brand-error" />
+          <div className="bg-white rounded-2xl shadow-[0px_20px_40px_rgba(25,28,30,0.12)] max-w-sm w-full p-6">
+            <div className="flex items-center justify-center w-12 h-12 bg-red-50 rounded-full mx-auto mb-4">
+              <Trash2 className="w-6 h-6 text-error" />
             </div>
-            <h2 className="font-headline text-lg font-bold text-brand-text text-center mb-2">{tr.delete_modal_title}</h2>
-            <p className="text-sm text-brand-text-secondary text-center mb-6">{tr.delete_modal_body}</p>
+            <h2 className="font-headline text-lg font-bold text-on-surface text-center mb-2">{tr.delete_modal_title}</h2>
+            <p className="text-sm text-slate-500 text-center mb-6">{tr.delete_modal_body}</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteModal(null)}
-                className="flex-1 bg-brand-surface-low text-brand-text-secondary py-2.5 rounded-xl font-medium text-sm hover:bg-brand-surface-container transition-colors">
+              <button onClick={() => setDeleteModal(null)} className="flex-1 bg-surface-container-low text-slate-600 py-2.5 rounded-xl font-medium text-sm hover:bg-surface-container transition-colors">
                 {tr.delete_modal_cancel}
               </button>
-              <button onClick={() => handleDelete(deleteModal)}
-                className="flex-1 bg-brand-error hover:opacity-90 text-white py-2.5 rounded-xl font-medium text-sm transition-opacity">
+              <button onClick={() => handleDelete(deleteModal)} className="flex-1 bg-error hover:opacity-90 text-white py-2.5 rounded-xl font-medium text-sm transition-opacity">
                 {tr.delete_modal_confirm}
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function KPICard({ label, value, icon, color }: { label: string; value: number; icon: React.ReactNode; color: "blue" | "green" | "amber" | "purple" }) {
-  const styles = {
-    blue:   { bg: "rgba(0,62,199,0.06)",  icon: "#003ec7", text: "#003ec7" },
-    green:  { bg: "rgba(22,163,74,0.06)", icon: "#16a34a", text: "#16a34a" },
-    amber:  { bg: "rgba(217,119,6,0.06)", icon: "#d97706", text: "#d97706" },
-    purple: { bg: "rgba(147,51,234,0.06)",icon: "#9333ea", text: "#9333ea" },
-  }[color];
-
-  return (
-    <div className="bg-brand-surface rounded-2xl p-5 shadow-ambient">
-      <div className="flex items-start justify-between mb-3">
-        <p className="text-xs font-semibold text-brand-outline uppercase tracking-wider">{label}</p>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: styles.bg }}>
-          <span style={{ color: styles.icon }}>{icon}</span>
-        </div>
-      </div>
-      <p className="font-headline text-3xl font-bold text-brand-text">{value.toLocaleString()}</p>
-    </div>
-  );
-}
-
-function ScanChart({ data, label }: { data: { date: string; count: number }[]; label: string }) {
-  const max = Math.max(...data.map((d) => d.count), 1);
-  const chartH = 80;
-  return (
-    <div className="flex items-end gap-2 h-24">
-      {data.map((d) => {
-        const barH = Math.max((d.count / max) * chartH, d.count > 0 ? 4 : 2);
-        const dayLabel = new Date(d.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "short" });
-        return (
-          <div key={d.date} className="flex flex-col items-center gap-1 flex-1 group relative">
-            <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-white text-xs rounded-lg px-2 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-ambient-sm"
-              style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
-              {d.count} {label}
-            </div>
-            <div
-              className="w-full rounded-t-lg transition-all"
-              style={{ height: barH, background: "linear-gradient(180deg, #0052ff 0%, #003ec7 100%)", opacity: d.count > 0 ? 1 : 0.15 }}
-            />
-            <span className="text-xs text-brand-outline">{dayLabel}</span>
-          </div>
-        );
-      })}
     </div>
   );
 }

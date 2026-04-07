@@ -77,88 +77,73 @@ export default function UpgradePage() {
   }
 
   return (
-    <div className="p-4 wide:p-8 max-w-5xl">
-      {/* Hero section */}
-      <div className="rounded-2xl overflow-hidden mb-8 flex items-center justify-between gap-6 px-8 py-8 relative"
-        style={{ background: "linear-gradient(135deg, #0a0f1e 0%, #001a6e 60%, #003ec7 100%)", minHeight: "180px" }}>
-        <div className="relative z-10 max-w-lg">
-          <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">Subscription Management</p>
-          <h1 className="font-headline font-bold text-white leading-tight mb-3" style={{ fontSize: "2rem", fontStyle: "italic" }}>
-            Elevate your<br /><span style={{ color: "#60a5fa" }}>orchestration</span><br />experience.
-          </h1>
-          <p className="text-sm text-white/60 leading-relaxed">
+    <div className="pt-8 pb-12 min-h-screen bg-surface p-8">
+      {/* Hero */}
+      <section className="max-w-7xl mx-auto mb-16 flex flex-col md:flex-row gap-12 items-end">
+        <div className="flex-1">
+          <span className="text-primary font-bold tracking-widest text-xs uppercase mb-4 block">Subscription Management</span>
+          <h3 className="text-5xl font-bold font-headline leading-tight tracking-tight text-on-surface mb-6">
+            Elevate your <span className="text-primary">orchestration</span> experience.
+          </h3>
+          <p className="text-xl text-on-surface-variant max-w-2xl leading-relaxed">
             Scale your enterprise QR infrastructure with surgical precision. Choose a tier that matches your global footprint and security requirements.
           </p>
         </div>
-        {/* Abstract decoration */}
-        <div className="hidden md:block shrink-0 w-40 h-32 rounded-2xl opacity-20" style={{ background: "linear-gradient(135deg, #0052ff 0%, #9333ea 100%)", filter: "blur(2px)" }} />
-        <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden md:flex flex-col gap-2 opacity-30">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex gap-2">
-              {[...Array(4)].map((_, j) => (
-                <div key={j} className="w-2 h-2 rounded-full bg-white" />
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
+        <div className="hidden lg:block w-1/3 aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-primary-container opacity-80" style={{ boxShadow: "0px 20px 40px rgba(25,28,30,0.06)" }} />
+      </section>
 
       {/* Plan cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch mb-24">
         {planConfigs.map((config) => {
           const meta = PLAN_META[config.plan];
           const isCurrent = config.plan === currentPlan;
           const planName = config.plan.charAt(0).toUpperCase() + config.plan.slice(1);
+          const isPremium = config.plan === "premium";
+          const isPlatinum = config.plan === "platinum";
+
           return (
             <div
               key={config.plan}
-              className="bg-brand-surface rounded-2xl p-5 flex flex-col relative shadow-ambient-sm"
-              style={{ border: isCurrent ? "2px solid #003ec7" : "1px solid rgba(195,197,217,0.4)" }}
+              className={`relative bg-surface-container-low p-8 rounded-xl flex flex-col transition-all hover:-translate-y-1 ${isCurrent ? "scale-105 z-10 border-2 border-primary/20 bg-surface-container-lowest shadow-[0px_20px_40px_rgba(25,28,30,0.06)]" : "hover:bg-surface-container-high"}`}
             >
-              {meta.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold text-white px-3 py-1 rounded-full whitespace-nowrap"
-                  style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
-                  Most Popular
+              {isCurrent && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-on-primary text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
+                  Current Plan
                 </div>
               )}
-
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: meta.badgeBg, color: meta.badgeText }}>
-                  {planName}
-                </span>
-                {isCurrent && <span className="text-xs text-brand-primary font-semibold">{tr.upgrade_current}</span>}
+              <div className="mb-8">
+                <h4 className={`text-lg font-bold font-headline mb-1 ${isPlatinum ? "text-tertiary" : "text-on-surface"}`}>{planName}</h4>
+                <p className="text-sm text-on-surface-variant mb-6">
+                  {config.plan === "free" ? "For individual experimenters." : config.plan === "star" ? "Perfect for small businesses." : config.plan === "premium" ? "High-volume orchestration." : "Ultimate enterprise control."}
+                </p>
+                <div className="flex items-baseline gap-1">
+                  <span className={`text-4xl font-extrabold font-headline ${isCurrent ? "text-primary" : "text-on-surface"}`}>CHF {config.price}</span>
+                  <span className="text-on-surface-variant text-sm font-medium">/mo</span>
+                </div>
               </div>
-
-              <div className="mb-4">
-                <span className="font-headline text-3xl font-bold text-brand-text">CHF {config.price}</span>
-                <span className="text-brand-outline text-xs ml-1">{tr.upgrade_per_month}</span>
-              </div>
-
-              <ul className="space-y-2 mb-5 flex-1">
+              <ul className="space-y-4 mb-10 flex-1">
                 {(config.features.length > 0 ? config.features : [tr.upgrade_no_expiry]).map((f, i) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-brand-text-secondary">
-                    <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: meta.badgeBg }}>
-                      <Check className="w-2.5 h-2.5" style={{ color: meta.accentColor }} />
-                    </span>
-                    {f}
+                  <li key={i} className={`flex items-center gap-3 text-sm ${isCurrent ? "font-semibold" : "text-on-surface-variant"}`}>
+                    <span className={`material-symbols-outlined text-primary text-lg ${isCurrent ? "text-primary" : ""}`} style={isCurrent ? { fontVariationSettings: "'FILL' 1" } : {}}>check_circle</span>
+                    <span>{f}</span>
                   </li>
                 ))}
               </ul>
 
-              {meta.priceId && !isCurrent && isOwner ? (
+              {isCurrent ? (
+                <button className="w-full py-3 px-4 rounded-xl bg-surface-container-high text-on-surface-variant font-bold cursor-default opacity-50">Active</button>
+              ) : config.plan === "free" ? (
+                <button className="w-full py-3 px-4 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors">Stay on Free</button>
+              ) : isPlatinum ? (
+                <button className="w-full py-3 px-4 rounded-xl border-2 border-tertiary text-tertiary font-bold hover:bg-tertiary/5 transition-colors">Contact Sales</button>
+              ) : meta.priceId && isOwner ? (
                 <button
                   onClick={() => handleUpgrade(meta.priceId!)}
                   disabled={loading === meta.priceId}
-                  className="w-full py-2.5 rounded-xl font-semibold text-sm text-white transition-opacity disabled:opacity-60 hover:opacity-90"
-                  style={{ background: meta.gradient !== "none" ? meta.gradient : "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
+                  className="w-full py-4 px-4 rounded-xl text-white font-bold transition-all active:scale-95 shadow-md disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
                 >
                   {loading === meta.priceId ? tr.upgrade_loading : "Upgrade Now"}
-                </button>
-              ) : isCurrent ? (
-                <div className="w-full text-center text-sm text-brand-outline py-2">{tr.upgrade_current_plan}</div>
-              ) : meta.priceId === null && !isCurrent ? (
-                <button className="w-full py-2.5 rounded-xl font-semibold text-sm text-brand-text-secondary hover:bg-brand-surface-low transition-colors" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
-                  Stay on Free
                 </button>
               ) : null}
             </div>
@@ -166,64 +151,50 @@ export default function UpgradePage() {
         })}
       </div>
 
-      {/* Compare capabilities table */}
-      <div className="bg-brand-surface rounded-2xl overflow-hidden shadow-ambient-sm mb-6" style={{ border: "1px solid rgba(195,197,217,0.35)" }}>
-        <div className="px-6 py-4" style={{ borderBottom: "1px solid rgba(195,197,217,0.35)" }}>
-          <h2 className="font-headline font-semibold text-brand-text">Compare full capabilities</h2>
+      {/* Comparison table */}
+      <section className="max-w-5xl mx-auto mt-8 mb-32">
+        <h5 className="text-3xl font-bold font-headline text-center mb-16">Compare full capabilities</h5>
+        <div className="space-y-0.5">
+          <div className="grid grid-cols-5 py-4 px-6 items-center text-xs font-black uppercase tracking-widest text-on-surface-variant border-b border-outline-variant/10">
+            <div className="col-span-2">Core Feature</div>
+            <div className="text-center">Free</div>
+            <div className="text-center text-primary">Star</div>
+            <div className="text-center">Premium</div>
+          </div>
+          {COMPARE_ROWS.map((row) => (
+            <div key={row.label} className="grid grid-cols-5 py-6 px-6 items-center hover:bg-surface-container-low transition-colors rounded-xl">
+              <div className="col-span-2">
+                <p className="font-bold text-on-surface">{row.label}</p>
+              </div>
+              {(["free", "star", "premium"] as Plan[]).map((p) => {
+                const val = row[p as keyof typeof row];
+                return (
+                  <div key={p} className="flex justify-center">
+                    {typeof val === "boolean" ? (
+                      val
+                        ? <span className="material-symbols-outlined text-primary">check</span>
+                        : <span className="material-symbols-outlined text-outline-variant">close</span>
+                    ) : (
+                      <span className={`text-sm font-medium ${p === "star" ? "font-bold text-primary" : ""}`}>{val as string}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ borderBottom: "1px solid rgba(195,197,217,0.25)", background: "#f7f9fb" }}>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-brand-outline uppercase tracking-wide">Core Feature</th>
-                {(["free", "star", "premium", "platinum"] as Plan[]).map((p) => (
-                  <th key={p} className="px-6 py-3 text-center text-xs font-bold uppercase tracking-wide"
-                    style={{ color: PLAN_META[p].badgeText }}>
-                    {p.charAt(0).toUpperCase() + p.slice(1)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {COMPARE_ROWS.map((row, idx) => (
-                <tr key={row.label} style={{ borderBottom: idx < COMPARE_ROWS.length - 1 ? "1px solid rgba(195,197,217,0.2)" : "none" }} className="hover:bg-brand-bg transition-colors">
-                  <td className="px-6 py-3 text-sm text-brand-text-secondary">{row.label}</td>
-                  {(["free", "star", "premium", "platinum"] as Plan[]).map((p) => {
-                    const val = row[p as keyof typeof row];
-                    return (
-                      <td key={p} className="px-6 py-3 text-center">
-                        {typeof val === "boolean" ? (
-                          val
-                            ? <Check className="w-4 h-4 mx-auto" style={{ color: PLAN_META[p].accentColor }} />
-                            : <Minus className="w-4 h-4 mx-auto text-brand-outline-variant" />
-                        ) : (
-                          <span className="text-xs font-medium text-brand-text-secondary">{val}</span>
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      </section>
 
-      {/* Bottom CTA */}
-      <div className="rounded-2xl p-6 flex flex-wrap items-center justify-between gap-4" style={{ border: "1px solid rgba(195,197,217,0.35)", background: "rgba(0,62,199,0.03)" }}>
-        <div>
-          <h3 className="font-headline font-semibold text-brand-text">Unsure which plan fits your scale?</h3>
-          <p className="text-sm text-brand-outline mt-1">Our solution architects can provide a capabilities audit of your current QR volume and project future scaling needs.</p>
+      {/* CTA glass panel */}
+      <div className="max-w-7xl mx-auto glass-panel p-12 rounded-3xl border border-white flex flex-col md:flex-row items-center justify-between gap-8 mb-12 overflow-hidden relative" style={{ boxShadow: "0px 20px 40px rgba(25,28,30,0.06)" }}>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
+        <div className="relative z-10 max-w-lg">
+          <h6 className="text-2xl font-bold font-headline mb-4">Unsure which plan fits your scale?</h6>
+          <p className="text-on-surface-variant">Our solution architects can provide a customized audit of your current QR volume and predict future scaling needs.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 text-sm font-medium text-brand-text-secondary px-4 py-2.5 rounded-xl hover:bg-brand-surface-low transition-colors" style={{ border: "1px solid rgba(195,197,217,0.5)" }}>
-            <HelpCircle className="w-4 h-4" />
-            View FAQ
-          </button>
-          <button className="btn-primary flex items-center gap-2 text-sm">
-            <Calendar className="w-4 h-4" />
-            Schedule a Demo
-          </button>
+        <div className="relative z-10 flex gap-4">
+          <button className="bg-surface-container-high px-8 py-4 rounded-xl font-bold hover:bg-surface-container-highest transition-colors">View FAQ</button>
+          <button className="text-white px-8 py-4 rounded-xl font-bold shadow-lg transition-transform active:scale-95" style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>Schedule a Demo</button>
         </div>
       </div>
     </div>
