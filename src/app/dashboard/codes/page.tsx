@@ -152,6 +152,9 @@ export default function CodesPage() {
 
   // Pagination
   const [page, setPage] = useState(1);
+
+  // View mode: grid or list
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const PAGE_SIZE = 12;
 
   // New folder creation
@@ -559,11 +562,17 @@ export default function CodesPage() {
               <h3 className="font-headline text-xs font-extrabold uppercase tracking-widest text-outline">
                 {currentFolder ? `QR-CODES IN ${currentFolder.name.toUpperCase()}` : "RECENT QR CODES"}
               </h3>
-              <div className="flex gap-2">
-                <button className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-surface-container-high text-primary" : "text-outline hover:bg-surface-container-high"}`}
+                >
                   <span className="material-symbols-outlined">grid_view</span>
                 </button>
-                <button className="w-10 h-10 rounded-lg bg-transparent flex items-center justify-center text-outline hover:bg-surface-container-high transition-colors">
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-surface-container-high text-primary" : "text-outline hover:bg-surface-container-high"}`}
+                >
                   <span className="material-symbols-outlined">list</span>
                 </button>
               </div>
@@ -582,93 +591,130 @@ export default function CodesPage() {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-8">
+              <div className={viewMode === "grid" ? "grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6" : "flex flex-col gap-3"}>
                 {paginated.map((contact) => {
                   const folderId = contactFolders[contact.id];
                   const folderNode = folderId ? findNode(displayTree, folderId) : null;
                   const folderName = folderNode?.name ?? null;
-                  return (
-                    <div
-                      key={contact.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, contact.id)}
-                      onDragEnd={handleDragEnd}
-                      className={`bg-white rounded-2xl flex flex-row overflow-hidden group border border-slate-100 shadow-sm hover:shadow-[0px_8px_32px_rgba(25,28,30,0.10)] transition-shadow ${dragContactId === contact.id ? "opacity-50" : ""} cursor-grab active:cursor-grabbing`}
-                    >
-                      {/* Left content */}
-                      <div className="flex-1 p-8 flex flex-col justify-between min-w-0">
-                        <div>
-                          {/* Badges */}
-                          <div className="flex items-center gap-2 mb-4">
-                            <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-extrabold uppercase tracking-wider">Business Card</span>
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${contact.isActive !== false ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
-                              {contact.isActive !== false ? "Active" : "Paused"}
-                            </span>
-                          </div>
-                          {/* Name */}
-                          <h4 className="text-2xl font-headline font-bold text-slate-900 mb-1 leading-tight">
-                            {`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}
-                          </h4>
-                          {contact.title && <p className="text-primary font-semibold text-sm mb-0.5">{contact.title}</p>}
-                          {contact.company && <p className="text-slate-500 text-sm mb-5">{contact.company}</p>}
-                          {/* Stats */}
-                          <div className="flex items-center gap-8 mt-2">
-                            <div>
-                              <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Created</span>
-                              <span className="text-sm font-semibold text-slate-800">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</span>
-                            </div>
-                            <div>
-                              <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Scans</span>
-                              <span className="text-sm font-semibold text-slate-800 flex items-center gap-1">
-                                <span className="material-symbols-outlined text-xs text-slate-500">trending_up</span>
-                                {scanCounts[contact.id] ?? 0} Scans
+                  return viewMode === "grid" ? (
+                      /* ── GRID card ── */
+                      <div
+                        key={contact.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, contact.id)}
+                        onDragEnd={handleDragEnd}
+                        className={`bg-white rounded-2xl flex flex-row overflow-hidden group border border-slate-100 shadow-sm hover:shadow-[0px_8px_32px_rgba(25,28,30,0.10)] transition-shadow ${dragContactId === contact.id ? "opacity-50" : ""} cursor-grab active:cursor-grabbing`}
+                      >
+                        {/* Left content */}
+                        <div className="flex-1 p-8 flex flex-col justify-between min-w-0">
+                          <div>
+                            <div className="flex items-center gap-2 mb-4">
+                              <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-extrabold uppercase tracking-wider">Business Card</span>
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${contact.isActive !== false ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                                {contact.isActive !== false ? "Active" : "Paused"}
                               </span>
                             </div>
-                            {hasFolders && (
+                            <h4 className="text-2xl font-headline font-bold text-slate-900 mb-1 leading-tight">
+                              {`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}
+                            </h4>
+                            {contact.title && <p className="text-primary font-semibold text-sm mb-0.5">{contact.title}</p>}
+                            {contact.company && <p className="text-slate-500 text-sm mb-5">{contact.company}</p>}
+                            <div className="flex items-center gap-8 mt-2">
                               <div>
-                                <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Folder</span>
-                                <button onClick={() => setPickerContactId(contact.id)} className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-                                  {folderName ?? "None"}
-                                </button>
+                                <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Created</span>
+                                <span className="text-sm font-semibold text-slate-800">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</span>
                               </div>
+                              <div>
+                                <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Scans</span>
+                                <span className="text-sm font-semibold text-slate-800 flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-xs text-slate-500">trending_up</span>
+                                  {scanCounts[contact.id] ?? 0} Scans
+                                </span>
+                              </div>
+                              {hasFolders && (
+                                <div>
+                                  <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Folder</span>
+                                  <button onClick={() => setPickerContactId(contact.id)} className="text-sm font-semibold text-primary hover:underline">{folderName ?? "None"}</button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 mt-6">
+                            {!isReader && (
+                              <Link href={`/dashboard/edit/${contact.id}`} className="text-primary font-bold font-headline text-sm hover:underline mr-2">Bearbeiten</Link>
+                            )}
+                            <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors">
+                              <span className="material-symbols-outlined text-[18px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
+                            </button>
+                            <a href={`/qr/${contact.id}`} target="_blank" className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors">
+                              <span className="material-symbols-outlined text-[18px]">share</span>
+                            </a>
+                            <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors">
+                              <span className="material-symbols-outlined text-[18px]">download</span>
+                            </button>
+                            {isAdmin && (
+                              <button onClick={() => setDeleteModal(contact.id)} className="w-9 h-9 border border-red-100 flex items-center justify-center text-red-400 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors">
+                                <span className="material-symbols-outlined text-[18px]">delete</span>
+                              </button>
                             )}
                           </div>
                         </div>
-
+                        {/* Right QR panel — dark */}
+                        <div className="w-[130px] shrink-0 flex items-center justify-center p-4" style={{ background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)" }}>
+                          <div id={`qr-${contact.id}`} className="p-2 bg-white rounded-lg shadow-lg group-hover:scale-105 transition-transform duration-300">
+                            <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={90} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* ── LIST row ── */
+                      <div
+                        key={contact.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, contact.id)}
+                        onDragEnd={handleDragEnd}
+                        className={`bg-white rounded-xl flex items-center gap-4 px-5 py-4 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group ${dragContactId === contact.id ? "opacity-50" : ""} cursor-grab active:cursor-grabbing`}
+                      >
+                        {/* QR thumb */}
+                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 flex items-center justify-center p-1 bg-slate-900">
+                          <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={40} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
+                        </div>
+                        {/* Name + meta */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <p className="font-headline font-bold text-slate-900 truncate">{`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</p>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${contact.isActive !== false ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                              {contact.isActive !== false ? "Active" : "Paused"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 truncate">{contact.title}{contact.title && contact.company ? " · " : ""}{contact.company}</p>
+                        </div>
+                        {/* Stats */}
+                        <div className="hidden md:flex items-center gap-6 shrink-0 text-sm text-slate-500">
+                          <span>{new Date(contact.createdAt).toLocaleDateString("de-DE")}</span>
+                          <span className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-xs">trending_up</span>
+                            {scanCounts[contact.id] ?? 0}
+                          </span>
+                        </div>
                         {/* Actions */}
-                        <div className="flex items-center gap-2 mt-6">
+                        <div className="flex items-center gap-1 shrink-0">
                           {!isReader && (
-                            <Link href={`/dashboard/edit/${contact.id}`} className="text-primary font-bold font-headline text-sm hover:underline mr-2">
-                              Bearbeiten
-                            </Link>
+                            <Link href={`/dashboard/edit/${contact.id}`} className="px-3 py-1.5 text-primary font-bold text-xs hover:underline">Bearbeiten</Link>
                           )}
-                          <button
-                            onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }}
-                            className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
+                          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} className="w-8 h-8 border border-slate-200 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary transition-colors">
+                            <span className="material-symbols-outlined text-[16px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
                           </button>
-                          <a href={`/qr/${contact.id}`} target="_blank" className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors">
-                            <span className="material-symbols-outlined text-[18px]">share</span>
-                          </a>
-                          <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="w-9 h-9 border border-slate-200 flex items-center justify-center text-slate-500 rounded-lg hover:text-primary hover:border-primary/30 transition-colors">
-                            <span className="material-symbols-outlined text-[18px]">download</span>
+                          <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} className="w-8 h-8 border border-slate-200 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary transition-colors">
+                            <span className="material-symbols-outlined text-[16px]">download</span>
                           </button>
                           {isAdmin && (
-                            <button onClick={() => setDeleteModal(contact.id)} className="w-9 h-9 border border-red-100 flex items-center justify-center text-red-400 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors">
-                              <span className="material-symbols-outlined text-[18px]">delete</span>
+                            <button onClick={() => setDeleteModal(contact.id)} className="w-8 h-8 border border-red-100 flex items-center justify-center text-red-400 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
+                              <span className="material-symbols-outlined text-[16px]">delete</span>
                             </button>
                           )}
                         </div>
                       </div>
-
-                      {/* Right QR panel — dark phone style */}
-                      <div className="w-[130px] shrink-0 flex items-center justify-center p-4 relative" style={{ background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)" }}>
-                        <div id={`qr-${contact.id}`} className="relative z-10 p-2 bg-white rounded-lg shadow-lg group-hover:scale-105 transition-transform duration-300">
-                          <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={90} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
-                        </div>
-                      </div>
-                    </div>
                   );
                 })}
 
