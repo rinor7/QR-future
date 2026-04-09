@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { contactId, eventType } = await req.json();
+  const { contactId, eventType, visitorId } = await req.json();
   if (!contactId || !eventType) return NextResponse.json({ ok: false });
 
   const supabase = createClient(
@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
   await supabase.from("qr_interactions").insert({
     contact_id: contactId,
     event_type: eventType,
+    visitor_id: visitorId ?? null,
   });
 
   return NextResponse.json({ ok: true });

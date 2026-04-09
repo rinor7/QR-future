@@ -148,10 +148,11 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
 
   // ── Interaction tracker ───────────────────────────────────────────────────
   function track(eventType: string) {
+    const visitorId = localStorage.getItem("qr_visitor_id");
     fetch("/api/interaction", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contactId: contact.id, eventType }),
+      body: JSON.stringify({ contactId: contact.id, eventType, visitorId }),
     }).catch(() => {});
   }
 

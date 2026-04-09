@@ -40,7 +40,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   // Fetch all interactions
   const { data: interactions } = await supabase
     .from("qr_interactions")
-    .select("event_type, scanned_at")
+    .select("event_type, scanned_at, visitor_id")
     .eq("contact_id", contactId)
     .order("scanned_at", { ascending: false });
 
@@ -95,6 +95,51 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const eventMap: Record<string, number> = {};
   ix.forEach((r) => { eventMap[r.event_type] = (eventMap[r.event_type] ?? 0) + 1; });
 
+  // Hot leads — visitors who triggered a high-intent event (phone, email, save contact)
+  const HIGH_INTENT = new Set(["click_phone", "click_email", "click_save_contact"]);
+  const hotLeadIds = new Set(
+    ix.filter((r) => r.visitor_id && HIGH_INTENT.has(r.event_type)).map((r) => r.visitor_id)
+  );
+
+  // Build per-visitor profile for hot leads
+  const visitorScanMap: Record<string, { scanned_at: string; device_type: string; os: string; country: string; city: string; is_returning: boolean; scanCount: number }> = {};
+  s.forEach((r) => {
+    if (!r.visitor_id) return;
+    if (!visitorScanMap[r.visitor_id]) {
+      visitorScanMap[r.visitor_id] = { ...r, scanCount: 1 };
+    } else {
+      visitorScanMap[r.visitor_id].scanCount++;
+      // Keep the most recent scan's metadata
+      if (r.scanned_at > visitorScanMap[r.visitor_id].scanned_at) {
+        visitorScanMap[r.visitor_id] = { ...visitorScanMap[r.visitor_id], ...r, scanCount: visitorScanMap[r.visitor_id].scanCount };
+      }
+    }
+  });
+
+  const visitorEventMap: Record<string, string[]> = {};
+  ix.forEach((r) => {
+    if (!r.visitor_id) return;
+    if (!visitorEventMap[r.visitor_id]) visitorEventMap[r.visitor_id] = [];
+    if (!visitorEventMap[r.visitor_id].includes(r.event_type)) {
+      visitorEventMap[r.visitor_id].push(r.event_type);
+    }
+  });
+
+  const hotLeads = Array.from(hotLeadIds)
+    .map((vid) => ({
+      visitorId: vid,
+      scanCount: visitorScanMap[vid]?.scanCount ?? 1,
+      lastSeen: visitorScanMap[vid]?.scanned_at ?? null,
+      device: visitorScanMap[vid]?.device_type ?? null,
+      os: visitorScanMap[vid]?.os ?? null,
+      country: visitorScanMap[vid]?.country ?? null,
+      city: visitorScanMap[vid]?.city ?? null,
+      isReturning: visitorScanMap[vid]?.is_returning ?? false,
+      events: visitorEventMap[vid] ?? [],
+    }))
+    .sort((a, b) => (b.scanCount - a.scanCount) || (b.lastSeen ?? "").localeCompare(a.lastSeen ?? ""))
+    .slice(0, 20);
+
   return NextResponse.json({
     total: s.length,
     unique: totalUnique,
@@ -110,5 +155,6 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       .map(([name, count]) => ({ name, count })),
     interactions: Object.entries(eventMap).map(([event, count]) => ({ event, count })),
     recentScans: s.slice(0, 20),
+    hotLeads,
   });
 }

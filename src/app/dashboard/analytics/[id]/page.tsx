@@ -35,6 +35,7 @@ interface AnalyticsData {
   countries: { name: string; count: number }[];
   interactions: { event: string; count: number }[];
   recentScans: { scanned_at: string; device_type: string; os: string; country: string; city: string; is_returning: boolean; visitor_id: string | null }[];
+  hotLeads: { visitorId: string; scanCount: number; lastSeen: string | null; device: string | null; os: string | null; country: string | null; city: string | null; isReturning: boolean; events: string[] }[];
 }
 
 function MiniBar({ value, max, color = "bg-blue-500" }: { value: number; max: number; color?: string }) {
@@ -331,6 +332,76 @@ export default function AnalyticsPage() {
           )}
         </div>
 
+      </div>
+
+      {/* Hot Leads */}
+      <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+            <span className="material-symbols-outlined text-[18px] text-red-500">local_fire_department</span>
+          </div>
+          <div>
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100">Hot Leads</h3>
+            <p className="text-xs text-slate-400">Visitors who clicked phone, email, or saved contact</p>
+          </div>
+          <span className="ml-auto text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2.5 py-1 rounded-full">
+            {(data.hotLeads ?? []).length} leads
+          </span>
+        </div>
+        {(data.hotLeads ?? []).length === 0 ? (
+          <div className="py-8 text-center">
+            <span className="material-symbols-outlined text-[40px] text-slate-200 dark:text-slate-700 block mb-2">person_search</span>
+            <p className="text-sm text-slate-400">No high-intent interactions yet</p>
+            <p className="text-xs text-slate-300 dark:text-slate-600 mt-1">Leads appear when someone clicks phone, email, or saves your contact</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {(data.hotLeads ?? []).map((lead, i) => (
+              <div key={lead.visitorId} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-[#242736] border border-slate-100 dark:border-[#2a2e3e]">
+                {/* Rank */}
+                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-slate-700 text-slate-500">
+                  {i + 1}
+                </div>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    {lead.isReturning && (
+                      <span className="text-[10px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-900/30 px-1.5 py-0.5 rounded-full">Returning</span>
+                    )}
+                    {lead.scanCount >= 3 && (
+                      <span className="text-[10px] font-bold text-red-600 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded-full">🔥 {lead.scanCount}x scanned</span>
+                    )}
+                    {lead.scanCount === 2 && (
+                      <span className="text-[10px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded-full">{lead.scanCount}x scanned</span>
+                    )}
+                    <p className="text-xs text-slate-400 truncate">
+                      {[lead.city, lead.country].filter(Boolean).join(", ") || "Unknown location"} · {lead.device} · {lead.os}
+                    </p>
+                  </div>
+                  {/* Event pills */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {lead.events.map((ev) => {
+                      const meta = EVENT_LABELS[ev] ?? { label: ev, icon: "touch_app", color: "text-slate-600 bg-slate-100" };
+                      return (
+                        <span key={ev} className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${meta.color}`}>
+                          <span className="material-symbols-outlined text-[10px]">{meta.icon}</span>
+                          {meta.label}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+                {/* Last seen */}
+                <div className="text-right shrink-0">
+                  <p className="text-[10px] text-slate-400">Last seen</p>
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                    {lead.lastSeen ? new Date(lead.lastSeen).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "—"}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
     </div>
