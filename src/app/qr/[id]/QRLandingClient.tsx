@@ -122,16 +122,18 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
   }, []);
   const th = THEMES[contact.theme ?? "classic"];
 
-  // ── Scan tracking with returning visitor detection ────────────────────────
+  // ── Scan tracking with stable visitor ID ─────────────────────────────────
   useEffect(() => {
     const sessionKey = `scanned_${contact.id}`;
     if (sessionStorage.getItem(sessionKey)) return; // already tracked this session
     sessionStorage.setItem(sessionKey, "1");
 
-    // Persistent fingerprint across sessions to detect returning visitors
-    const storageKey = `visitor_${contact.id}`;
-    const isReturning = !!localStorage.getItem(storageKey);
-    localStorage.setItem(storageKey, "1");
+    // Stable visitor ID — one UUID per device, shared across all QR codes
+    let visitorId = localStorage.getItem("qr_visitor_id");
+    if (!visitorId) {
+      visitorId = crypto.randomUUID();
+      localStorage.setItem("qr_visitor_id", visitorId);
+    }
 
     fetch("/api/scan", {
       method: "POST",
@@ -139,7 +141,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
       body: JSON.stringify({
         contactId: contact.id,
         referrer: document.referrer || null,
-        isReturning,
+        visitorId,
       }),
     }).catch(() => {});
   }, [contact.id]);

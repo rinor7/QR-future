@@ -22,7 +22,6 @@ function parseDevice(ua: string): { device_type: string; os: string } {
 }
 
 async function getGeo(ip: string): Promise<{ country: string | null; city: string | null }> {
-  // Skip private/loopback addresses
   if (!ip || ip === "127.0.0.1" || ip === "::1" || ip.startsWith("192.168.") || ip.startsWith("10.")) {
     return { country: null, city: null };
   }
@@ -35,19 +34,18 @@ async function getGeo(ip: string): Promise<{ country: string | null; city: strin
       return { country: data.country ?? null, city: data.city ?? null };
     }
   } catch {
-    // geo lookup is best-effort, never block the scan
+    // geo lookup is best-effort
   }
   return { country: null, city: null };
 }
 
 export async function POST(req: NextRequest) {
-  const { contactId, referrer, isReturning } = await req.json();
+  const { contactId, referrer, visitorId } = await req.json();
   if (!contactId) return NextResponse.json({ ok: false });
 
   const ua = req.headers.get("user-agent") ?? "";
   const { device_type, os } = parseDevice(ua);
 
-  // Extract real IP — respect proxy headers (Vercel sets x-forwarded-for)
   const forwarded = req.headers.get("x-forwarded-for");
   const ip = forwarded ? forwarded.split(",")[0].trim() : (req.headers.get("x-real-ip") ?? "");
 
@@ -58,6 +56,17 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
+  // Server-side returning check — has this visitor_id scanned this contact before?
+  let is_returning = false;
+  if (visitorId) {
+    const { count } = await supabase
+      .from("qr_scans")
+      .select("id", { count: "exact", head: true })
+      .eq("contact_id", contactId)
+      .eq("visitor_id", visitorId);
+    is_returning = (count ?? 0) > 0;
+  }
+
   await supabase.from("qr_scans").insert({
     contact_id: contactId,
     device_type,
@@ -65,7 +74,8 @@ export async function POST(req: NextRequest) {
     country,
     city,
     referrer: referrer ?? null,
-    is_returning: isReturning ?? false,
+    visitor_id: visitorId ?? null,
+    is_returning,
   });
 
   return NextResponse.json({ ok: true });

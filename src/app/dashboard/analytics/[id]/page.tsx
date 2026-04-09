@@ -25,14 +25,16 @@ const EVENT_LABELS: Record<string, { label: string; icon: string; color: string 
 
 interface AnalyticsData {
   total: number;
+  unique: number;
   returning: number;
   new: number;
+  visitFrequency: { once: number; twice: number; threeplus: number };
   last30: { date: string; count: number }[];
   devices: { name: string; count: number }[];
   os: { name: string; count: number }[];
   countries: { name: string; count: number }[];
   interactions: { event: string; count: number }[];
-  recentScans: { scanned_at: string; device_type: string; os: string; country: string; city: string; is_returning: boolean }[];
+  recentScans: { scanned_at: string; device_type: string; os: string; country: string; city: string; is_returning: boolean; visitor_id: string | null }[];
 }
 
 function MiniBar({ value, max, color = "bg-blue-500" }: { value: number; max: number; color?: string }) {
@@ -119,6 +121,8 @@ export default function AnalyticsPage() {
   const engagementRate = data.total > 0 ? Math.round(((data.interactions?.reduce((s, i) => s + i.count, 0) ?? 0) / data.total) * 100) : 0;
   const returningRate = data.total > 0 ? Math.round((data.returning / data.total) * 100) : 0;
   const totalInteractions = data.interactions?.reduce((s, i) => s + i.count, 0) ?? 0;
+  const freq = data.visitFrequency ?? { once: 0, twice: 0, threeplus: 0 };
+  const freqTotal = freq.once + freq.twice + freq.threeplus;
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -144,7 +148,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Total Scans",     value: data.total,        icon: "qr_code_scanner", color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20" },
-          { label: "Unique Visitors", value: data.new,          icon: "person",          color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20" },
+          { label: "Unique Visitors", value: data.unique,       icon: "person",          color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20" },
           { label: "Returning",       value: data.returning,    icon: "repeat",          color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20", badge: returningRate > 0 ? `${returningRate}%` : null },
           { label: "Interactions",    value: totalInteractions, icon: "touch_app",       color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-900/20", badge: engagementRate > 0 ? `${engagementRate}% rate` : null },
         ].map(({ label, value, icon, color, bg, badge }) => (
@@ -178,6 +182,42 @@ export default function AnalyticsPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Visitor loyalty */}
+      <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100">Visitor Loyalty</h3>
+            <p className="text-xs text-slate-400 mt-0.5">How often the same person scans this QR code</p>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />New
+            <span className="w-2 h-2 rounded-full bg-purple-400 inline-block ml-2" />Returning
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: "Scanned once",    value: freq.once,      color: "bg-green-400",  textColor: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20",  icon: "looks_one" },
+            { label: "Scanned twice",   value: freq.twice,     color: "bg-blue-400",   textColor: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20",    icon: "looks_two" },
+            { label: "3+ times",        value: freq.threeplus, color: "bg-purple-500", textColor: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20",icon: "local_fire_department" },
+          ].map(({ label, value, color, textColor, bg, icon }) => {
+            const pct = freqTotal > 0 ? Math.round((value / freqTotal) * 100) : 0;
+            return (
+              <div key={label} className={`rounded-xl p-4 ${bg}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`material-symbols-outlined text-[18px] ${textColor}`}>{icon}</span>
+                  <span className={`text-xs font-bold ${textColor}`}>{pct}%</span>
+                </div>
+                <p className={`text-2xl font-bold ${textColor}`}>{value}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{label}</p>
+                <div className="mt-2 h-1.5 bg-white/50 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Interaction funnel + breakdown */}

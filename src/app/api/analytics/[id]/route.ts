@@ -20,7 +20,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
   const contactId = params.id;
 
-  // Verify the contact belongs to this user's org
+  // Verify ownership
   const { data: profile } = await supabase
     .from("profiles").select("owner_id").eq("user_id", user.id).single();
   const ownerId = profile?.owner_id ?? user.id;
@@ -33,7 +33,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   // Fetch all scans
   const { data: scans } = await supabase
     .from("qr_scans")
-    .select("scanned_at, device_type, os, country, city, referrer, is_returning")
+    .select("scanned_at, device_type, os, country, city, referrer, is_returning, visitor_id")
     .eq("contact_id", contactId)
     .order("scanned_at", { ascending: false });
 
@@ -59,39 +59,48 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     if (day && day in days30) days30[day]++;
   });
 
+  // Unique visitors — distinct visitor_ids (fallback: count non-returning as unique)
+  const knownVisitorIds = new Set(s.map((r) => r.visitor_id).filter(Boolean));
+  const uniqueByVisitorId = knownVisitorIds.size;
+  // For scans without visitor_id (old data), count each as unique
+  const scansWithoutVisitorId = s.filter((r) => !r.visitor_id).length;
+  const totalUnique = uniqueByVisitorId + scansWithoutVisitorId;
+  const returningCount = s.filter((r) => r.is_returning).length;
+
+  // Visit frequency — how many times each visitor_id scanned
+  const visitorFreq: Record<string, number> = {};
+  s.forEach((r) => {
+    if (r.visitor_id) visitorFreq[r.visitor_id] = (visitorFreq[r.visitor_id] ?? 0) + 1;
+  });
+  const freqBuckets = { once: 0, twice: 0, threeplus: 0 };
+  Object.values(visitorFreq).forEach((count) => {
+    if (count === 1) freqBuckets.once++;
+    else if (count === 2) freqBuckets.twice++;
+    else freqBuckets.threeplus++;
+  });
+
   // Device breakdown
   const deviceMap: Record<string, number> = {};
-  s.forEach((r) => {
-    const k = r.device_type ?? "Unknown";
-    deviceMap[k] = (deviceMap[k] ?? 0) + 1;
-  });
+  s.forEach((r) => { const k = r.device_type ?? "Unknown"; deviceMap[k] = (deviceMap[k] ?? 0) + 1; });
 
   // OS breakdown
   const osMap: Record<string, number> = {};
-  s.forEach((r) => {
-    const k = r.os ?? "Unknown";
-    osMap[k] = (osMap[k] ?? 0) + 1;
-  });
+  s.forEach((r) => { const k = r.os ?? "Unknown"; osMap[k] = (osMap[k] ?? 0) + 1; });
 
   // Country breakdown (top 10)
   const countryMap: Record<string, number> = {};
-  s.forEach((r) => {
-    if (r.country) countryMap[r.country] = (countryMap[r.country] ?? 0) + 1;
-  });
+  s.forEach((r) => { if (r.country) countryMap[r.country] = (countryMap[r.country] ?? 0) + 1; });
 
   // Interaction breakdown
   const eventMap: Record<string, number> = {};
-  ix.forEach((r) => {
-    eventMap[r.event_type] = (eventMap[r.event_type] ?? 0) + 1;
-  });
-
-  const returningCount = s.filter((r) => r.is_returning).length;
-  const newCount = s.length - returningCount;
+  ix.forEach((r) => { eventMap[r.event_type] = (eventMap[r.event_type] ?? 0) + 1; });
 
   return NextResponse.json({
     total: s.length,
+    unique: totalUnique,
     returning: returningCount,
-    new: newCount,
+    new: s.length - returningCount,
+    visitFrequency: freqBuckets,
     last30: Object.entries(days30).map(([date, count]) => ({ date, count })),
     devices: Object.entries(deviceMap).map(([name, count]) => ({ name, count })),
     os: Object.entries(osMap).map(([name, count]) => ({ name, count })),
