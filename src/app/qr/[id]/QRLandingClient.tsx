@@ -129,7 +129,10 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
     fetch("/api/scan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contactId: contact.id }),
+      body: JSON.stringify({
+        contactId: contact.id,
+        referrer: document.referrer || null,
+      }),
     }).catch(() => {});
   }, [contact.id]);
 
