@@ -718,6 +718,9 @@ export default function CodesPage() {
                                 <span className="material-symbols-outlined text-[17px]">edit</span>
                               </Link>
                             )}
+                            <Link href={`/dashboard/analytics/${contact.id}`} title="Analytics" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
+                              <span className="material-symbols-outlined text-[17px]">analytics</span>
+                            </Link>
                             <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                               <span className="material-symbols-outlined text-[17px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
                             </button>
@@ -784,6 +787,9 @@ export default function CodesPage() {
                               <span className="material-symbols-outlined text-[17px]">edit</span>
                             </Link>
                           )}
+                          <Link href={`/dashboard/analytics/${contact.id}`} title="Analytics" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-purple-600 hover:bg-purple-50 transition-colors">
+                            <span className="material-symbols-outlined text-[17px]">analytics</span>
+                          </Link>
                           <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
                             <span className="material-symbols-outlined text-[17px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
                           </button>

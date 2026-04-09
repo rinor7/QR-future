@@ -122,21 +122,39 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
   }, []);
   const th = THEMES[contact.theme ?? "classic"];
 
+  // ── Scan tracking with returning visitor detection ────────────────────────
   useEffect(() => {
-    const key = `scanned_${contact.id}`;
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, "1");
+    const sessionKey = `scanned_${contact.id}`;
+    if (sessionStorage.getItem(sessionKey)) return; // already tracked this session
+    sessionStorage.setItem(sessionKey, "1");
+
+    // Persistent fingerprint across sessions to detect returning visitors
+    const storageKey = `visitor_${contact.id}`;
+    const isReturning = !!localStorage.getItem(storageKey);
+    localStorage.setItem(storageKey, "1");
+
     fetch("/api/scan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contactId: contact.id,
         referrer: document.referrer || null,
+        isReturning,
       }),
     }).catch(() => {});
   }, [contact.id]);
 
+  // ── Interaction tracker ───────────────────────────────────────────────────
+  function track(eventType: string) {
+    fetch("/api/interaction", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contactId: contact.id, eventType }),
+    }).catch(() => {});
+  }
+
   function handleShare() {
+    track("click_share");
     if (navigator.share) {
       navigator.share({ title: `${contact.firstName} ${contact.lastName}`.trim() || "Kontakt", url: window.location.href });
     } else {
@@ -250,7 +268,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
         {/* Action buttons */}
         <div className="px-5 space-y-2.5 pb-4">
           {contact.phone && (
-            <a href={`tel:${contact.phone}`} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+            <a href={`tel:${contact.phone}`} onClick={() => track("click_phone")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <Phone className="w-4 h-4" />
               </div>
@@ -261,7 +279,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
             </a>
           )}
           {contact.email && (
-            <a href={`mailto:${contact.email}`} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+            <a href={`mailto:${contact.email}`} onClick={() => track("click_email")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <Mail className="w-4 h-4" />
               </div>
@@ -272,7 +290,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
             </a>
           )}
           {contact.website && (
-            <a href={contact.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+            <a href={contact.website} target="_blank" rel="noopener noreferrer" onClick={() => track("click_website")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <Globe className="w-4 h-4" />
               </div>
@@ -283,7 +301,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
             </a>
           )}
           {contact.links && contact.links.map((link, i) => (
-            <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+            <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" onClick={() => track(link.type === "file" ? "click_pdf" : "click_link")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <FileText className="w-4 h-4" />
               </div>
@@ -304,7 +322,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
         {/* vCard — mobile only */}
         {isTouchDevice && (
           <div className="px-5 pb-4">
-            <button onClick={handleVCard} className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 transition-colors" style={{ borderColor: th.borderColor(color), color: th.btnText(color) }}>
+            <button onClick={() => { track("click_save_contact"); handleVCard(); }} className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 transition-colors" style={{ borderColor: th.borderColor(color), color: th.btnText(color) }}>
               <Download className="w-4 h-4" />
               Kontakt speichern
             </button>
@@ -315,37 +333,37 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
         {(contact.linkedinUrl || contact.instagramUrl || contact.facebookUrl || contact.tiktokUrl || contact.snapchatUrl || contact.xUrl || contact.otherSocialUrl) && (
           <div className="px-5 pb-6 flex items-center justify-center flex-wrap gap-3">
             {contact.linkedinUrl && (
-              <a href={contact.linkedinUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="LinkedIn">
+              <a href={contact.linkedinUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_linkedin")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="LinkedIn">
                 <LinkedInIcon className="w-4 h-4" />
               </a>
             )}
             {contact.instagramUrl && (
-              <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Instagram">
+              <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_instagram")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Instagram">
                 <InstagramIcon className="w-4 h-4" />
               </a>
             )}
             {contact.facebookUrl && (
-              <a href={contact.facebookUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Facebook">
+              <a href={contact.facebookUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_facebook")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Facebook">
                 <FacebookIcon className="w-4 h-4" />
               </a>
             )}
             {contact.tiktokUrl && (
-              <a href={contact.tiktokUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="TikTok">
+              <a href={contact.tiktokUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_tiktok")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="TikTok">
                 <Music2 className="w-4 h-4" />
               </a>
             )}
             {contact.snapchatUrl && (
-              <a href={contact.snapchatUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Snapchat">
+              <a href={contact.snapchatUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_snapchat")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Snapchat">
                 <Ghost className="w-4 h-4" />
               </a>
             )}
             {contact.xUrl && (
-              <a href={contact.xUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="X">
+              <a href={contact.xUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_x")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="X">
                 <XBrandIcon className="w-4 h-4" />
               </a>
             )}
             {contact.otherSocialUrl && (
-              <a href={contact.otherSocialUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Link">
+              <a href={contact.otherSocialUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_other")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Link">
                 <Link2 className="w-4 h-4" />
               </a>
             )}

@@ -41,7 +41,7 @@ async function getGeo(ip: string): Promise<{ country: string | null; city: strin
 }
 
 export async function POST(req: NextRequest) {
-  const { contactId, referrer } = await req.json();
+  const { contactId, referrer, isReturning } = await req.json();
   if (!contactId) return NextResponse.json({ ok: false });
 
   const ua = req.headers.get("user-agent") ?? "";
@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
     country,
     city,
     referrer: referrer ?? null,
+    is_returning: isReturning ?? false,
   });
 
   return NextResponse.json({ ok: true });
