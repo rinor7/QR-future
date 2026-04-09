@@ -270,7 +270,7 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-slate-50 dark:bg-[#0f1117]">
+    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-[#0f1117]">
       {/* ── Top navigation bar ─────────────────────────────────────────── */}
       <div className="sticky top-0 z-30 bg-white dark:bg-[#131620] border-b border-slate-200 dark:border-[#1e2130] px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-4">
@@ -287,7 +287,7 @@ export default function CreatePage() {
               <span className="material-symbols-outlined text-[12px] text-slate-300">chevron_right</span>
               <span className="text-xs text-blue-600 font-medium">New Dynamic Code</span>
             </div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">Step 2: Configuration &amp; Details</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">Configuration &amp; Details</h1>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -327,9 +327,9 @@ export default function CreatePage() {
       )}
 
       {/* ── Two-column body ─────────────────────────────────────────────── */}
-      <div className="flex flex-1 gap-6 px-6 py-6 items-start">
+      <div className="flex gap-6 px-6 py-6 items-start">
         {/* ── Left: form ─────────────────────────────────────────────────── */}
-        <div className="flex-1 min-w-0 space-y-5 max-w-2xl">
+        <div className="flex-1 min-w-0 space-y-5">
 
           {/* Basic Information */}
           <div>
@@ -453,19 +453,6 @@ export default function CreatePage() {
             {/* Phone */}
             <div className="py-6 flex justify-center">
               <PhonePreview form={formData} />
-            </div>
-            {/* Info below phone */}
-            <div className="px-5 pb-2 text-center">
-              <p className="text-xs text-slate-400 mb-1">Scan to view contact details</p>
-              <p className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-3">
-                {[formData.firstName, formData.lastName].filter(Boolean).join(" ") || "New Dynamic Contact"}
-              </p>
-              {/* dot nav */}
-              <div className="flex justify-center gap-1.5 mb-4">
-                <div className="w-2 h-2 rounded-full bg-blue-500" />
-                <div className="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-600" />
-                <div className="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-600" />
-              </div>
             </div>
             {/* Type + Tracking rows */}
             <div className="border-t border-slate-100 dark:border-[#242736]">

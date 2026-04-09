@@ -220,11 +220,11 @@ export default function DashboardPage() {
       {/* Campaign Performance + Quick Bulk Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Campaign Performance */}
-        <div className="bg-primary rounded-2xl p-8 text-white relative overflow-hidden group">
+        <div className="rounded-2xl p-8 text-white relative overflow-hidden group" style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
           <div className="relative z-10">
             <h4 className="text-2xl font-bold font-headline mb-2">Campaign Performance</h4>
             <p className="text-blue-100 mb-6 max-w-xs">Your &ldquo;Autumn Retail&rdquo; campaign is performing 24% better than last month.</p>
-            <Link href="/dashboard/codes" className="inline-block bg-white text-primary font-bold px-6 py-2 rounded-full text-sm hover:bg-blue-50 transition-colors">
+            <Link href="/dashboard/codes" className="inline-block bg-white text-[#003ec7] font-bold px-6 py-2 rounded-full text-sm hover:bg-blue-50 transition-colors">
               View Analytics
             </Link>
           </div>
@@ -233,8 +233,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Bulk Actions */}
-        <div className="bg-surface-container-high rounded-2xl p-8 flex flex-col justify-center">
-          <h4 className="text-xl font-bold font-headline text-on-surface mb-2">Quick Bulk Actions</h4>
+        <div className="bg-slate-100 dark:bg-[#1a1d27] rounded-2xl p-8 flex flex-col justify-center">
+          <h4 className="text-xl font-bold font-headline text-slate-900 dark:text-slate-100 mb-2">Quick Bulk Actions</h4>
           <p className="text-slate-600 mb-6">Manage multiple assets at once with enterprise tools.</p>
           <div className="flex gap-4">
             {[

@@ -157,6 +157,8 @@ export default function CodesPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [togglingFolder, setTogglingFolder] = useState<string | null>(null);
+  // Pause confirmation modal: { id, currentlyActive, isFolder, folderNode }
+  const [pauseModal, setPauseModal] = useState<{ id: string; currentlyActive: boolean; isFolder: boolean; folderNode?: FolderWithStats } | null>(null);
   const PAGE_SIZE = 12;
 
   // New folder creation
@@ -325,6 +327,16 @@ export default function CodesPage() {
     } finally {
       setTogglingId(null);
     }
+  }
+
+  async function handleTogglePauseConfirmed(id: string, currentlyActive: boolean) {
+    setPauseModal(null);
+    await handleTogglePause(id, currentlyActive);
+  }
+
+  async function handleToggleFolderConfirmed(node: FolderWithStats) {
+    setPauseModal(null);
+    await handleToggleFolder(node);
   }
 
   async function handleToggleFolder(node: FolderWithStats) {
@@ -586,7 +598,7 @@ export default function CodesPage() {
                         const folderHasActive = isFolderActive(folder);
                         return (
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleToggleFolder(folder); }}
+                            onClick={(e) => { e.stopPropagation(); setPauseModal({ id: folder.id, currentlyActive: folderHasActive, isFolder: true, folderNode: folder }); }}
                             disabled={togglingFolder === folder.id}
                             title={folderHasActive ? "Pause all QRs in folder" : "Activate all QRs in folder"}
                             className={`absolute top-2 right-2 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg transition-all disabled:opacity-30 hover:bg-white/20 ${folderHasActive ? "text-white" : "text-green-200"}`}
@@ -664,7 +676,7 @@ export default function CodesPage() {
                         draggable
                         onDragStart={(e) => handleDragStart(e, contact.id)}
                         onDragEnd={handleDragEnd}
-                        className={`bg-white rounded-2xl flex flex-row overflow-hidden group border border-slate-100 shadow-sm hover:shadow-[0px_8px_32px_rgba(25,28,30,0.10)] transition-shadow ${dragContactId === contact.id ? "opacity-50" : ""} cursor-grab active:cursor-grabbing`}
+                        className={`bg-white rounded-2xl flex flex-row overflow-hidden group border border-slate-100 shadow-sm hover:shadow-[0px_8px_32px_rgba(25,28,30,0.10)] transition-all ${dragContactId === contact.id ? "opacity-50" : ""} ${contact.isActive === false ? "opacity-60 grayscale-[30%]" : ""} cursor-grab active:cursor-grabbing`}
                       >
                         {/* Left content */}
                         <div className="flex-1 p-6 flex flex-col justify-between min-w-0">
@@ -716,7 +728,7 @@ export default function CodesPage() {
                               <span className="material-symbols-outlined text-[17px]">download</span>
                             </button>
                             {!isReader && (
-                              <button onClick={() => handleTogglePause(contact.id, contact.isActive !== false)} disabled={togglingId === contact.id} title={contact.isActive !== false ? "Pause" : "Activate"} className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20" : "text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"}`}>
+                              <button onClick={() => setPauseModal({ id: contact.id, currentlyActive: contact.isActive !== false, isFolder: false })} disabled={togglingId === contact.id} title={contact.isActive !== false ? "Pause" : "Activate"} className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20" : "text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"}`}>
                                 <span className="material-symbols-outlined text-[17px]">{contact.isActive !== false ? "pause" : "play_arrow"}</span>
                               </button>
                             )}
@@ -741,7 +753,7 @@ export default function CodesPage() {
                         draggable
                         onDragStart={(e) => handleDragStart(e, contact.id)}
                         onDragEnd={handleDragEnd}
-                        className={`bg-white rounded-xl flex items-center gap-4 px-5 py-4 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group ${dragContactId === contact.id ? "opacity-50" : ""} cursor-grab active:cursor-grabbing`}
+                        className={`bg-white rounded-xl flex items-center gap-4 px-5 py-4 border border-slate-100 shadow-sm hover:shadow-md transition-all group ${dragContactId === contact.id ? "opacity-50" : ""} ${contact.isActive === false ? "opacity-60 grayscale-[30%]" : ""} cursor-grab active:cursor-grabbing`}
                       >
                         {/* QR thumb */}
                         <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 flex items-center justify-center p-1 bg-slate-900">
@@ -780,7 +792,7 @@ export default function CodesPage() {
                           </button>
                           {!isReader && (
                             <button
-                              onClick={() => handleTogglePause(contact.id, contact.isActive !== false)}
+                              onClick={() => setPauseModal({ id: contact.id, currentlyActive: contact.isActive !== false, isFolder: false })}
                               disabled={togglingId === contact.id}
                               title={contact.isActive !== false ? "Pause" : "Activate"}
                               className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "text-amber-500 hover:bg-amber-50" : "text-green-500 hover:bg-green-50"}`}
@@ -844,6 +856,54 @@ export default function CodesPage() {
             setPickerContactId(null);
           }}
         />
+      )}
+
+      {/* ── Pause confirmation modal ── */}
+      {pauseModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-[0px_20px_40px_rgba(25,28,30,0.18)] max-w-sm w-full p-6">
+            <div className={`flex items-center justify-center w-12 h-12 rounded-full mx-auto mb-4 ${pauseModal.currentlyActive ? "bg-amber-50" : "bg-green-50"}`}>
+              <span className={`material-symbols-outlined text-2xl ${pauseModal.currentlyActive ? "text-amber-500" : "text-green-500"}`}>
+                {pauseModal.currentlyActive ? "pause_circle" : "play_circle"}
+              </span>
+            </div>
+            <h2 className="font-bold text-lg text-slate-900 dark:text-slate-100 text-center mb-2">
+              {pauseModal.currentlyActive
+                ? (pauseModal.isFolder ? "Pause entire folder?" : "Pause this QR Code?")
+                : (pauseModal.isFolder ? "Activate entire folder?" : "Activate this QR Code?")}
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-2">
+              {pauseModal.currentlyActive
+                ? "Anyone who scans this QR code will be redirected to the homepage instead of your contact page."
+                : "The QR code will become active again and visitors will see your contact page."}
+            </p>
+            {pauseModal.currentlyActive && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 text-center bg-amber-50 dark:bg-amber-900/20 rounded-xl px-3 py-2 mb-4">
+                Paused QR codes redirect to <span className="font-semibold">qr-card.ch</span>
+              </p>
+            )}
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={() => setPauseModal(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (pauseModal.isFolder && pauseModal.folderNode) {
+                    handleToggleFolderConfirmed(pauseModal.folderNode);
+                  } else {
+                    handleTogglePauseConfirmed(pauseModal.id, pauseModal.currentlyActive);
+                  }
+                }}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors ${pauseModal.currentlyActive ? "bg-amber-500 hover:bg-amber-600" : "bg-green-500 hover:bg-green-600"}`}
+              >
+                {pauseModal.currentlyActive ? "Yes, Pause" : "Yes, Activate"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Delete modal ── */}
