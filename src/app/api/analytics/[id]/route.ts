@@ -146,19 +146,36 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     }
   });
 
+  function leadScore(scanCount: number, events: string[]): number {
+    const pts = scanCount; // 1pt per scan
+    return pts + events.reduce((sum, ev) => sum + (HIGH_INTENT.has(ev) ? 5 : 2), 0);
+  }
+  function leadTier(score: number): "low" | "medium" | "high" {
+    if (score >= 10) return "high";
+    if (score >= 4)  return "medium";
+    return "low";
+  }
+
   const hotLeads = Array.from(hotLeadIds)
-    .map((vid) => ({
-      visitorId: vid,
-      scanCount: visitorScanMap[vid]?.scanCount ?? 1,
-      lastSeen: visitorScanMap[vid]?.scanned_at ?? null,
-      device: visitorScanMap[vid]?.device_type ?? null,
-      os: visitorScanMap[vid]?.os ?? null,
-      country: visitorScanMap[vid]?.country ?? null,
-      city: visitorScanMap[vid]?.city ?? null,
-      isReturning: visitorScanMap[vid]?.is_returning ?? false,
-      events: visitorEventMap[vid] ?? [],
-    }))
-    .sort((a, b) => (b.scanCount - a.scanCount) || (b.lastSeen ?? "").localeCompare(a.lastSeen ?? ""))
+    .map((vid) => {
+      const events = visitorEventMap[vid] ?? [];
+      const scanCount = visitorScanMap[vid]?.scanCount ?? 1;
+      const score = leadScore(scanCount, events);
+      return {
+        visitorId: vid,
+        scanCount,
+        lastSeen: visitorScanMap[vid]?.scanned_at ?? null,
+        device: visitorScanMap[vid]?.device_type ?? null,
+        os: visitorScanMap[vid]?.os ?? null,
+        country: visitorScanMap[vid]?.country ?? null,
+        city: visitorScanMap[vid]?.city ?? null,
+        isReturning: visitorScanMap[vid]?.is_returning ?? false,
+        events,
+        score,
+        tier: leadTier(score),
+      };
+    })
+    .sort((a, b) => b.score - a.score)
     .slice(0, 20);
 
   return NextResponse.json({
