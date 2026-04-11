@@ -10,6 +10,40 @@ import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
 
+const EVENT_LABELS: Record<string, string> = {
+  click_phone:            "Phone",
+  click_email:            "Email",
+  click_website:          "Website",
+  click_pdf:              "PDF",
+  click_link:             "Link",
+  click_save_contact:     "Save Contact",
+  click_share:            "Share",
+  click_social_linkedin:  "LinkedIn",
+  click_social_instagram: "Instagram",
+  click_social_facebook:  "Facebook",
+  click_social_tiktok:    "TikTok",
+  click_social_snapchat:  "Snapchat",
+  click_social_x:         "X",
+  click_social_other:     "Other",
+};
+
+const EVENT_ICONS: Record<string, string> = {
+  click_phone: "call", click_email: "mail", click_website: "language",
+  click_pdf: "picture_as_pdf", click_link: "link", click_save_contact: "contact_page",
+  click_share: "share", click_social_linkedin: "open_in_new", click_social_instagram: "open_in_new",
+  click_social_facebook: "open_in_new", click_social_tiktok: "open_in_new",
+  click_social_snapchat: "open_in_new", click_social_x: "open_in_new", click_social_other: "open_in_new",
+};
+
+interface StatsData {
+  total: number;
+  unique: number;
+  returning: number;
+  chart: { date: string; count: number }[];
+  interactions: { event: string; count: number }[];
+  topQR: { id: string; count: number }[];
+}
+
 export default function DashboardPage() {
   const { tr } = useLang();
   const router = useRouter();
@@ -19,8 +53,9 @@ export default function DashboardPage() {
   const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [plan, setPlan] = useState<Plan>("free");
   const [isOwner, setIsOwner] = useState(false);
-  const [scanTotal, setScanTotal] = useState(0);
-  const [scanLast7, setScanLast7] = useState<{ date: string; count: number }[]>([]);
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [chartRange, setChartRange] = useState<"7" | "30">("7");
+  const [chartLoading, setChartLoading] = useState(false);
 
   async function load() {
     try {
@@ -35,18 +70,25 @@ export default function DashboardPage() {
     }
   }
 
+  async function loadStats(range: "7" | "30") {
+    setChartLoading(true);
+    try {
+      const r = await fetch(`/api/scan/stats?range=${range}`);
+      const data = await r.json();
+      setStats(data);
+    } catch {
+      // ignore
+    } finally {
+      setChartLoading(false);
+    }
+  }
+
   useEffect(() => {
     getUserProfile().then((p) => {
       if (p?.isPlatformAdmin) { router.replace("/dashboard/clients"); return; }
     });
     load();
-    fetch("/api/scan/stats")
-      .then((r) => r.json())
-      .then(({ total, last7 }) => {
-        if (total !== undefined) setScanTotal(total);
-        if (last7) setScanLast7(last7);
-      })
-      .catch(() => {});
+    loadStats("7");
   }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleDelete(id: string) {
@@ -55,51 +97,44 @@ export default function DashboardPage() {
     setDeleteModal(null);
   }
 
+  function handleRangeChange(range: "7" | "30") {
+    setChartRange(range);
+    loadStats(range);
+  }
+
   const activeCount = contacts.filter((c) => c.isActive !== false).length;
   const pausedCount = contacts.filter((c) => c.isActive === false).length;
-
-  // Chart: use real data or static placeholders
-  const chartDays: { label: string; outerPct: number; innerPct: number }[] =
-    scanLast7.length > 0
-      ? (() => {
-          const max = Math.max(...scanLast7.map((d) => d.count), 1);
-          const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-          return scanLast7.map((d) => ({
-            label: days[new Date(d.date + "T00:00:00").getDay()],
-            outerPct: Math.max(10, Math.round((d.count / max) * 90)),
-            innerPct: Math.max(30, Math.round((d.count / max) * 75)),
-          }));
-        })()
-      : [
-          { label: "Mon", outerPct: 40, innerPct: 60 },
-          { label: "Tue", outerPct: 65, innerPct: 80 },
-          { label: "Wed", outerPct: 50, innerPct: 45 },
-          { label: "Thu", outerPct: 90, innerPct: 70 },
-          { label: "Fri", outerPct: 75, innerPct: 85 },
-          { label: "Sat", outerPct: 45, innerPct: 30 },
-          { label: "Sun", outerPct: 60, innerPct: 55 },
-        ];
-
-  const kpiCards = [
-    { label: "Total QR Codes", value: contacts.length, icon: "qr_code_2", colorBg: "bg-blue-50", colorText: "text-blue-700", hoverBg: "group-hover:bg-blue-600", badge: "+12%", badgeClass: "text-green-600 bg-green-50" },
-    { label: "Active Assets", value: activeCount, icon: "check_circle", colorBg: "bg-green-50", colorText: "text-green-700", hoverBg: "group-hover:bg-green-600", badge: "Active", badgeClass: "text-slate-400" },
-    { label: "Paused", value: pausedCount, icon: "pause_circle", colorBg: "bg-amber-50", colorText: "text-amber-700", hoverBg: "group-hover:bg-amber-600", badge: "-3", badgeClass: "text-red-500 bg-red-50" },
-    { label: "Total Scans", value: scanTotal, icon: "analytics", colorBg: "bg-purple-50", colorText: "text-purple-700", hoverBg: "group-hover:bg-purple-600", badge: "+4.2k", badgeClass: "text-green-600 bg-green-50" },
-  ];
-
-  // Recent activity: last 4 contacts
   const recentContacts = contacts.slice(0, 4);
-
   const limit = PLAN_LIMITS[plan];
   const limitReached = !roleLoading && !isReader && limit !== -1 && contacts.length >= limit;
 
+  // Build chart bars
+  const chart = stats?.chart ?? [];
+  const chartMax = Math.max(...chart.map((d) => d.count), 1);
+  const totalInteractions = stats?.interactions.reduce((s, i) => s + i.count, 0) ?? 0;
+  const returningRate = (stats?.total ?? 0) > 0 ? Math.round(((stats?.returning ?? 0) / stats!.total) * 100) : 0;
+
+  // Map topQR ids to contact names
+  const topQR = (stats?.topQR ?? []).map(({ id, count }) => {
+    const c = contacts.find((x) => x.id === id);
+    return { id, count, name: c ? `${c.firstName} ${c.lastName}`.trim() || c.company || "—" : "—" };
+  });
+
+  const kpiCards = [
+    { label: "Total QR Codes", value: contacts.length,     icon: "qr_code_2",         color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20" },
+    { label: "Total Scans",    value: stats?.total ?? 0,   icon: "qr_code_scanner",   color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20" },
+    { label: "Unique Visitors",value: stats?.unique ?? 0,  icon: "person",            color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20" },
+    { label: "Returning",      value: stats?.returning ?? 0,icon: "repeat",           color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-900/20", badge: returningRate > 0 ? `${returningRate}%` : null },
+  ];
+
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      {/* Page Header */}
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
+
+      {/* Header */}
       <div className="flex items-end justify-between">
         <div>
-          <h2 className="text-4xl font-extrabold font-headline tracking-tight text-on-surface">Dashboard</h2>
-          <p className="text-slate-500 mt-1">{tr.dashboard_subtitle}</p>
+          <h2 className="text-3xl font-extrabold font-headline tracking-tight text-slate-900 dark:text-slate-100">Dashboard</h2>
+          <p className="text-slate-500 mt-1 text-sm">{tr.dashboard_subtitle}</p>
         </div>
         <div className="flex gap-3">
           {limitReached && isOwner && (
@@ -117,154 +152,214 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiCards.map((card) => (
-          <div key={card.label} className="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_20px_40px_rgba(25,28,30,0.04)] group hover:-translate-y-0.5 transition-all">
-            <div className="flex justify-between items-start mb-4">
-              <div className={`p-3 ${card.colorBg} ${card.colorText} rounded-xl ${card.hoverBg} group-hover:text-white transition-colors`}>
-                <span className="material-symbols-outlined">{card.icon}</span>
-              </div>
-              <span className={`text-xs font-bold px-2 py-1 rounded-full ${card.badgeClass}`}>{card.badge}</span>
+          <div key={card.label} className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5 hover:-translate-y-0.5 transition-all">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${card.bg}`}>
+              <span className={`material-symbols-outlined text-[20px] ${card.color}`}>{card.icon}</span>
             </div>
-            <p className="text-slate-500 text-sm font-medium">{card.label}</p>
-            <h3 className="text-3xl font-bold font-headline mt-1">{card.value.toLocaleString()}</h3>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{card.value.toLocaleString()}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-xs text-slate-400">{card.label}</p>
+              {"badge" in card && card.badge && (
+                <span className="text-[10px] font-bold text-orange-600 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-full">{card.badge}</span>
+              )}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Main grid: Chart (2/3) + Recent Activity (1/3) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Chart */}
-        <div className="lg:col-span-2 bg-surface-container-lowest rounded-2xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
-          <div className="flex justify-between items-center mb-10">
-            <div>
-              <h4 className="text-xl font-bold font-headline">Last 7 Days Activity</h4>
-              <p className="text-sm text-slate-500">Scan performance across all active nodes</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-primary"></span>
-              <span className="text-xs font-semibold text-slate-600">Total Scans</span>
-            </div>
-          </div>
-          <div className="flex items-end justify-between h-64 gap-4 px-2">
-            {chartDays.map((day) => (
-              <div key={day.label} className="flex-1 flex flex-col items-center gap-3 group/bar">
-                <div
-                  className="w-full bg-slate-100 rounded-t-lg group-hover/bar:bg-primary/20 transition-colors relative"
-                  style={{ height: `${day.outerPct}%` }}
-                >
-                  <div
-                    className="absolute bottom-0 w-full bg-primary rounded-t-lg"
-                    style={{ height: `${day.innerPct}%` }}
-                  />
-                </div>
-                <span className="text-xs font-bold text-slate-400">{day.label}</span>
-              </div>
-            ))}
-          </div>
+      {/* Active / Paused mini row */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white dark:bg-[#1a1d27] rounded-xl border border-slate-100 dark:border-[#242736] px-5 py-3 flex items-center gap-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0" />
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Active QR Codes</span>
+          <span className="ml-auto font-bold text-slate-900 dark:text-slate-100">{activeCount}</span>
         </div>
-
-        {/* Recent Activity */}
-        <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-[0px_20px_40px_rgba(25,28,30,0.04)] flex flex-col">
-          <div className="flex justify-between items-center mb-6">
-            <h4 className="text-lg font-bold font-headline">Recent Activity</h4>
-            <Link href="/dashboard/codes" className="text-primary text-sm font-bold hover:underline">View All</Link>
-          </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center flex-1 py-10">
-              <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : recentContacts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center flex-1 py-10 text-center">
-              <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">qr_code_2</span>
-              <p className="text-sm text-slate-500">No QR codes yet</p>
-              <Link href="/dashboard/create" className="btn-primary mt-3 text-xs py-2 px-4">Create first</Link>
-            </div>
-          ) : (
-            <div className="space-y-2 flex-1">
-              {recentContacts.map((contact) => (
-                <div key={contact.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group/item">
-                  <div className="w-12 h-12 bg-white p-1 rounded-xl shadow-sm border border-slate-100 flex items-center justify-center shrink-0">
-                    <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={40} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h5 className="font-bold text-sm truncate">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</h5>
-                    <p className="text-xs text-slate-500 truncate">{contact.company || contact.title || ""}</p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-[10px] font-bold text-slate-400">
-                      {new Date(contact.createdAt).toLocaleDateString("de-DE")}
-                    </p>
-                    <span className={`inline-block w-2 h-2 rounded-full ${contact.isActive !== false ? "bg-green-500" : "bg-amber-500"}`}></span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-auto pt-5">
-            <div className="bg-blue-50 rounded-2xl p-4 flex items-center gap-4">
-              <div className="p-2 bg-white rounded-lg shrink-0">
-                <span className="material-symbols-outlined text-primary">auto_awesome</span>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-blue-900">Need more insights?</p>
-                <p className="text-[10px] text-blue-700">Upgrade to Pro for advanced tracking.</p>
-              </div>
-            </div>
-          </div>
+        <div className="bg-white dark:bg-[#1a1d27] rounded-xl border border-slate-100 dark:border-[#242736] px-5 py-3 flex items-center gap-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0" />
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Paused QR Codes</span>
+          <span className="ml-auto font-bold text-slate-900 dark:text-slate-100">{pausedCount}</span>
         </div>
       </div>
 
-      {/* Campaign Performance + Quick Bulk Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Campaign Performance */}
-        <div className="rounded-2xl p-8 text-white relative overflow-hidden group" style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>
-          <div className="relative z-10">
-            <h4 className="text-2xl font-bold font-headline mb-2">Campaign Performance</h4>
-            <p className="text-blue-100 mb-6 max-w-xs">Your &ldquo;Autumn Retail&rdquo; campaign is performing 24% better than last month.</p>
-            <Link href="/dashboard/codes" className="inline-block bg-white text-[#003ec7] font-bold px-6 py-2 rounded-full text-sm hover:bg-blue-50 transition-colors">
-              View Analytics
-            </Link>
+      {/* Chart + Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Chart */}
+        <div className="lg:col-span-2 bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h4 className="font-bold text-slate-900 dark:text-slate-100">Scans Over Time</h4>
+              <p className="text-xs text-slate-400 mt-0.5">Total scans across all QR codes</p>
+            </div>
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#242736] rounded-xl p-1">
+              {(["7", "30"] as const).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => handleRangeChange(r)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${chartRange === r ? "bg-white dark:bg-[#1a1d27] text-slate-900 dark:text-slate-100 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                >
+                  {r}d
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700" />
-          <span className="material-symbols-outlined absolute top-4 right-6 text-white/20 select-none" style={{ fontSize: "5rem" }}>rocket_launch</span>
+          {chartLoading ? (
+            <div className="h-48 flex items-center justify-center">
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : chart.every((d) => d.count === 0) ? (
+            <div className="h-48 flex items-center justify-center text-slate-300 dark:text-slate-600 text-sm">No scans in this period</div>
+          ) : (
+            <div className="flex items-end gap-1.5 h-48">
+              {chart.map((day, i) => {
+                const pct = Math.max(4, Math.round((day.count / chartMax) * 100));
+                const label = chartRange === "7"
+                  ? ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(day.date + "T00:00:00").getDay()]
+                  : day.date.slice(5);
+                const showLabel = chartRange === "7" || i % 5 === 0 || i === chart.length - 1;
+                return (
+                  <div key={day.date} className="flex-1 flex flex-col items-center gap-1 group/bar">
+                    <div className="w-full relative flex items-end" style={{ height: "180px" }}>
+                      <div
+                        title={`${day.count} scans`}
+                        className="w-full rounded-t-lg bg-blue-500 group-hover/bar:bg-blue-400 transition-colors"
+                        style={{ height: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="text-[9px] font-medium text-slate-400">{showLabel ? label : ""}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Quick Bulk Actions */}
-        <div className="bg-slate-100 dark:bg-[#1a1d27] rounded-2xl p-8 flex flex-col justify-center">
-          <h4 className="text-xl font-bold font-headline text-slate-900 dark:text-slate-100 mb-2">Quick Bulk Actions</h4>
-          <p className="text-slate-600 mb-6">Manage multiple assets at once with enterprise tools.</p>
-          <div className="flex gap-4">
-            {[
-              { icon: "file_upload", label: "Import CSV", href: "/dashboard/create" },
-              { icon: "print", label: "Print Batch", href: "/dashboard/codes" },
-              { icon: "download", label: "Export All", href: "/api/scan/export" },
-            ].map(({ icon, label, href }) => (
-              <Link key={label} href={href} className="flex-1 flex flex-col items-center gap-2 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                <span className="material-symbols-outlined text-primary">{icon}</span>
-                <span className="text-xs font-bold text-slate-700">{label}</span>
-              </Link>
-            ))}
+        {/* Recent Activity */}
+        <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5 flex flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="font-bold text-slate-900 dark:text-slate-100">Recent QR Codes</h4>
+            <Link href="/dashboard/codes" className="text-blue-600 text-xs font-semibold hover:underline">View all</Link>
           </div>
+          {loading ? (
+            <div className="flex items-center justify-center flex-1 py-10">
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : recentContacts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center flex-1 py-8 text-center">
+              <span className="material-symbols-outlined text-4xl text-slate-200 dark:text-slate-700 mb-2">qr_code_2</span>
+              <p className="text-sm text-slate-400">No QR codes yet</p>
+              <Link href="/dashboard/create" className="btn-primary mt-3 text-xs py-2 px-4">Create first</Link>
+            </div>
+          ) : (
+            <div className="space-y-1 flex-1">
+              {recentContacts.map((contact) => (
+                <Link key={contact.id} href={`/dashboard/edit/${contact.id}`} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors">
+                  <div className="w-10 h-10 bg-slate-900 p-1 rounded-lg flex items-center justify-center shrink-0">
+                    <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={32} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</p>
+                    <p className="text-xs text-slate-400 truncate">{contact.company || contact.title || ""}</p>
+                  </div>
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${contact.isActive !== false ? "bg-green-500" : "bg-amber-400"}`} />
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* Interactions + Top QR */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* Click counts per element */}
+        <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h4 className="font-bold text-slate-900 dark:text-slate-100">Interactions</h4>
+              <p className="text-xs text-slate-400 mt-0.5">Click counts across all QR codes</p>
+            </div>
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-[#242736] px-2.5 py-1 rounded-full">{totalInteractions.toLocaleString()} total</span>
+          </div>
+          {(stats?.interactions ?? []).length === 0 ? (
+            <div className="py-8 text-center">
+              <span className="material-symbols-outlined text-[40px] text-slate-200 dark:text-slate-700 block mb-2">touch_app</span>
+              <p className="text-sm text-slate-400">No interactions tracked yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {(stats?.interactions ?? []).slice(0, 8).map(({ event, count }) => {
+                const pct = totalInteractions > 0 ? Math.round((count / totalInteractions) * 100) : 0;
+                const label = EVENT_LABELS[event] ?? event;
+                const icon = EVENT_ICONS[event] ?? "touch_app";
+                return (
+                  <div key={event} className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-[16px] text-slate-400 w-5 shrink-0">{icon}</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-300 w-28 shrink-0">{label}</span>
+                    <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs font-semibold text-slate-500 w-8 text-right">{count}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Top performing QR codes */}
+        <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h4 className="font-bold text-slate-900 dark:text-slate-100">Top Performing QR Codes</h4>
+              <p className="text-xs text-slate-400 mt-0.5">Ranked by total scan count</p>
+            </div>
+            <Link href="/dashboard/codes" className="text-xs font-semibold text-blue-600 hover:underline">View all</Link>
+          </div>
+          {topQR.length === 0 ? (
+            <div className="py-8 text-center">
+              <span className="material-symbols-outlined text-[40px] text-slate-200 dark:text-slate-700 block mb-2">leaderboard</span>
+              <p className="text-sm text-slate-400">No scan data yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {topQR.map(({ id, count, name }, i) => {
+                const maxCount = topQR[0].count;
+                const pct = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
+                const medals = ["🥇", "🥈", "🥉"];
+                return (
+                  <div key={id} className="flex items-center gap-3">
+                    <span className="text-base w-5 shrink-0 text-center">{medals[i] ?? `${i + 1}.`}</span>
+                    <Link href={`/dashboard/analytics/${id}`} className="text-sm text-slate-700 dark:text-slate-300 truncate flex-1 hover:text-blue-600 transition-colors min-w-0">{name}</Link>
+                    <div className="w-20 h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden shrink-0">
+                      <div className="h-full bg-purple-500 rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs font-semibold text-slate-500 w-10 text-right shrink-0">{count}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
       </div>
 
       {/* Delete modal */}
       {deleteModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-[0px_20px_40px_rgba(25,28,30,0.12)] max-w-sm w-full p-6">
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-[0px_20px_40px_rgba(25,28,30,0.12)] max-w-sm w-full p-6">
             <div className="flex items-center justify-center w-12 h-12 bg-red-50 rounded-full mx-auto mb-4">
-              <Trash2 className="w-6 h-6 text-error" />
+              <Trash2 className="w-6 h-6 text-red-500" />
             </div>
-            <h2 className="font-headline text-lg font-bold text-on-surface text-center mb-2">{tr.delete_modal_title}</h2>
+            <h2 className="font-headline text-lg font-bold text-slate-900 dark:text-slate-100 text-center mb-2">{tr.delete_modal_title}</h2>
             <p className="text-sm text-slate-500 text-center mb-6">{tr.delete_modal_body}</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteModal(null)} className="flex-1 bg-surface-container-low text-slate-600 py-2.5 rounded-xl font-medium text-sm hover:bg-surface-container transition-colors">
+              <button onClick={() => setDeleteModal(null)} className="flex-1 bg-slate-100 dark:bg-[#242736] text-slate-600 dark:text-slate-300 py-2.5 rounded-xl font-medium text-sm hover:bg-slate-200 dark:hover:bg-[#2a2e3e] transition-colors">
                 {tr.delete_modal_cancel}
               </button>
-              <button onClick={() => handleDelete(deleteModal)} className="flex-1 bg-error hover:opacity-90 text-white py-2.5 rounded-xl font-medium text-sm transition-opacity">
+              <button onClick={() => handleDelete(deleteModal)} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl font-medium text-sm transition-colors">
                 {tr.delete_modal_confirm}
               </button>
             </div>
