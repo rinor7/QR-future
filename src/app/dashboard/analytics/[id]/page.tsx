@@ -36,6 +36,9 @@ interface AnalyticsData {
   interactions: { event: string; count: number }[];
   recentScans: { scanned_at: string; device_type: string; os: string; country: string; city: string; is_returning: boolean; visitor_id: string | null }[];
   hotLeads: { visitorId: string; scanCount: number; lastSeen: string | null; device: string | null; os: string | null; country: string | null; city: string | null; isReturning: boolean; events: string[] }[];
+  conversionRate: number;
+  convertedVisitors: number;
+  conversionBreakdown: { event: string; visitors: number; rate: number }[];
 }
 
 function MiniBar({ value, max, color = "bg-blue-500" }: { value: number; max: number; color?: string }) {
@@ -119,7 +122,6 @@ export default function AnalyticsPage() {
   }
 
   const name = contact ? `${contact.firstName} ${contact.lastName}`.trim() || contact.company || "QR Code" : "QR Code";
-  const engagementRate = data.total > 0 ? Math.round(((data.interactions?.reduce((s, i) => s + i.count, 0) ?? 0) / data.total) * 100) : 0;
   const returningRate = data.total > 0 ? Math.round((data.returning / data.total) * 100) : 0;
   const totalInteractions = data.interactions?.reduce((s, i) => s + i.count, 0) ?? 0;
   const freq = data.visitFrequency ?? { once: 0, twice: 0, threeplus: 0 };
@@ -148,10 +150,10 @@ export default function AnalyticsPage() {
       {/* KPI row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Scans",     value: data.total,        icon: "qr_code_scanner", color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20" },
-          { label: "Unique Visitors", value: data.unique,       icon: "person",          color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20" },
-          { label: "Returning",       value: data.returning,    icon: "repeat",          color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20", badge: returningRate > 0 ? `${returningRate}%` : null },
-          { label: "Interactions",    value: totalInteractions, icon: "touch_app",       color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-900/20", badge: engagementRate > 0 ? `${engagementRate}% rate` : null },
+          { label: "Total Scans",      value: data.total,                     icon: "qr_code_scanner", color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20" },
+          { label: "Unique Visitors",  value: data.unique,                    icon: "person",          color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20" },
+          { label: "Returning",        value: data.returning,                 icon: "repeat",          color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20", badge: returningRate > 0 ? `${returningRate}%` : null },
+          { label: "Conversion Rate",  value: `${data.conversionRate ?? 0}%`, icon: "conversion_path", color: "text-teal-600",   bg: "bg-teal-50 dark:bg-teal-900/20",   badge: (data.convertedVisitors ?? 0) > 0 ? `${data.convertedVisitors} converted` : null },
         ].map(({ label, value, icon, color, bg, badge }) => (
           <div key={label} className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${bg}`}>
@@ -219,6 +221,46 @@ export default function AnalyticsPage() {
             );
           })}
         </div>
+      </div>
+
+      {/* Conversion Funnel */}
+      <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100">Conversion Funnel</h3>
+            <p className="text-xs text-slate-400 mt-0.5">% of unique visitors who took each action</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="text-right">
+              <p className="text-2xl font-bold text-teal-600">{data.conversionRate ?? 0}%</p>
+              <p className="text-[10px] text-slate-400">overall conversion</p>
+            </div>
+          </div>
+        </div>
+        {(data.conversionBreakdown ?? []).length === 0 ? (
+          <div className="py-6 text-center">
+            <span className="material-symbols-outlined text-[36px] text-slate-200 dark:text-slate-700 block mb-2">conversion_path</span>
+            <p className="text-sm text-slate-400">No conversions tracked yet</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {(data.conversionBreakdown ?? []).map(({ event, visitors, rate }) => {
+              const meta = EVENT_LABELS[event] ?? { label: event, icon: "touch_app", color: "text-slate-600 bg-slate-100" };
+              return (
+                <div key={event} className="flex items-center gap-3">
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${meta.color}`}>
+                    <span className="material-symbols-outlined text-[14px]">{meta.icon}</span>
+                  </div>
+                  <span className="text-sm text-slate-700 dark:text-slate-300 w-32 shrink-0">{meta.label}</span>
+                  <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-teal-500 rounded-full" style={{ width: `${rate}%` }} />
+                  </div>
+                  <span className="text-xs font-semibold text-slate-500 w-20 text-right shrink-0">{visitors} ({rate}%)</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Interaction funnel + breakdown */}

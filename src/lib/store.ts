@@ -179,7 +179,7 @@ export async function removeTeamMember(memberId: string): Promise<void> {
 
 // ── Contacts ─────────────────────────────────────────────────────────────────
 
-// Dashboard: all contacts in the org
+// Dashboard: all contacts in the org (admins/owners see all; writers/readers see only their own)
 export async function getAllContacts(): Promise<QRContact[]> {
   const supabase = getSupabaseBrowser();
   const { data: { user } } = await supabase.auth.getUser();
@@ -188,12 +188,17 @@ export async function getAllContacts(): Promise<QRContact[]> {
   const profile = await getUserProfile();
   if (!profile) return [];
 
-  // Filter by ownerId — covers all org members (writers store under ownerId)
-  const { data, error } = await supabase
+  let query = supabase
     .from("contacts")
     .select("*")
-    .eq("user_id", profile.ownerId)
-    .order("created_at", { ascending: false });
+    .eq("user_id", profile.ownerId);
+
+  // Writers and readers only see QR codes they personally created
+  if (profile.role === "writer" || profile.role === "reader") {
+    query = query.eq("created_by", user.email ?? "");
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
   return (data ?? []).map(toContact);

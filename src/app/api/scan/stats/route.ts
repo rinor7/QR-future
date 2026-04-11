@@ -21,15 +21,17 @@ export async function GET(req: NextRequest) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("owner_id")
+    .select("owner_id, role")
     .eq("user_id", user.id)
     .single();
   const ownerId = profile?.owner_id ?? user.id;
+  const role = profile?.role ?? "admin";
 
-  const { data: contacts } = await supabase
-    .from("contacts")
-    .select("id")
-    .eq("user_id", ownerId);
+  let contactsQuery = supabase.from("contacts").select("id").eq("user_id", ownerId);
+  if (role === "writer" || role === "reader") {
+    contactsQuery = contactsQuery.eq("created_by", user.email ?? "");
+  }
+  const { data: contacts } = await contactsQuery;
 
   if (!contacts || contacts.length === 0) {
     return NextResponse.json({ total: 0, unique: 0, returning: 0, last7: [], last30: [], interactions: [], topQR: [] });
@@ -82,7 +84,7 @@ export async function GET(req: NextRequest) {
   // Interaction totals across all QR codes
   const { data: allInteractions } = await supabase
     .from("qr_interactions")
-    .select("event_type")
+    .select("event_type, visitor_id")
     .in("contact_id", contactIds);
 
   const eventMap: Record<string, number> = {};
@@ -93,6 +95,12 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => b[1] - a[1])
     .map(([event, count]) => ({ event, count }));
 
+  // Conversion rate — unique visitors who took at least one action
+  const scanVisitorIds = new Set(s.map((r) => r.visitor_id).filter(Boolean));
+  const interactionVisitorIds = new Set((allInteractions ?? []).map((r) => r.visitor_id).filter(Boolean));
+  const convertedCount = Array.from(scanVisitorIds).filter((vid) => interactionVisitorIds.has(vid)).length;
+  const conversionRate = scanVisitorIds.size > 0 ? Math.round((convertedCount / scanVisitorIds.size) * 100) : 0;
+
   return NextResponse.json({
     total: s.length,
     unique: uniqueVisitors,
@@ -100,5 +108,6 @@ export async function GET(req: NextRequest) {
     chart: chartData,
     interactions,
     topQR: topQRIds,
+    conversionRate,
   });
 }

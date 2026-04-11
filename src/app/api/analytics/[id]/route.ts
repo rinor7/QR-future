@@ -95,6 +95,27 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const eventMap: Record<string, number> = {};
   ix.forEach((r) => { eventMap[r.event_type] = (eventMap[r.event_type] ?? 0) + 1; });
 
+  // Conversion rate — unique visitors who took at least one action
+  const visitorIdsWithScans = new Set(s.map((r) => r.visitor_id).filter(Boolean));
+  const visitorIdsWithInteractions = new Set(ix.map((r) => r.visitor_id).filter(Boolean));
+  const convertedVisitorCount = Array.from(visitorIdsWithScans).filter((vid) => visitorIdsWithInteractions.has(vid)).length;
+  const conversionRate = totalUnique > 0 ? Math.round((convertedVisitorCount / totalUnique) * 100) : 0;
+
+  // Per-event unique visitor breakdown for conversion funnel
+  const eventVisitorMap: Record<string, Set<string>> = {};
+  ix.forEach((r) => {
+    if (!r.visitor_id) return;
+    if (!eventVisitorMap[r.event_type]) eventVisitorMap[r.event_type] = new Set();
+    eventVisitorMap[r.event_type].add(r.visitor_id);
+  });
+  const conversionBreakdown = Object.entries(eventVisitorMap)
+    .map(([event, visitors]) => ({
+      event,
+      visitors: visitors.size,
+      rate: totalUnique > 0 ? Math.round((visitors.size / totalUnique) * 100) : 0,
+    }))
+    .sort((a, b) => b.visitors - a.visitors);
+
   // Hot leads — visitors who triggered a high-intent event (phone, email, save contact)
   const HIGH_INTENT = new Set(["click_phone", "click_email", "click_save_contact"]);
   const hotLeadIds = new Set(
@@ -156,5 +177,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     interactions: Object.entries(eventMap).map(([event, count]) => ({ event, count })),
     recentScans: s.slice(0, 20),
     hotLeads,
+    conversionRate,
+    convertedVisitors: convertedVisitorCount,
+    conversionBreakdown,
   });
 }

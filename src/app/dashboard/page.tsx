@@ -42,6 +42,7 @@ interface StatsData {
   chart: { date: string; count: number }[];
   interactions: { event: string; count: number }[];
   topQR: { id: string; count: number }[];
+  conversionRate: number;
 }
 
 export default function DashboardPage() {
@@ -121,10 +122,11 @@ export default function DashboardPage() {
   });
 
   const kpiCards = [
-    { label: "Total QR Codes", value: contacts.length,     icon: "qr_code_2",         color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20" },
-    { label: "Total Scans",    value: stats?.total ?? 0,   icon: "qr_code_scanner",   color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20" },
-    { label: "Unique Visitors",value: stats?.unique ?? 0,  icon: "person",            color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20" },
-    { label: "Returning",      value: stats?.returning ?? 0,icon: "repeat",           color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-900/20", badge: returningRate > 0 ? `${returningRate}%` : null },
+    { label: "Total QR Codes",   display: contacts.length.toLocaleString(),                     icon: "qr_code_2",         color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20" },
+    { label: "Total Scans",      display: (stats?.total ?? 0).toLocaleString(),                  icon: "qr_code_scanner",   color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20" },
+    { label: "Unique Visitors",  display: (stats?.unique ?? 0).toLocaleString(),                 icon: "person",            color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20" },
+    { label: "Returning",        display: (stats?.returning ?? 0).toLocaleString(),              icon: "repeat",            color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-900/20", badge: returningRate > 0 ? `${returningRate}%` : null },
+    { label: "Conversion Rate",  display: `${stats?.conversionRate ?? 0}%`,                      icon: "conversion_path",   color: "text-teal-600",   bg: "bg-teal-50 dark:bg-teal-900/20" },
   ];
 
   return (
@@ -152,13 +154,13 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {kpiCards.map((card) => (
           <div key={card.label} className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5 hover:-translate-y-0.5 transition-all">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${card.bg}`}>
               <span className={`material-symbols-outlined text-[20px] ${card.color}`}>{card.icon}</span>
             </div>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{card.value.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{card.display}</p>
             <div className="flex items-center gap-2 mt-0.5">
               <p className="text-xs text-slate-400">{card.label}</p>
               {"badge" in card && card.badge && (
