@@ -258,8 +258,10 @@ export default function DashboardPage() {
             <div className="space-y-1 flex-1">
               {recentContacts.map((contact) => (
                 <Link key={contact.id} href={`/dashboard/edit/${contact.id}`} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors">
-                  <div className="w-10 h-10 bg-slate-900 p-1 rounded-lg flex items-center justify-center shrink-0">
-                    <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={32} />
+                  <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                    <div style={{ width: 40, height: 40, transform: "scale(0.5)", transformOrigin: "center" }}>
+                      <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : "https://placeholder.com"}/qr/${contact.id}`} size={80} />
+                    </div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</p>
@@ -351,7 +353,7 @@ export default function DashboardPage() {
       {/* Delete modal */}
       {deleteModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-[0px_20px_40px_rgba(25,28,30,0.12)] max-w-sm w-full p-6">
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] shadow-xl max-w-sm w-full p-6">
             <div className="flex items-center justify-center w-12 h-12 bg-red-50 rounded-full mx-auto mb-4">
               <Trash2 className="w-6 h-6 text-red-500" />
             </div>
