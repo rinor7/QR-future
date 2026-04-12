@@ -54,11 +54,6 @@ export default function SettingsPage() {
   const [brandSaved, setBrandSaved] = useState(false);
   const [brandLogoUploading, setBrandLogoUploading] = useState(false);
 
-  // Custom domain
-  const [customDomain, setCustomDomain] = useState("");
-  const [domainSaving, setDomainSaving] = useState(false);
-  const [domainStatus, setDomainStatus] = useState<{ domain: string | null; verified: boolean; vercelStatus?: string; cname?: { host: string; target: string } } | null>(null);
-  const [domainChecking, setDomainChecking] = useState(false);
 
   // Load saved preferences on mount
   useEffect(() => {
@@ -119,7 +114,7 @@ export default function SettingsPage() {
         const supabaseInner = getSupabaseBrowser();
         const { data: { user: u } } = await supabaseInner.auth.getUser();
         if (u) {
-          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, custom_domain, custom_domain_verified, stripe_customer_id").eq("user_id", u.id).single();
+          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id").eq("user_id", u.id).single();
           if (prof) {
             setHasStripeSubscription(!!prof.stripe_customer_id);
             setLeadCaptureDisabled(!!prof.lead_capture_disabled);
@@ -127,10 +122,6 @@ export default function SettingsPage() {
             setBrandName(prof.brand_name ?? "");
             setBrandLogoUrl(prof.brand_logo_url ?? "");
             setBrandColor(prof.brand_primary_color ?? "#2563eb");
-            if (prof.custom_domain) {
-              setCustomDomain(prof.custom_domain);
-              setDomainStatus({ domain: prof.custom_domain, verified: !!prof.custom_domain_verified });
-            }
           }
         }
       }
@@ -176,19 +167,6 @@ export default function SettingsPage() {
     setBrandLogoUploading(false);
   }
 
-  async function handleSaveDomain(e: React.FormEvent) {
-    e.preventDefault();
-    setDomainSaving(true);
-    const res = await fetch("/api/custom-domain", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ domain: customDomain.trim().toLowerCase() || null }),
-    });
-    const data = await res.json();
-    setDomainStatus(data.ok ? { domain: data.domain, verified: false, vercelStatus: data.vercelStatus, cname: data.cname } : null);
-    setDomainSaving(false);
-  }
-
   async function handleManageBilling() {
     setPortalLoading(true);
     setPortalError(null);
@@ -205,14 +183,6 @@ export default function SettingsPage() {
       setPortalError("Something went wrong. Please try again.");
       setPortalLoading(false);
     }
-  }
-
-  async function handleCheckDomain() {
-    setDomainChecking(true);
-    const res = await fetch("/api/custom-domain");
-    const data = await res.json();
-    setDomainStatus((prev) => prev ? { ...prev, verified: data.verified } : data);
-    setDomainChecking(false);
   }
 
   async function handleSaveSupportEmail(e: React.FormEvent) {
