@@ -471,9 +471,13 @@ export default function CodesPage() {
           <p className="text-on-surface-variant font-medium">Manage and monitor your enterprise QR infrastructure.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <a href="/api/scan/export" download="scan-data.csv" className="flex items-center gap-2 bg-gray-100 dark:bg-[#242736] px-5 py-3 rounded-xl font-headline font-semibold text-blue-600 hover:bg-gray-200 dark:hover:bg-[#2a2e3e] transition-colors">
+          <a
+            href={currentFolderId ? `/api/qr/export?folder_id=${currentFolderId}` : "/api/qr/export"}
+            download
+            className="flex items-center gap-2 bg-gray-100 dark:bg-[#242736] px-5 py-3 rounded-xl font-headline font-semibold text-blue-600 hover:bg-gray-200 dark:hover:bg-[#2a2e3e] transition-colors"
+          >
             <span className="material-symbols-outlined">file_download</span>
-            CSV export
+            {currentFolderId ? "Export Folder" : "CSV Export"}
           </a>
           {!isReader && !limitReached && (
             <Link href="/dashboard/create" className="btn-primary flex items-center gap-2 px-6 py-3 font-headline font-bold shadow-lg">

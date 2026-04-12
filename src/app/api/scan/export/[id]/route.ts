@@ -3,6 +3,24 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+function buildFolderPath(
+  folderId: string | null,
+  folderMap: Map<string, { name: string; parent_id: string | null }>
+): string {
+  if (!folderId) return "";
+  const parts: string[] = [];
+  let current: string | null = folderId;
+  let safety = 0;
+  while (current && safety < 10) {
+    const node = folderMap.get(current);
+    if (!node) break;
+    parts.unshift(node.name);
+    current = node.parent_id;
+    safety++;
+  }
+  return parts.join(" > ");
+}
+
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const cookieStore = cookies();
   const supabaseAuth = createServerClient(
@@ -29,15 +47,25 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   // Verify the contact belongs to this user's org
   const { data: contact } = await supabase
     .from("contacts")
-    .select("id, name, company, qr_label")
+    .select("id, name, company, qr_label, folder_id")
     .eq("id", params.id)
     .eq("user_id", ownerId)
     .single();
 
   if (!contact) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // Fetch folders to build path
+  const { data: folders } = await supabase
+    .from("folders")
+    .select("id, name, parent_id")
+    .eq("organization_id", ownerId);
+
+  const folderMap = new Map<string, { name: string; parent_id: string | null }>();
+  (folders ?? []).forEach((f) => folderMap.set(f.id, { name: f.name, parent_id: f.parent_id }));
+
   const label = contact.qr_label || contact.name || contact.id;
   const name = contact.name ?? "";
+  const folderPath = buildFolderPath(contact.folder_id, folderMap);
 
   // Fetch all scans for this QR code
   const { data: scans } = await supabase
@@ -46,8 +74,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     .eq("contact_id", params.id)
     .order("scanned_at", { ascending: false });
 
-  const rows = [[
-    "QR Label", "Employee Name", "Company",
+  const rows: string[][] = [[
+    "QR Label", "Employee Name", "Company", "Folder",
     "Timestamp", "Date", "Time",
     "Device", "OS", "Country", "City",
     "Referrer", "Returning Visitor", "Visitor ID",
@@ -62,6 +90,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       label,
       name,
       contact.company ?? "",
+      folderPath,
       timestamp,
       date,
       time,
