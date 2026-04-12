@@ -216,9 +216,14 @@ export default function UsersPage() {
     setOpenMenuId(memberId);
   }
 
+  const PAGE_SIZE = 10;
+  const [page, setPage] = useState(0);
+
   const adminCount      = members.filter((m) => m.role === "admin" || m.role === "owner").length;
   const pendingCount    = members.filter((m) => !m.firstName && !m.lastName).length;
   const restrictedCount = members.filter((m) => m.role === "reader").length;
+  const totalPages      = Math.ceil(members.length / PAGE_SIZE);
+  const paginatedMembers = members.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   const openMember = openMenuId ? members.find((m) => m.userId === openMenuId) : null;
 
@@ -314,10 +319,10 @@ export default function UsersPage() {
                   <td colSpan={5} className="px-6 py-12 text-center text-slate-400 text-sm">{tr.users_no_members}</td>
                 </tr>
               ) : (
-                members.map((m, idx) => {
+                paginatedMembers.map((m, idx) => {
                   const isOwnerRow = m.userId === ownerId || m.role === "owner";
                   const isPending    = !m.firstName && !m.lastName;
-                  const avatarColor  = AVATAR_COLORS[idx % AVATAR_COLORS.length];
+                  const avatarColor  = AVATAR_COLORS[(page * PAGE_SIZE + idx) % AVATAR_COLORS.length];
 
                   const roleMeta = isOwnerRow
                     ? { label: "Owner",  cls: "text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20" }
@@ -390,16 +395,32 @@ export default function UsersPage() {
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 dark:border-[#242736] flex items-center justify-between">
           <p className="text-sm text-slate-400">
-            Showing <span className="font-semibold text-slate-700 dark:text-slate-300">{members.length}</span> member{members.length !== 1 ? "s" : ""}
+            Showing{" "}
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, members.length)}
+            </span>{" "}
+            of{" "}
+            <span className="font-semibold text-slate-700 dark:text-slate-300">{members.length}</span>{" "}
+            member{members.length !== 1 ? "s" : ""}
           </p>
-          <div className="flex gap-2">
-            <button disabled className="px-4 py-2 text-sm font-semibold text-slate-400 bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-[#2a2e3e] rounded-lg opacity-50 cursor-not-allowed">
-              Previous
-            </button>
-            <button className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-              Next
-            </button>
-          </div>
+          {totalPages > 1 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-[#2a2e3e] rounded-lg hover:bg-slate-100 dark:hover:bg-[#2a2e3e] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

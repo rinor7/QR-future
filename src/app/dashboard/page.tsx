@@ -189,7 +189,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Chart + Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
         {/* Chart */}
         <div className="lg:col-span-2 bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
@@ -217,7 +217,7 @@ export default function DashboardPage() {
           ) : chart.every((d) => d.count === 0) ? (
             <div className="h-48 flex items-center justify-center text-slate-300 dark:text-slate-600 text-sm">No scans in this period</div>
           ) : (
-            <div className="overflow-x-auto -mx-1 px-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
+            <div className="overflow-x-auto -mx-1 px-1" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
             <div
               className="flex items-end gap-2 h-48"
               style={{ minWidth: chartRange === "30" ? `${chart.length * 36}px` : undefined }}
