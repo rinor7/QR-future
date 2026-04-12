@@ -133,7 +133,6 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
 
   // Templates
   const [templates, setTemplates] = useState<{ id: string; name: string; primary_color: string; theme: string; bg_image_url: string | null; show_logo_in_qr: boolean; lead_capture_enabled: boolean }[]>([]);
-  const [templateOpen, setTemplateOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [templateSaving, setTemplateSaving] = useState(false);
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
@@ -157,7 +156,6 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       onFormChange?.(next);
       return next;
     });
-    setTemplateOpen(false);
   }
 
   async function saveTemplate() {
