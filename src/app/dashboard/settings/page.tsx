@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [plan, setPlan] = useState<Plan>("free");
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState<string | null>(null);
+  const [hasStripeSubscription, setHasStripeSubscription] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [userRole, setUserRole] = useState<string>("");
@@ -118,8 +119,9 @@ export default function SettingsPage() {
         const supabaseInner = getSupabaseBrowser();
         const { data: { user: u } } = await supabaseInner.auth.getUser();
         if (u) {
-          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, custom_domain, custom_domain_verified").eq("user_id", u.id).single();
+          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, custom_domain, custom_domain_verified, stripe_customer_id").eq("user_id", u.id).single();
           if (prof) {
+            setHasStripeSubscription(!!prof.stripe_customer_id);
             setLeadCaptureDisabled(!!prof.lead_capture_disabled);
             setWebhookUrl(prof.lead_webhook_url ?? "");
             setBrandName(prof.brand_name ?? "");
@@ -750,16 +752,25 @@ export default function SettingsPage() {
 
               {/* Right: button */}
               <div className="flex flex-col items-end gap-2 shrink-0">
-                <button
-                  onClick={handleManageBilling}
-                  disabled={portalLoading}
-                  className="bg-white text-blue-900 px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors shadow-xl disabled:opacity-70 flex items-center gap-2"
-                >
-                  {portalLoading && (
-                    <span className="w-4 h-4 border-2 border-blue-900/30 border-t-blue-900 rounded-full animate-spin" />
-                  )}
-                  {portalLoading ? "Opening…" : "Manage Billing"}
-                </button>
+                {hasStripeSubscription ? (
+                  <button
+                    onClick={handleManageBilling}
+                    disabled={portalLoading}
+                    className="bg-white text-blue-900 px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors shadow-xl disabled:opacity-70 flex items-center gap-2"
+                  >
+                    {portalLoading && (
+                      <span className="w-4 h-4 border-2 border-blue-900/30 border-t-blue-900 rounded-full animate-spin" />
+                    )}
+                    {portalLoading ? "Opening…" : "Manage Billing"}
+                  </button>
+                ) : (
+                  <Link
+                    href="/dashboard/upgrade"
+                    className="bg-white text-blue-900 px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors shadow-xl text-center"
+                  >
+                    {plan === "free" ? "Upgrade Plan" : "View Plans"}
+                  </Link>
+                )}
                 {portalError && (
                   <p className="text-xs text-red-200 max-w-[180px] text-right">{portalError}</p>
                 )}
