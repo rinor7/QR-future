@@ -25,6 +25,8 @@ const EVENT_LABELS: Record<string, string> = {
   click_social_snapchat:  "Snapchat",
   click_social_x:         "X",
   click_social_other:     "Other",
+  lead_capture_open:      "Lead Form Opened",
+  lead_capture_submit:    "Lead Submitted",
 };
 
 const EVENT_ICONS: Record<string, string> = {
@@ -33,6 +35,7 @@ const EVENT_ICONS: Record<string, string> = {
   click_share: "share", click_social_linkedin: "open_in_new", click_social_instagram: "open_in_new",
   click_social_facebook: "open_in_new", click_social_tiktok: "open_in_new",
   click_social_snapchat: "open_in_new", click_social_x: "open_in_new", click_social_other: "open_in_new",
+  lead_capture_open: "contact_mail", lead_capture_submit: "mark_email_read",
 };
 
 interface StatsData {
@@ -214,24 +217,31 @@ export default function DashboardPage() {
           ) : chart.every((d) => d.count === 0) ? (
             <div className="h-48 flex items-center justify-center text-slate-300 dark:text-slate-600 text-sm">No scans in this period</div>
           ) : (
-            <div className="overflow-x-auto -mx-1 px-1">
-            <div className={`flex items-end gap-1.5 h-48 ${chartRange === "30" ? "min-w-[480px]" : ""}`}>
+            <div className="overflow-x-auto -mx-1 px-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
+            <div
+              className="flex items-end gap-2 h-48"
+              style={{ minWidth: chartRange === "30" ? `${chart.length * 36}px` : undefined }}
+            >
               {chart.map((day, i) => {
                 const pct = Math.max(4, Math.round((day.count / chartMax) * 100));
                 const label = chartRange === "7"
                   ? ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(day.date + "T00:00:00").getDay()]
                   : day.date.slice(5);
-                const showLabel = chartRange === "7" || i % 5 === 0 || i === chart.length - 1;
+                const showLabel = chartRange === "7" || i % 3 === 0 || i === chart.length - 1;
                 return (
-                  <div key={day.date} className="flex-1 flex flex-col items-center gap-1 group/bar">
-                    <div className="w-full relative flex items-end" style={{ height: "180px" }}>
+                  <div
+                    key={day.date}
+                    className="flex flex-col items-center gap-1 group/bar"
+                    style={{ width: chartRange === "30" ? "28px" : undefined, flex: chartRange === "7" ? "1" : undefined }}
+                  >
+                    <div className="w-full relative flex items-end" style={{ height: "172px" }}>
                       <div
                         title={`${day.count} scans`}
                         className="w-full rounded-t-lg bg-blue-500 group-hover/bar:bg-blue-400 transition-colors"
                         style={{ height: `${pct}%` }}
                       />
                     </div>
-                    <span className="text-[9px] font-medium text-slate-400">{showLabel ? label : ""}</span>
+                    <span className="text-[9px] font-medium text-slate-400 whitespace-nowrap">{showLabel ? label : ""}</span>
                   </div>
                 );
               })}
@@ -260,10 +270,8 @@ export default function DashboardPage() {
             <div className="space-y-1 flex-1">
               {recentContacts.map((contact) => (
                 <Link key={contact.id} href={`/dashboard/edit/${contact.id}`} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors">
-                  <div className="w-10 h-10 bg-slate-900 rounded-lg shrink-0 overflow-hidden" style={{ position: "relative" }}>
-                    <div style={{ width: 80, height: 80, transform: "scale(0.5)", transformOrigin: "top left", position: "absolute", top: 0, left: 0 }}>
-                      <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : "https://placeholder.com"}/qr/${contact.id}`} size={80} />
-                    </div>
+                  <div className="w-20 h-20 bg-slate-900 rounded-xl shrink-0 flex items-center justify-center p-1.5">
+                    <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : "https://placeholder.com"}/qr/${contact.id}`} size={68} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</p>
