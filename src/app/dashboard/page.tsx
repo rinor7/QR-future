@@ -258,8 +258,8 @@ export default function DashboardPage() {
             <div className="space-y-1 flex-1">
               {recentContacts.map((contact) => (
                 <Link key={contact.id} href={`/dashboard/edit/${contact.id}`} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors">
-                  <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
-                    <div style={{ width: 40, height: 40, transform: "scale(0.5)", transformOrigin: "center" }}>
+                  <div className="w-10 h-10 bg-slate-900 rounded-lg shrink-0 overflow-hidden" style={{ position: "relative" }}>
+                    <div style={{ width: 80, height: 80, transform: "scale(0.5)", transformOrigin: "top left", position: "absolute", top: 0, left: 0 }}>
                       <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : "https://placeholder.com"}/qr/${contact.id}`} size={80} />
                     </div>
                   </div>
