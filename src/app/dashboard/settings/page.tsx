@@ -599,61 +599,23 @@ export default function SettingsPage() {
                 </form>
               </div>
 
-              {/* Custom Domain */}
+              {/* Custom Domain — Coming Soon */}
               <div>
                 <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-5">
                   <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">domain</span>
                   Custom Domain
+                  <span className="text-[10px] font-black uppercase tracking-widest text-purple-600 bg-purple-50 dark:bg-purple-900/20 px-2.5 py-1 rounded-full ml-1">Coming Soon</span>
                 </h4>
-                <form onSubmit={handleSaveDomain} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Domain</label>
-                    <input
-                      type="text"
-                      value={customDomain}
-                      onChange={(e) => setCustomDomain(e.target.value)}
-                      placeholder="card.yourcompany.com"
-                      className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 font-mono"
-                    />
-                    <p className="text-xs text-slate-500 dark:text-slate-400">QR codes will use this domain instead of the default URL</p>
+                <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-6 flex flex-col items-center text-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-slate-400 text-[24px]">language</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button type="submit" disabled={domainSaving} className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
-                      {domainSaving ? "Saving…" : "Save Domain"}
-                    </button>
-                    {domainStatus?.domain && (
-                      <button type="button" onClick={handleCheckDomain} disabled={domainChecking} className="text-sm font-medium text-blue-600 hover:underline disabled:opacity-60">
-                        {domainChecking ? "Checking…" : "Check DNS"}
-                      </button>
-                    )}
+                  <div>
+                    <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Serve QR cards from your own domain</p>
+                    <p className="text-xs text-slate-400 mt-1">e.g. <span className="font-mono">card.yourcompany.com</span> instead of the default URL</p>
                   </div>
-                </form>
-
-                {/* DNS Instructions */}
-                {domainStatus?.domain && (
-                  <div className="mt-5 space-y-3">
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${domainStatus.verified ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
-                      <span className="material-symbols-outlined text-[16px]">{domainStatus.verified ? "check_circle" : "pending"}</span>
-                      {domainStatus.verified ? "Domain verified and active" : "Waiting for DNS propagation"}
-                    </div>
-                    {domainStatus.vercelStatus === "registered" ? (
-                      <p className="text-xs text-slate-500 dark:text-slate-400">Domain registered with Vercel automatically.</p>
-                    ) : (
-                      <div className="p-4 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700/50 space-y-3">
-                        <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">Add this DNS record at your domain registrar:</p>
-                        <div className="grid grid-cols-3 gap-2 text-xs">
-                          <div className="font-semibold text-slate-500 dark:text-slate-400 uppercase">Type</div>
-                          <div className="font-semibold text-slate-500 dark:text-slate-400 uppercase">Host</div>
-                          <div className="font-semibold text-slate-500 dark:text-slate-400 uppercase">Value</div>
-                          <div className="font-mono text-slate-900 dark:text-slate-100 bg-gray-50 dark:bg-[#242736] rounded px-2 py-1">CNAME</div>
-                          <div className="font-mono text-slate-900 dark:text-slate-100 bg-gray-50 dark:bg-[#242736] rounded px-2 py-1 truncate">{domainStatus.cname?.host ?? customDomain}</div>
-                          <div className="font-mono text-slate-900 dark:text-slate-100 bg-gray-50 dark:bg-[#242736] rounded px-2 py-1 truncate">{domainStatus.cname?.target ?? "cname.vercel-dns.com"}</div>
-                        </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">DNS changes can take up to 48 hours to propagate.</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                  <p className="text-xs text-slate-400">This feature is under development and will be available soon.</p>
+                </div>
               </div>
             </div>
           </section>
