@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSupabaseBrowser } from "@/lib/supabase-browser";
-import { getUserProfile } from "@/lib/store";
 import { UserPlus, Mail, MessageSquare, Calendar, Search, Download } from "lucide-react";
 
 type Lead = {
@@ -23,43 +21,10 @@ export default function LeadsPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    async function load() {
-      const profile = await getUserProfile();
-      if (!profile) return;
-      const ownerId = profile.ownerId ?? profile.userId;
-
-      const supabase = getSupabaseBrowser();
-
-      // Get all contacts for this org to join with leads
-      const { data: contacts } = await supabase
-        .from("contacts")
-        .select("id, name, qr_label")
-        .eq("user_id", ownerId);
-
-      const contactMap: Record<string, { name: string; qr_label: string }> = {};
-      (contacts ?? []).forEach((c) => {
-        contactMap[c.id] = { name: c.name, qr_label: c.qr_label };
-      });
-
-      const contactIds = Object.keys(contactMap);
-      if (contactIds.length === 0) { setLoading(false); return; }
-
-      const { data: rawLeads } = await supabase
-        .from("qr_leads")
-        .select("id, name, email, comment, consent, created_at, contact_id")
-        .in("contact_id", contactIds)
-        .order("created_at", { ascending: false });
-
-      const mapped: Lead[] = (rawLeads ?? []).map((l) => ({
-        ...l,
-        qr_label: contactMap[l.contact_id]?.qr_label || null,
-        contact_name: contactMap[l.contact_id]?.name || null,
-      }));
-
-      setLeads(mapped);
-      setLoading(false);
-    }
-    load();
+    fetch("/api/leads")
+      .then((r) => r.json())
+      .then((data) => { setLeads(Array.isArray(data) ? data : []); setLoading(false); })
+      .catch(() => setLoading(false));
   }, []);
 
   const filtered = leads.filter((l) => {

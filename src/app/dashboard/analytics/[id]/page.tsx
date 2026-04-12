@@ -21,6 +21,8 @@ const EVENT_LABELS: Record<string, { label: string; icon: string; color: string 
   click_social_snapchat:  { label: "Snapchat",         icon: "open_in_new",   color: "text-yellow-500 bg-yellow-50" },
   click_social_x:         { label: "X (Twitter)",      icon: "open_in_new",   color: "text-slate-800 bg-slate-100" },
   click_social_other:     { label: "Other social",     icon: "open_in_new",   color: "text-slate-600 bg-slate-100" },
+  lead_capture_open:      { label: "Lead form opened", icon: "contact_mail",  color: "text-violet-600 bg-violet-50" },
+  lead_capture_submit:    { label: "Lead submitted",   icon: "how_to_reg",    color: "text-emerald-600 bg-emerald-50" },
 };
 
 interface AnalyticsData {
@@ -324,7 +326,7 @@ export default function AnalyticsPage() {
               {data.os.length === 0 ? <p className="text-sm text-slate-400">No data</p> : data.os.map(({ name, count }) => (
                 <div key={name} className="flex items-center gap-3">
                   <span className="material-symbols-outlined text-[16px] text-slate-400 w-5 shrink-0">
-                    {name === "iOS" || name === "macOS" ? "apple" : name === "Android" ? "android" : "desktop_windows"}
+                    {name === "iOS" ? "phone_iphone" : name === "macOS" ? "laptop_mac" : name === "Android" ? "android" : "desktop_windows"}
                   </span>
                   <span className="text-sm text-slate-700 dark:text-slate-300 w-20 shrink-0">{name}</span>
                   <MiniBar value={count} max={Math.max(...data.os.map((d) => d.count))} color="bg-teal-400" />
