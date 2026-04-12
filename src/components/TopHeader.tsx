@@ -13,6 +13,22 @@ export default function TopHeader() {
   const [plan, setPlan] = useState<Plan>("free");
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("qr-dark-mode") === "true";
+    setDarkMode(saved);
+    if (saved) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+  }, []);
+
+  function toggleDark() {
+    const next = !darkMode;
+    setDarkMode(next);
+    localStorage.setItem("qr-dark-mode", String(next));
+    if (next) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+  }
 
   useEffect(() => {
     const supabase = getSupabaseBrowser();
@@ -65,6 +81,17 @@ export default function TopHeader() {
 
       {/* Actions + User */}
       <div className="flex items-center gap-3">
+        {/* Dark / Light toggle */}
+        <button
+          onClick={toggleDark}
+          title={darkMode ? "Switch to Light mode" : "Switch to Dark mode"}
+          className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+        >
+          <span className="material-symbols-outlined text-[20px]">
+            {darkMode ? "light_mode" : "dark_mode"}
+          </span>
+        </button>
+
         <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-700" />
 
         {/* User area with dropdown */}

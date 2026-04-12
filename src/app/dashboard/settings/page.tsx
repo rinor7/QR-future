@@ -35,7 +35,6 @@ export default function SettingsPage() {
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState(false);
 
-  const [darkMode, setDarkMode] = useState(false);
   const [errorCorrection, setErrorCorrection] = useState("H");
   const [leadCaptureDisabled, setLeadCaptureDisabled] = useState(false);
   const [leadCaptureSaving, setLeadCaptureSaving] = useState(false);
@@ -60,26 +59,9 @@ export default function SettingsPage() {
 
   // Load saved preferences on mount
   useEffect(() => {
-    const savedDark = localStorage.getItem("qr-dark-mode") === "true";
     const savedEc = localStorage.getItem("qr-error-correction") ?? "H";
-    setDarkMode(savedDark);
     setErrorCorrection(savedEc);
-    if (savedDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
   }, []);
-
-  function handleToggleDarkMode(val: boolean) {
-    setDarkMode(val);
-    localStorage.setItem("qr-dark-mode", String(val));
-    if (val) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }
 
   function handleErrorCorrectionChange(val: string) {
     setErrorCorrection(val);
@@ -354,7 +336,7 @@ export default function SettingsPage() {
             </div>
             <h3 className="text-2xl font-bold font-headline">Platform Preferences</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {/* Regional */}
             <div className="space-y-4">
               <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -397,29 +379,6 @@ export default function SettingsPage() {
                   <div className="w-12 h-6 bg-blue-600 rounded-full relative cursor-pointer">
                     <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full" />
                   </div>
-                </div>
-              </div>
-            </div>
-            {/* Appearance */}
-            <div className="space-y-4">
-              <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">palette</span>
-                Appearance
-              </h4>
-              <div className="flex gap-4">
-                <div
-                  onClick={() => handleToggleDarkMode(false)}
-                  className={`flex-1 p-4 rounded-xl text-center cursor-pointer transition-all ${!darkMode ? "border-2 border-blue-600 bg-blue-50 dark:bg-blue-900/10" : "border border-slate-200 dark:border-slate-700 bg-gray-50 dark:bg-[#1e2130] opacity-60 hover:opacity-80"}`}
-                >
-                  <span className="material-symbols-outlined block mb-1">light_mode</span>
-                  <span className="text-xs font-bold">Light</span>
-                </div>
-                <div
-                  onClick={() => handleToggleDarkMode(true)}
-                  className={`flex-1 p-4 rounded-xl text-center cursor-pointer transition-all ${darkMode ? "border-2 border-blue-600 bg-blue-50 dark:bg-blue-900/10" : "border border-slate-200 dark:border-slate-700 bg-gray-50 dark:bg-[#1e2130] opacity-60 hover:opacity-80"}`}
-                >
-                  <span className="material-symbols-outlined block mb-1">dark_mode</span>
-                  <span className="text-xs font-bold">Dark</span>
                 </div>
               </div>
             </div>
