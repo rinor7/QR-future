@@ -50,10 +50,11 @@ export async function GET(req: NextRequest) {
   const supabase = adminClient();
   const { data: profile } = await supabase
     .from("profiles")
-    .select("owner_id")
+    .select("owner_id, role, email")
     .eq("user_id", user.id)
     .single();
   const ownerId = profile?.owner_id ?? user.id;
+  const role = profile?.role ?? "owner";
 
   // Fetch all folders so we can build paths
   const { data: folders } = await supabase
@@ -64,12 +65,16 @@ export async function GET(req: NextRequest) {
   const folderMap = new Map<string, { name: string; parent_id: string | null }>();
   (folders ?? []).forEach((f) => folderMap.set(f.id, { name: f.name, parent_id: f.parent_id }));
 
-  // Fetch contacts
+  // Fetch contacts — writers/readers only see their own QR codes
   let contactsQuery = supabase
     .from("contacts")
     .select("id, name, company, qr_label, folder_id, is_active, created_at")
     .eq("user_id", ownerId)
     .order("created_at", { ascending: false });
+
+  if (role === "writer" || role === "reader") {
+    contactsQuery = contactsQuery.eq("created_by", user.email ?? "");
+  }
 
   if (folderId) {
     contactsQuery = contactsQuery.eq("folder_id", folderId);
