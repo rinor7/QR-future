@@ -29,15 +29,15 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   // Verify the contact belongs to this user's org
   const { data: contact } = await supabase
     .from("contacts")
-    .select("id, first_name, last_name, company, qr_label")
+    .select("id, name, company, qr_label")
     .eq("id", params.id)
     .eq("user_id", ownerId)
     .single();
 
   if (!contact) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const label = contact.qr_label || `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() || contact.id;
-  const name = `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim();
+  const label = contact.qr_label || contact.name || contact.id;
+  const name = contact.name ?? "";
 
   // Fetch all scans for this QR code
   const { data: scans } = await supabase
