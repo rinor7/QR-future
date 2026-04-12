@@ -59,7 +59,7 @@ export default function TopHeader() {
   const planLabel = plan !== "free" ? plan.charAt(0).toUpperCase() + plan.slice(1) : null;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-xl flex items-center justify-between px-8 h-20 shadow-sm">
+    <header className="sticky top-0 z-40 w-full bg-[#eef1f8]/90 dark:bg-[#0f1117]/90 backdrop-blur-sm flex items-center justify-between px-8 h-16">
       {/* Left — page context (spacer) */}
       <div className="flex-1" />
 

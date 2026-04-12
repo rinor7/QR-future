@@ -27,7 +27,7 @@ const config: Config = {
           primary: "#003ec7",
           "primary-light": "#0052ff",
           secondary: "#4459a8",
-          bg: "#f7f9fb",
+          bg: "#eef1f8",
           surface: "#ffffff",
           "surface-low": "#f2f4f6",
           "surface-container": "#eceef0",

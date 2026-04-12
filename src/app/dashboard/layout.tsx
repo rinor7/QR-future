@@ -13,7 +13,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <LanguageProvider>
       <div className="flex min-h-screen bg-surface">
         {/* Mobile top bar */}
-        <div className="wide:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center px-4 z-30">
+        <div className="wide:hidden fixed top-0 left-0 right-0 h-14 bg-[#eef1f8] dark:bg-[#0f1117] flex items-center px-4 z-30">
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
