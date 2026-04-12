@@ -83,5 +83,6 @@ export default async function QRLandingPage({ params }: { params: { id: string }
     if (profile?.lead_capture_disabled) leadCaptureActive = false;
   }
 
-  return <QRLandingClient contact={contact} leadCaptureActive={leadCaptureActive} />;
+  // DEBUG: force true to confirm button renders — remove after test
+  return <QRLandingClient contact={contact} leadCaptureActive={true} />;
 }
