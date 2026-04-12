@@ -258,50 +258,50 @@ export default function SettingsPage() {
     <div className="pt-8 pb-12 px-10 max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-10">
-        <h2 className="text-4xl font-bold text-on-surface tracking-tight font-headline">Settings</h2>
-        <p className="text-outline mt-2">Manage your account orchestration and global platform preferences.</p>
+        <h2 className="text-4xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-headline">Settings</h2>
+        <p className="text-slate-500 dark:text-slate-400 mt-2">Manage your account orchestration and global platform preferences.</p>
       </div>
 
       {/* Bento Grid */}
       <div className="grid grid-cols-12 gap-6">
 
         {/* Account Information (8 cols) */}
-        <section className="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+        <section className="col-span-12 lg:col-span-8 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-xl text-primary">
+              <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-xl text-blue-600">
                 <span className="material-symbols-outlined">person</span>
               </div>
               <h3 className="text-2xl font-bold font-headline">Account Information</h3>
             </div>
-            <span className="bg-secondary-container/20 text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">
+            <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">
               {isOwner ? "Owner" : userRole === "admin" ? "Admin" : "Member"}
             </span>
           </div>
           <form onSubmit={handleChangeEmail} className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm text-outline font-semibold">Full Name</label>
-                <input type="text" defaultValue="" placeholder="Your name" className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary transition-all" />
+                <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Full Name</label>
+                <input type="text" defaultValue="" placeholder="Your name" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-outline font-semibold">Email Address</label>
-                <input type="email" value={newEmail || email} onChange={(e) => setNewEmail(e.target.value)} className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary transition-all" />
+                <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Email Address</label>
+                <input type="email" value={newEmail || email} onChange={(e) => setNewEmail(e.target.value)} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-outline font-semibold">Organization Name</label>
-              <input type="text" defaultValue="" placeholder="Your organization" className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary transition-all" />
+              <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Organization Name</label>
+              <input type="text" defaultValue="" placeholder="Your organization" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
             </div>
-            {emailError && <p className="text-xs text-error">{emailError}</p>}
+            {emailError && <p className="text-xs text-red-500">{emailError}</p>}
             {emailSuccess && <p className="text-xs text-green-600">{tr.settings_email_success}</p>}
             <div className="pt-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-outline font-medium">Plan:</span>
-                <span className="text-sm font-semibold text-primary">{PLAN_LABELS[plan]}</span>
-                {isOwner && <Link href="/dashboard/upgrade" className="text-xs text-primary hover:underline ml-1">Change</Link>}
+                <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Plan:</span>
+                <span className="text-sm font-semibold text-blue-600">{PLAN_LABELS[plan]}</span>
+                {isOwner && <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline ml-1">Change</Link>}
               </div>
-              <button type="submit" disabled={emailLoading} className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-container transition-colors shadow-sm disabled:opacity-60">
+              <button type="submit" disabled={emailLoading} className="bg-blue-600text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-60">
                 {emailLoading ? tr.settings_email_saving : "Update Account"}
               </button>
             </div>
@@ -309,46 +309,47 @@ export default function SettingsPage() {
         </section>
 
         {/* Security (4 cols) */}
-        <section className="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+        <section className="col-span-12 lg:col-span-4 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
           <div className="flex items-center gap-4 mb-8">
-            <div className="bg-tertiary-container/10 p-3 rounded-xl text-tertiary-container">
+            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-xl text-slate-500 dark:text-slate-400">
               <span className="material-symbols-outlined">shield</span>
             </div>
             <h3 className="text-xl font-bold font-headline">Security</h3>
           </div>
           <form onSubmit={handleChangePassword} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm text-outline font-semibold">Current Password</label>
-              <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="••••••••" className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary transition-all" />
+              <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Current Password</label>
+              <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="••••••••" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-outline font-semibold">New Password</label>
-              <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 6 characters" className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary transition-all" />
+              <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">New Password</label>
+              <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 6 characters" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-outline font-semibold">Confirm Password</label>
-              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat password" className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary transition-all" />
+              <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Confirm Password</label>
+              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat password" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
             </div>
-            {pwError && <p className="text-xs text-error">{pwError}</p>}
+            {pwError && <p className="text-xs text-red-500">{pwError}</p>}
             {pwSuccess && <p className="text-xs text-green-600">{tr.settings_pw_success}</p>}
-            <button type="submit" disabled={pwLoading} className="w-full bg-surface-container-high text-primary px-6 py-3 rounded-xl font-bold hover:bg-surface-container transition-colors disabled:opacity-60">
+            <button type="submit" disabled={pwLoading} className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-60">
               {pwLoading ? tr.settings_pw_saving : "Change Password"}
             </button>
-            <div className="pt-2 border-t border-outline-variant/15">
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-700/50">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">Two-Factor Auth</span>
-                <div className="w-12 h-6 bg-primary-container rounded-full relative cursor-pointer">
-                  <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full" />
+                <div>
+                  <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">Two-Factor Auth</span>
+                  <p className="text-xs text-slate-400 mt-0.5">Extra login security via authenticator app</p>
                 </div>
+                <span className="text-xs font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">Coming soon</span>
               </div>
             </div>
           </form>
         </section>
 
         {/* Platform Preferences (12 cols) */}
-        <section className="col-span-12 bg-surface-container-lowest rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+        <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
           <div className="flex items-center gap-4 mb-10">
-            <div className="bg-secondary/10 p-3 rounded-xl text-secondary">
+            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-xl text-slate-600 dark:text-slate-400">
               <span className="material-symbols-outlined">tune</span>
             </div>
             <h3 className="text-2xl font-bold font-headline">Platform Preferences</h3>
@@ -356,34 +357,34 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
             {/* Regional */}
             <div className="space-y-4">
-              <h4 className="font-bold text-on-surface flex items-center gap-2">
-                <span className="material-symbols-outlined text-outline">language</span>
+              <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">language</span>
                 Regional
               </h4>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-surface hover:bg-surface-container-low transition-colors cursor-pointer">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130]hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors cursor-pointer">
                   <span className="text-sm">Language</span>
-                  <button onClick={toggleLang} className="text-sm font-bold text-primary">{lang === "de" ? "Deutsch" : "English (EN)"}</button>
+                  <button onClick={toggleLang} className="text-sm font-bold text-blue-600">{lang === "de" ? "Deutsch" : "English (EN)"}</button>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-surface hover:bg-surface-container-low transition-colors cursor-pointer">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130]hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors cursor-pointer">
                   <span className="text-sm">Timezone</span>
-                  <span className="text-sm font-bold text-primary">UTC+1 (CET)</span>
+                  <span className="text-sm font-bold text-blue-600">UTC+1 (CET)</span>
                 </div>
               </div>
             </div>
             {/* QR Defaults */}
             <div className="space-y-4">
-              <h4 className="font-bold text-on-surface flex items-center gap-2">
-                <span className="material-symbols-outlined text-outline">analytics</span>
+              <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">analytics</span>
                 QR Defaults
               </h4>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-surface">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130]">
                   <span className="text-sm">Default Error Correction</span>
                   <select
                     value={errorCorrection}
                     onChange={(e) => handleErrorCorrectionChange(e.target.value)}
-                    className="bg-transparent border-none text-sm font-bold text-primary p-0 focus:ring-0 cursor-pointer"
+                    className="bg-transparent border-none text-sm font-bold text-blue-600 p-0 focus:ring-0 cursor-pointer"
                   >
                     <option value="H">High (30%)</option>
                     <option value="Q">Medium-High (25%)</option>
@@ -391,9 +392,9 @@ export default function SettingsPage() {
                     <option value="L">Low (7%)</option>
                   </select>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-surface">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130]">
                   <span className="text-sm">Auto-generate tracking</span>
-                  <div className="w-12 h-6 bg-primary-container rounded-full relative cursor-pointer">
+                  <div className="w-12 h-6 bg-blue-600 rounded-full relative cursor-pointer">
                     <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full" />
                   </div>
                 </div>
@@ -401,21 +402,21 @@ export default function SettingsPage() {
             </div>
             {/* Appearance */}
             <div className="space-y-4">
-              <h4 className="font-bold text-on-surface flex items-center gap-2">
-                <span className="material-symbols-outlined text-outline">palette</span>
+              <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">palette</span>
                 Appearance
               </h4>
               <div className="flex gap-4">
                 <div
                   onClick={() => handleToggleDarkMode(false)}
-                  className={`flex-1 p-4 rounded-xl text-center cursor-pointer transition-all ${!darkMode ? "border-2 border-primary bg-primary/5" : "border border-outline-variant/20 bg-surface opacity-60 hover:opacity-80"}`}
+                  className={`flex-1 p-4 rounded-xl text-center cursor-pointer transition-all ${!darkMode ? "border-2 border-blue-600 bg-blue-50 dark:bg-blue-900/10" : "border border-slate-200 dark:border-slate-700 bg-gray-50 dark:bg-[#1e2130]opacity-60 hover:opacity-80"}`}
                 >
                   <span className="material-symbols-outlined block mb-1">light_mode</span>
                   <span className="text-xs font-bold">Light</span>
                 </div>
                 <div
                   onClick={() => handleToggleDarkMode(true)}
-                  className={`flex-1 p-4 rounded-xl text-center cursor-pointer transition-all ${darkMode ? "border-2 border-primary bg-primary/5" : "border border-outline-variant/20 bg-surface opacity-60 hover:opacity-80"}`}
+                  className={`flex-1 p-4 rounded-xl text-center cursor-pointer transition-all ${darkMode ? "border-2 border-blue-600 bg-blue-50 dark:bg-blue-900/10" : "border border-slate-200 dark:border-slate-700 bg-gray-50 dark:bg-[#1e2130]opacity-60 hover:opacity-80"}`}
                 >
                   <span className="material-symbols-outlined block mb-1">dark_mode</span>
                   <span className="text-xs font-bold">Dark</span>
@@ -425,20 +426,20 @@ export default function SettingsPage() {
             {/* Features */}
             {(isOwner || userRole === "admin") && (
               <div className="space-y-4">
-                <h4 className="font-bold text-on-surface flex items-center gap-2">
-                  <span className="material-symbols-outlined text-outline">feature_search</span>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">feature_search</span>
                   Features
                 </h4>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-surface">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130]">
                     <div>
                       <p className="text-sm font-medium">Lead Capture</p>
-                      <p className="text-xs text-outline mt-0.5">Allow QR profiles to collect visitor contacts</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Allow QR profiles to collect visitor contacts</p>
                     </div>
                     <button
                       onClick={() => handleToggleLeadCapture(!leadCaptureDisabled)}
                       disabled={leadCaptureSaving}
-                      className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ml-3 ${leadCaptureDisabled ? "bg-outline-variant/30" : "bg-primary-container"} disabled:opacity-60`}
+                      className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ml-3 ${leadCaptureDisabled ? "bg-slate-200 dark:bg-slate-700" : "bg-blue-600"} disabled:opacity-60`}
                       aria-label="Toggle lead capture"
                     >
                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${leadCaptureDisabled ? "left-1" : "translate-x-6"}`} />
@@ -452,14 +453,14 @@ export default function SettingsPage() {
 
         {/* CRM / Export (owner or admin only) */}
         {(isOwner || userRole === "admin") && (
-          <section className="col-span-12 bg-surface-container-lowest rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
             <div className="flex items-center gap-4 mb-8">
               <div className="bg-teal-500/10 p-3 rounded-xl text-teal-600">
                 <span className="material-symbols-outlined">hub</span>
               </div>
               <div>
                 <h3 className="text-2xl font-bold font-headline">CRM / Export</h3>
-                <p className="text-sm text-outline mt-0.5">Export leads or connect to external tools via webhook</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Export leads or connect to external tools via webhook</p>
               </div>
               <a
                 href="/api/leads/export"
@@ -474,11 +475,11 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Webhook / Zapier */}
               <div>
-                <h4 className="font-bold text-on-surface flex items-center gap-2 mb-4">
-                  <span className="material-symbols-outlined text-outline text-[18px]">webhook</span>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-4">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">webhook</span>
                   Webhook / Zapier
                 </h4>
-                <p className="text-sm text-outline mb-4">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                   When a new lead is captured, we will POST the lead data to this URL. Works with Zapier, Make, n8n, or any custom endpoint.
                 </p>
                 <form onSubmit={handleSaveWebhook} className="space-y-3">
@@ -487,11 +488,11 @@ export default function SettingsPage() {
                     value={webhookUrl}
                     onChange={(e) => setWebhookUrl(e.target.value)}
                     placeholder="https://hooks.zapier.com/hooks/catch/..."
-                    className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                    className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 transition-all"
                   />
-                  {webhookError && <p className="text-xs text-error">{webhookError}</p>}
+                  {webhookError && <p className="text-xs text-red-500">{webhookError}</p>}
                   <div className="flex items-center gap-3">
-                    <button type="submit" disabled={webhookSaving} className="bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-container transition-colors disabled:opacity-60">
+                    <button type="submit" disabled={webhookSaving} className="bg-blue-600text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
                       {webhookSaving ? "Saving…" : "Save Webhook"}
                     </button>
                     {webhookSaved && (
@@ -501,15 +502,15 @@ export default function SettingsPage() {
                       </span>
                     )}
                     {webhookUrl && !webhookSaving && (
-                      <button type="button" onClick={() => { setWebhookUrl(""); }} className="text-sm text-outline hover:text-on-surface transition-colors">
+                      <button type="button" onClick={() => { setWebhookUrl(""); }} className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-100 transition-colors">
                         Remove
                       </button>
                     )}
                   </div>
                 </form>
-                <div className="mt-4 p-3 bg-surface rounded-xl border border-outline-variant/15">
-                  <p className="text-xs font-semibold text-outline mb-2">Payload preview</p>
-                  <pre className="text-xs text-on-surface/70 font-mono overflow-x-auto whitespace-pre-wrap">{`{
+                <div className="mt-4 p-3 bg-gray-50 dark:bg-[#1e2130]rounded-xl border border-slate-200 dark:border-slate-700/50">
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Payload preview</p>
+                  <pre className="text-xs text-slate-600 dark:text-slate-400 font-mono overflow-x-auto whitespace-pre-wrap">{`{
   "event": "lead.captured",
   "timestamp": "2025-01-01T12:00:00Z",
   "lead": { "name": "…", "email": "…", "company": "…" },
@@ -520,26 +521,26 @@ export default function SettingsPage() {
 
               {/* Lead Assignment info */}
               <div>
-                <h4 className="font-bold text-on-surface flex items-center gap-2 mb-4">
-                  <span className="material-symbols-outlined text-outline text-[18px]">assignment_ind</span>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-4">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">assignment_ind</span>
                   Lead Assignment
                 </h4>
-                <p className="text-sm text-outline mb-4">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                   Every lead is automatically assigned to the employee whose QR code was scanned. The employee name and QR label are included in all exports and webhook payloads.
                 </p>
                 <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 bg-surface rounded-xl border border-outline-variant/15">
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-[#1e2130]rounded-xl border border-slate-200 dark:border-slate-700/50">
                     <span className="material-symbols-outlined text-[18px] text-teal-600 shrink-0 mt-0.5">qr_code</span>
                     <div>
                       <p className="text-sm font-semibold">QR → Employee → Lead</p>
-                      <p className="text-xs text-outline mt-0.5">Each QR code belongs to one employee. When someone scans it and submits their contact, the lead is tagged to that employee.</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Each QR code belongs to one employee. When someone scans it and submits their contact, the lead is tagged to that employee.</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 bg-surface rounded-xl border border-outline-variant/15">
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-[#1e2130]rounded-xl border border-slate-200 dark:border-slate-700/50">
                     <span className="material-symbols-outlined text-[18px] text-blue-600 shrink-0 mt-0.5">analytics</span>
                     <div>
                       <p className="text-sm font-semibold">Per-QR Analytics</p>
-                      <p className="text-xs text-outline mt-0.5">View and export leads per QR code from the Analytics page of each code.</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">View and export leads per QR code from the Analytics page of each code.</p>
                     </div>
                   </div>
                 </div>
@@ -550,62 +551,62 @@ export default function SettingsPage() {
 
         {/* Branding / White Label (owner or admin only) */}
         {(isOwner || userRole === "admin") && (
-          <section className="col-span-12 bg-surface-container-lowest rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
             <div className="flex items-center gap-4 mb-8">
               <div className="bg-purple-500/10 p-3 rounded-xl text-purple-600">
                 <span className="material-symbols-outlined">style</span>
               </div>
               <div>
                 <h3 className="text-2xl font-bold font-headline">Branding</h3>
-                <p className="text-sm text-outline mt-0.5">White-label the platform and set up your custom domain</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">White-label the platform and set up your custom domain</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
               {/* White Label */}
               <div>
-                <h4 className="font-bold text-on-surface flex items-center gap-2 mb-5">
-                  <span className="material-symbols-outlined text-outline text-[18px]">palette</span>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-5">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">palette</span>
                   White Label
                 </h4>
                 <form onSubmit={handleSaveBranding} className="space-y-4">
                   <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-outline uppercase tracking-wider">Brand Name</label>
+                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Brand Name</label>
                     <input
                       type="text"
                       value={brandName}
                       onChange={(e) => setBrandName(e.target.value)}
                       placeholder="e.g. Acme Corp"
-                      className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary"
+                      className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500"
                     />
-                    <p className="text-xs text-outline">Replaces &quot;QR Orchestrator&quot; in the sidebar and dashboard</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Replaces &quot;QR Orchestrator&quot; in the sidebar and dashboard</p>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-outline uppercase tracking-wider">Brand Logo</label>
+                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Brand Logo</label>
                     {brandLogoUrl ? (
-                      <div className="flex items-center gap-3 p-3 bg-surface rounded-xl border border-outline-variant/20">
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#1e2130]rounded-xl border border-slate-200 dark:border-slate-700">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={brandLogoUrl} alt="Brand logo" className="h-10 w-10 object-contain rounded-lg bg-white border border-outline-variant/20" />
-                        <span className="text-sm text-on-surface flex-1 truncate">Logo uploaded</span>
-                        <button type="button" onClick={() => setBrandLogoUrl("")} className="text-xs text-error hover:underline">Remove</button>
+                        <img src={brandLogoUrl} alt="Brand logo" className="h-10 w-10 object-contain rounded-lg bg-white border border-slate-200 dark:border-slate-700" />
+                        <span className="text-sm text-slate-900 dark:text-slate-100 flex-1 truncate">Logo uploaded</span>
+                        <button type="button" onClick={() => setBrandLogoUrl("")} className="text-xs text-red-500 hover:underline">Remove</button>
                       </div>
                     ) : (
-                      <label className={`flex items-center gap-3 p-3 bg-surface rounded-xl border border-outline-variant/20 cursor-pointer hover:bg-surface-container-low transition-colors ${brandLogoUploading ? "opacity-60 pointer-events-none" : ""}`}>
-                        <span className="material-symbols-outlined text-outline">upload</span>
-                        <span className="text-sm text-outline">{brandLogoUploading ? "Uploading…" : "Upload logo (PNG, SVG, JPG)"}</span>
+                      <label className={`flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#1e2130]rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors ${brandLogoUploading ? "opacity-60 pointer-events-none" : ""}`}>
+                        <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">upload</span>
+                        <span className="text-sm text-slate-500 dark:text-slate-400">{brandLogoUploading ? "Uploading…" : "Upload logo (PNG, SVG, JPG)"}</span>
                         <input type="file" accept="image/*" className="sr-only" onChange={handleBrandLogoUpload} />
                       </label>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-outline uppercase tracking-wider">Brand Color</label>
-                    <div className="flex items-center gap-3 bg-surface-container-low rounded-xl px-4 py-3">
+                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Brand Color</label>
+                    <div className="flex items-center gap-3 bg-gray-50 dark:bg-[#242736] rounded-xl px-4 py-3">
                       <input type="color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)} className="w-8 h-8 rounded-md border-0 cursor-pointer bg-transparent shrink-0" />
-                      <span className="text-sm font-mono text-on-surface">{brandColor}</span>
+                      <span className="text-sm font-mono text-slate-900 dark:text-slate-100">{brandColor}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 pt-2">
-                    <button type="submit" disabled={brandSaving} className="bg-primary text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-container transition-colors disabled:opacity-60">
+                    <button type="submit" disabled={brandSaving} className="bg-blue-600text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
                       {brandSaving ? "Saving…" : "Save Branding"}
                     </button>
                     {brandSaved && (
@@ -619,28 +620,28 @@ export default function SettingsPage() {
 
               {/* Custom Domain */}
               <div>
-                <h4 className="font-bold text-on-surface flex items-center gap-2 mb-5">
-                  <span className="material-symbols-outlined text-outline text-[18px]">domain</span>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-5">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">domain</span>
                   Custom Domain
                 </h4>
                 <form onSubmit={handleSaveDomain} className="space-y-4">
                   <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-outline uppercase tracking-wider">Your Domain</label>
+                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Domain</label>
                     <input
                       type="text"
                       value={customDomain}
                       onChange={(e) => setCustomDomain(e.target.value)}
                       placeholder="card.yourcompany.com"
-                      className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary font-mono"
+                      className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 font-mono"
                     />
-                    <p className="text-xs text-outline">QR codes will use this domain instead of the default URL</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">QR codes will use this domain instead of the default URL</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button type="submit" disabled={domainSaving} className="bg-primary text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-container transition-colors disabled:opacity-60">
+                    <button type="submit" disabled={domainSaving} className="bg-blue-600text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
                       {domainSaving ? "Saving…" : "Save Domain"}
                     </button>
                     {domainStatus?.domain && (
-                      <button type="button" onClick={handleCheckDomain} disabled={domainChecking} className="text-sm font-medium text-primary hover:underline disabled:opacity-60">
+                      <button type="button" onClick={handleCheckDomain} disabled={domainChecking} className="text-sm font-medium text-blue-600 hover:underline disabled:opacity-60">
                         {domainChecking ? "Checking…" : "Check DNS"}
                       </button>
                     )}
@@ -655,19 +656,19 @@ export default function SettingsPage() {
                       {domainStatus.verified ? "Domain verified and active" : "Waiting for DNS propagation"}
                     </div>
                     {domainStatus.vercelStatus === "registered" ? (
-                      <p className="text-xs text-outline">Domain registered with Vercel automatically.</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Domain registered with Vercel automatically.</p>
                     ) : (
-                      <div className="p-4 bg-surface rounded-xl border border-outline-variant/15 space-y-3">
-                        <p className="text-xs font-semibold text-on-surface">Add this DNS record at your domain registrar:</p>
+                      <div className="p-4 bg-gray-50 dark:bg-[#1e2130]rounded-xl border border-slate-200 dark:border-slate-700/50 space-y-3">
+                        <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">Add this DNS record at your domain registrar:</p>
                         <div className="grid grid-cols-3 gap-2 text-xs">
-                          <div className="font-semibold text-outline uppercase">Type</div>
-                          <div className="font-semibold text-outline uppercase">Host</div>
-                          <div className="font-semibold text-outline uppercase">Value</div>
-                          <div className="font-mono text-on-surface bg-surface-container-low rounded px-2 py-1">CNAME</div>
-                          <div className="font-mono text-on-surface bg-surface-container-low rounded px-2 py-1 truncate">{domainStatus.cname?.host ?? customDomain}</div>
-                          <div className="font-mono text-on-surface bg-surface-container-low rounded px-2 py-1 truncate">{domainStatus.cname?.target ?? "cname.vercel-dns.com"}</div>
+                          <div className="font-semibold text-slate-500 dark:text-slate-400 uppercase">Type</div>
+                          <div className="font-semibold text-slate-500 dark:text-slate-400 uppercase">Host</div>
+                          <div className="font-semibold text-slate-500 dark:text-slate-400 uppercase">Value</div>
+                          <div className="font-mono text-slate-900 dark:text-slate-100 bg-gray-50 dark:bg-[#242736] rounded px-2 py-1">CNAME</div>
+                          <div className="font-mono text-slate-900 dark:text-slate-100 bg-gray-50 dark:bg-[#242736] rounded px-2 py-1 truncate">{domainStatus.cname?.host ?? customDomain}</div>
+                          <div className="font-mono text-slate-900 dark:text-slate-100 bg-gray-50 dark:bg-[#242736] rounded px-2 py-1 truncate">{domainStatus.cname?.target ?? "cname.vercel-dns.com"}</div>
                         </div>
-                        <p className="text-xs text-outline">DNS changes can take up to 48 hours to propagate.</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">DNS changes can take up to 48 hours to propagate.</p>
                       </div>
                     )}
                   </div>
@@ -679,24 +680,24 @@ export default function SettingsPage() {
 
         {/* Platform Support Email (platform admin only) */}
         {isPlatformAdmin && (
-          <section className="col-span-12 bg-surface-container-lowest rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
             <h3 className="text-xl font-bold font-headline mb-2">{tr.settings_support_email_title ?? "Platform Contact Email"}</h3>
-            <p className="text-sm text-outline mb-6">{tr.settings_support_email_hint ?? "Shown to team members when a save error occurs."}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{tr.settings_support_email_hint ?? "Shown to team members when a save error occurs."}</p>
             {supportEmailSaved && !editingSupport ? (
-              <div className="flex items-center justify-between bg-surface-container-low rounded-xl px-4 py-3">
+              <div className="flex items-center justify-between bg-gray-50 dark:bg-[#242736] rounded-xl px-4 py-3">
                 <div>
-                  <p className="text-xs text-outline mb-0.5">Contact Email</p>
-                  <p className="text-sm font-medium text-on-surface">{supportEmail}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Contact Email</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{supportEmail}</p>
                 </div>
-                <button onClick={() => setEditingSupport(true)} className="text-xs text-primary hover:underline font-medium">{tr.edit}</button>
+                <button onClick={() => setEditingSupport(true)} className="text-xs text-blue-600 hover:underline font-medium">{tr.edit}</button>
               </div>
             ) : (
               <form onSubmit={handleSaveSupportEmail} className="flex gap-3 items-end">
                 <div className="flex-1">
-                  <input type="email" value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} placeholder="support@yourcompany.com" autoFocus className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary" />
+                  <input type="email" value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} placeholder="support@yourcompany.com" autoFocus className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                 </div>
-                <button type="submit" disabled={supportEmailLoading} className="bg-primary text-white px-6 py-3 rounded-xl font-bold disabled:opacity-60">{supportEmailLoading ? "..." : tr.settings_support_email_btn}</button>
-                {editingSupport && <button type="button" onClick={() => setEditingSupport(false)} className="text-sm text-outline hover:text-on-surface px-4 py-3">{tr.cancel}</button>}
+                <button type="submit" disabled={supportEmailLoading} className="bg-blue-600text-white px-6 py-3 rounded-xl font-bold disabled:opacity-60">{supportEmailLoading ? "..." : tr.settings_support_email_btn}</button>
+                {editingSupport && <button type="button" onClick={() => setEditingSupport(false)} className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-100 px-4 py-3">{tr.cancel}</button>}
               </form>
             )}
           </section>
@@ -726,13 +727,13 @@ export default function SettingsPage() {
       </div>
 
       {/* Danger Zone */}
-      <div className="mt-12 pt-8 border-t border-outline-variant/15">
-        <div className="flex items-center justify-between p-6 bg-error-container/20 rounded-xl">
+      <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700/50">
+        <div className="flex items-center justify-between p-6 bg-red-50 dark:bg-red-900/10 rounded-xl">
           <div>
-            <h4 className="text-lg font-bold text-on-error-container font-headline">Deactivate Account</h4>
-            <p className="text-sm text-on-error-container/70 mt-1">Permanently remove all QR data and orchestrator logs. This action is irreversible.</p>
+            <h4 className="text-lg font-bold text-red-800 dark:text-red-200 font-headline">Deactivate Account</h4>
+            <p className="text-sm text-red-800 dark:text-red-200/70 mt-1">Permanently remove all QR data and orchestrator logs. This action is irreversible.</p>
           </div>
-          <button className="border-2 border-error text-error px-6 py-2 rounded-xl font-bold hover:bg-error hover:text-white transition-all">
+          <button className="border-2 border-red-500 text-red-500 px-6 py-2 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all">
             Deactivate
           </button>
         </div>
