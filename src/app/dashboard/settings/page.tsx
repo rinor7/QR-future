@@ -299,9 +299,18 @@ export default function SettingsPage() {
             {emailSuccess && <p className="text-xs text-green-600">{tr.settings_email_success}</p>}
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Plan:</span>
-                <span className="text-sm font-semibold text-blue-600">{PLAN_LABELS[plan]}</span>
-                {isOwner && <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline ml-1">Change</Link>}
+                {isOwner ? (
+                  <>
+                    <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Plan:</span>
+                    <span className="text-sm font-semibold text-blue-600">{PLAN_LABELS[plan]}</span>
+                    <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline ml-1">Change</Link>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Role:</span>
+                    <span className="text-sm font-semibold text-blue-600 capitalize">{userRole || "Member"}</span>
+                  </>
+                )}
               </div>
               <button type="submit" disabled={emailLoading} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-60 w-full sm:w-auto">
                 {emailLoading ? tr.settings_email_saving : "Update Account"}
