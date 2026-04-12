@@ -425,7 +425,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 <input type="text" value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="z.B. Geschäftsführer" className={input} autoFocus />
               </Field>
             ) : (
-              <button type="button" onClick={() => openField("title")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+              <button type="button" onClick={() => openField("title")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-300 hover:border-blue-300 rounded-full px-4 py-1.5 transition-colors w-fit">
                 <Plus className="w-3.5 h-3.5" /> {tr.field_title}
               </button>
             )}
@@ -434,7 +434,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 <input type="text" value={form.company} onChange={(e) => set("company", e.target.value)} placeholder="z.B. Builtech Gruppe" className={input} />
               </Field>
             ) : (
-              <button type="button" onClick={() => openField("company")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+              <button type="button" onClick={() => openField("company")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-300 hover:border-blue-300 rounded-full px-4 py-1.5 transition-colors w-fit">
                 <Plus className="w-3.5 h-3.5" /> {tr.field_company}
               </button>
             )}
@@ -443,20 +443,20 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 <textarea value={(form as unknown as Record<string, string>).description ?? ""} onChange={(e) => set("description" as keyof CreateQRContact, e.target.value)} placeholder="Kurze Beschreibung oder Slogan…" rows={2} className={`${input} resize-none`} />
               </Field>
             ) : (
-              <button type="button" onClick={() => openField("description")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
+              <button type="button" onClick={() => openField("description")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-300 hover:border-blue-300 rounded-full px-4 py-1.5 transition-colors w-fit">
                 <Plus className="w-3.5 h-3.5" /> {tr.field_description}
               </button>
             )}
           </>
         ) : (
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => openField("title")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors">
+            <button type="button" onClick={() => openField("title")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-300 hover:border-blue-300 rounded-full px-4 py-1.5 transition-colors">
               <Plus className="w-3.5 h-3.5" /> {tr.field_title}
             </button>
-            <button type="button" onClick={() => openField("company")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors">
+            <button type="button" onClick={() => openField("company")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-300 hover:border-blue-300 rounded-full px-4 py-1.5 transition-colors">
               <Plus className="w-3.5 h-3.5" /> {tr.field_company}
             </button>
-            <button type="button" onClick={() => openField("description")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors">
+            <button type="button" onClick={() => openField("description")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-300 hover:border-blue-300 rounded-full px-4 py-1.5 transition-colors">
               <Plus className="w-3.5 h-3.5" /> {tr.field_description}
             </button>
           </div>
@@ -535,9 +535,10 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{tr.field_color}</p>
-              <div className="flex items-center gap-3 bg-gray-50 dark:bg-[#242736] border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-3">
-                <input type="color" value={form.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} className="w-8 h-8 rounded-md border-0 cursor-pointer bg-transparent shrink-0" />
-                <span className="text-sm text-gray-600 dark:text-slate-300 font-mono">{form.primaryColor}</span>
+              <div className="flex items-center bg-gray-50 dark:bg-[#242736] border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                <input type="color" value={form.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} className="w-11 h-11 cursor-pointer border-0 bg-transparent shrink-0 p-1" />
+                <div className="w-px h-5 bg-gray-300 dark:bg-slate-600 shrink-0" />
+                <span className="text-sm text-gray-600 dark:text-slate-300 font-mono px-3">{form.primaryColor}</span>
               </div>
             </div>
             <div>
@@ -640,17 +641,17 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         actions={
           <>
             {!isFieldOpen("phone") && (
-              <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 rounded-lg px-2.5 py-1.5 transition-colors bg-white dark:bg-[#1a1d27] dark:border-slate-700">
+              <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 border border-gray-300 hover:border-blue-300 rounded-full px-3.5 py-1.5 transition-colors bg-white dark:bg-[#1a1d27] dark:border-slate-700">
                 <Plus className="w-3 h-3" /> {tr.field_phone}
               </button>
             )}
             {!isFieldOpen("email") && (
-              <button type="button" onClick={() => openField("email")} className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 rounded-lg px-2.5 py-1.5 transition-colors bg-white dark:bg-[#1a1d27] dark:border-slate-700">
+              <button type="button" onClick={() => openField("email")} className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 border border-gray-300 hover:border-blue-300 rounded-full px-3.5 py-1.5 transition-colors bg-white dark:bg-[#1a1d27] dark:border-slate-700">
                 <Plus className="w-3 h-3" /> {tr.field_email}
               </button>
             )}
             {!isFieldOpen("website") && (
-              <button type="button" onClick={() => openField("website")} className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 rounded-lg px-2.5 py-1.5 transition-colors bg-white dark:bg-[#1a1d27] dark:border-slate-700">
+              <button type="button" onClick={() => openField("website")} className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 border border-gray-300 hover:border-blue-300 rounded-full px-3.5 py-1.5 transition-colors bg-white dark:bg-[#1a1d27] dark:border-slate-700">
                 <Plus className="w-3 h-3" /> {tr.field_website}
               </button>
             )}
@@ -986,7 +987,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
 const SECTION_ICONS: Record<string, { icon: string; bg: string; text: string }> = {
   default:        { icon: "article",          bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600 dark:text-blue-400" },
   identity:       { icon: "badge",            bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600 dark:text-blue-400" },
-  design:         { icon: "palette",          bg: "bg-orange-100 dark:bg-orange-900/30", text: "text-orange-500 dark:text-orange-400" },
+  design:         { icon: "palette",          bg: "bg-indigo-100 dark:bg-indigo-900/30", text: "text-indigo-600 dark:text-indigo-400" },
   qrdesign:       { icon: "qr_code_2",        bg: "bg-purple-100 dark:bg-purple-900/30", text: "text-purple-600 dark:text-purple-400" },
   contact:        { icon: "contact_page",     bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600 dark:text-blue-400" },
   social:         { icon: "share",            bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600 dark:text-blue-400" },
