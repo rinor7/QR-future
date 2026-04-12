@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
 
   // Fetch interactions per visitor for this set of leads
   const visitorIds = leads.map((l) => l.visitor_id).filter(Boolean);
-  let interactionMap: Record<string, string[]> = {};
+  const interactionMap: Record<string, string[]> = {};
   if (visitorIds.length > 0) {
     const { data: interactions } = await supabase
       .from("qr_interactions")
