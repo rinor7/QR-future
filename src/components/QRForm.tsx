@@ -259,20 +259,22 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
-      {/* QR Code Label */}
-      <Field label={tr.qr_label}>
-        <input
-          type="text"
-          value={form.qrLabel}
-          onChange={(e) => set("qrLabel", e.target.value)}
-          placeholder={tr.qr_label_placeholder}
-          className={input}
-        />
-        <p className="text-xs text-gray-400 mt-1">{tr.qr_label_hint}</p>
-      </Field>
+      {/* Basic Information */}
+      <Section title="Basic Information" iconKey="basicinfo">
+        <Field label={tr.qr_label}>
+          <input
+            type="text"
+            value={form.qrLabel}
+            onChange={(e) => set("qrLabel", e.target.value)}
+            placeholder={tr.qr_label_placeholder}
+            className={input}
+          />
+          <p className="text-xs text-gray-400 mt-1">{tr.qr_label_hint}</p>
+        </Field>
+      </Section>
 
       {/* Identity */}
-      <Section title={tr.section_identity}>
+      <Section title={tr.section_identity} iconKey="identity">
         <div className="grid grid-cols-2 gap-3">
           <Field label={tr.field_first_name} required>
             <input
@@ -340,104 +342,100 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           </div>
         )}
 
-        {/* Design: Background + Color + Logo */}
-        <div className="border border-gray-100 rounded-xl p-4 bg-gray-50 space-y-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Design</p>
+      </Section>
 
-          {/* Background image: preview left (30%), drop zone right (70%) */}
+      {/* Design */}
+      <Section title="Design" iconKey="design">
+        <div className="space-y-5">
+
+          {/* Background image */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.upload_bg}</p>
-            <div className="flex gap-3 items-stretch">
-              {/* Preview / placeholder */}
-              <div className="w-[30%] shrink-0">
-                {form.bgImageUrl ? (
-                  <div className="relative h-full min-h-[80px]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={form.bgImageUrl} alt="BG" className="w-full h-full object-cover rounded-xl border border-gray-200" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                    <button type="button" onClick={() => set("bgImageUrl", "")} className="absolute top-1 right-1 bg-white/80 hover:bg-white text-red-400 hover:text-red-600 text-xs px-1.5 py-0.5 rounded-lg transition-colors shadow-sm">{tr.upload_remove}</button>
-                  </div>
-                ) : (
-                  <div className="h-full min-h-[80px] bg-white border border-gray-200 rounded-xl flex items-center justify-center">
-                    <span className="text-2xl opacity-20">🖼</span>
-                  </div>
-                )}
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{tr.upload_bg}</p>
+            {form.bgImageUrl ? (
+              <div className="relative h-32 rounded-xl overflow-hidden border border-gray-200">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={form.bgImageUrl} alt="BG" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                <button type="button" onClick={() => set("bgImageUrl", "")} className="absolute top-2 right-2 bg-white/90 hover:bg-white text-red-500 text-xs px-2 py-1 rounded-lg transition-colors shadow-sm font-medium">{tr.upload_remove}</button>
               </div>
-              {/* Drop zone */}
+            ) : (
               <label
                 onDragOver={(e) => { e.preventDefault(); setBgDragging(true); }}
                 onDragLeave={() => setBgDragging(false)}
                 onDrop={handleBgDrop}
-                className={`flex-1 flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-6 text-sm transition-colors ${
-                  bgDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
+                className={`flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-8 text-sm transition-colors ${
+                  bgDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-gray-50 hover:bg-gray-100 dark:bg-[#242736] dark:border-slate-600"
                 } ${bgUploading ? "opacity-50 pointer-events-none" : ""}`}
               >
-                <Upload className="w-5 h-5 text-gray-400" />
-                <span className="text-gray-500 text-xs text-center">{bgUploading ? tr.upload_uploading : tr.upload_bg}</span>
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-1">
+                  <Upload className="w-5 h-5 text-blue-600" />
+                </div>
+                <span className="text-blue-600 font-medium text-sm">{bgUploading ? tr.upload_uploading : "Upload Image"}</span>
                 <span className="text-gray-400 text-xs text-center">{tr.upload_bg_hint}</span>
                 <input type="file" accept="image/*" className="sr-only" onChange={handleBgUpload} />
               </label>
-            </div>
+            )}
             {bgError && <p className="text-xs text-red-500 mt-1">{bgError}</p>}
           </div>
 
-          {/* Logo: drop zone left (70%), preview right (30%) */}
+          {/* Logo */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.field_logo}</p>
-            <div className="flex gap-3 items-stretch">
-              {/* Drop zone */}
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{tr.field_logo}</p>
+            {form.logoUrl ? (
+              <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-[#242736] rounded-xl border border-gray-200 dark:border-slate-700">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={form.logoUrl} alt="Logo" className="w-16 h-16 object-contain rounded-xl border border-gray-200 bg-white" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-700 dark:text-slate-200">Brand Identity</p>
+                  <p className="text-xs text-gray-400 mt-0.5">PNG, SVG or JPG (max 2MB)</p>
+                </div>
+                <button type="button" onClick={() => set("logoUrl", "")} className="text-xs text-red-500 hover:text-red-700 font-medium px-3 py-1.5 rounded-lg border border-red-200 hover:border-red-300 transition-colors">{tr.upload_remove}</button>
+              </div>
+            ) : (
               <label
                 onDragOver={(e) => { e.preventDefault(); setLogoDragging(true); }}
                 onDragLeave={() => setLogoDragging(false)}
                 onDrop={handleLogoDrop}
-                className={`flex-1 flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-6 text-sm transition-colors ${
-                  logoDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"
-                } ${logoUploading ? "opacity-50 pointer-events-none" : ""}`}
+                className={`flex items-center gap-4 p-4 cursor-pointer border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-[#242736] hover:bg-gray-100 dark:hover:bg-[#2a2d3e] transition-colors ${logoUploading ? "opacity-50 pointer-events-none" : ""}`}
               >
-                <Upload className="w-5 h-5 text-gray-400" />
-                <span className="text-gray-500 text-xs text-center">{logoUploading ? tr.upload_uploading : tr.upload_logo}</span>
-                <span className="text-gray-400 text-xs text-center">{tr.upload_logo_hint}</span>
+                <div className="w-14 h-14 bg-gray-200 dark:bg-slate-600 rounded-xl flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[24px] text-gray-400">image</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-slate-200">Brand Identity</p>
+                  <p className="text-xs text-gray-400 mt-0.5">PNG, SVG or JPG (max 2MB)</p>
+                </div>
+                <span className="text-sm font-medium text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2 hover:bg-white dark:hover:bg-[#1a1d27] transition-colors shrink-0">{logoUploading ? "..." : "Upload"}</span>
                 <input type="file" accept="image/*" className="sr-only" onChange={handleLogoUpload} />
               </label>
-              {/* Preview / placeholder */}
-              <div className="w-[30%] shrink-0">
-                {form.logoUrl ? (
-                  <div className="relative h-full min-h-[80px]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={form.logoUrl} alt="Logo" className="w-full h-full object-contain rounded-xl border border-gray-200 bg-white" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                    <button type="button" onClick={() => set("logoUrl", "")} className="absolute top-1 right-1 bg-white/80 hover:bg-white text-red-400 hover:text-red-600 text-xs px-1.5 py-0.5 rounded-lg transition-colors shadow-sm">{tr.upload_remove}</button>
-                  </div>
-                ) : (
-                  <div className="h-full min-h-[80px] bg-white border border-gray-200 rounded-xl flex items-center justify-center">
-                    <span className="text-2xl opacity-20">🏷</span>
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
             {logoError && <p className="text-xs text-red-500 mt-1">{logoError}</p>}
           </div>
 
-          {/* Accent color + Logo toggle in one row 50/50 */}
+          {/* Accent color + Logo in QR toggle */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.field_color}</p>
-              <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2.5">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{tr.field_color}</p>
+              <div className="flex items-center gap-3 bg-gray-50 dark:bg-[#242736] border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-3">
                 <input type="color" value={form.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} className="w-8 h-8 rounded-md border-0 cursor-pointer bg-transparent shrink-0" />
-                <span className="text-xs text-gray-500 font-mono">{form.primaryColor}</span>
+                <span className="text-sm text-gray-600 dark:text-slate-300 font-mono">{form.primaryColor}</span>
               </div>
             </div>
-            <div className="flex flex-col justify-center">
-              <p className="text-sm font-medium text-gray-700 mb-1.5">{tr.qr_logo_in_center}</p>
-              <div
-                onClick={() => setForm((prev) => { const next = { ...prev, showLogoInQr: !prev.showLogoInQr }; onFormChange?.(next); return next; })}
-                className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer shrink-0 ${form.showLogoInQr ? "bg-blue-600" : "bg-gray-200"}`}
-              >
-                <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.showLogoInQr ? "translate-x-4" : "translate-x-0.5"}`} />
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{tr.qr_logo_in_center}</p>
+              <div className="flex items-center gap-3 bg-gray-50 dark:bg-[#242736] border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-3">
+                <div
+                  onClick={() => setForm((prev) => { const next = { ...prev, showLogoInQr: !prev.showLogoInQr }; onFormChange?.(next); return next; })}
+                  className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer shrink-0 ${form.showLogoInQr ? "bg-blue-600" : "bg-gray-200"}`}
+                >
+                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.showLogoInQr ? "translate-x-4" : "translate-x-0.5"}`} />
+                </div>
+                <span className="text-sm text-gray-500 dark:text-slate-400">{form.showLogoInQr ? "On" : "Off"}</span>
               </div>
             </div>
           </div>
 
           {/* Lead Capture toggle */}
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#242736] rounded-xl border border-gray-200 dark:border-slate-700">
             <div>
               <p className="text-sm font-medium text-gray-700">Lead Capture</p>
               <p className="text-xs text-gray-400 mt-0.5">Show a &ldquo;Leave contact&rdquo; button on this profile</p>
@@ -452,7 +450,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
 
           {/* Theme picker */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">{tr.field_theme}</p>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{tr.field_theme}</p>
             <div className="grid grid-cols-3 gap-3">
               {(["classic", "dark", "minimal"] as const).map((t) => {
                 const labels: Record<string, string> = { classic: tr.theme_classic, dark: tr.theme_dark, minimal: tr.theme_minimal };
@@ -495,7 +493,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       </Section>
 
       {/* QR Code Design */}
-      <Section title="QR Code Design">
+      <Section title="QR Code Design" iconKey="qrdesign">
         <QRStylePicker
           value={{
             qrDotStyle: form.qrDotStyle,
@@ -516,50 +514,44 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       </Section>
 
       {/* Contact */}
-      <Section title={tr.section_contact}>
-        {/* Phone / Email / Website — closed buttons shown inline */}
-        {(isFieldOpen("phone") || isFieldOpen("email") || isFieldOpen("website")) ? (
+      <Section
+        title={tr.section_contact}
+        iconKey="contact"
+        actions={
           <>
-            {isFieldOpen("phone") ? (
-              <Field label={tr.field_phone}>
-                <input type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+41 123 456 789" className={input} autoFocus />
-              </Field>
-            ) : (
-              <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
-                <Plus className="w-3.5 h-3.5" /> {tr.field_phone}
+            {!isFieldOpen("phone") && (
+              <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 rounded-lg px-2.5 py-1.5 transition-colors bg-white dark:bg-[#1a1d27] dark:border-slate-700">
+                <Plus className="w-3 h-3" /> {tr.field_phone}
               </button>
             )}
-            {isFieldOpen("email") ? (
-              <Field label={tr.field_email}>
-                <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="max@qr-card.ch" className={input} />
-              </Field>
-            ) : (
-              <button type="button" onClick={() => openField("email")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
-                <Plus className="w-3.5 h-3.5" /> {tr.field_email}
+            {!isFieldOpen("email") && (
+              <button type="button" onClick={() => openField("email")} className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 rounded-lg px-2.5 py-1.5 transition-colors bg-white dark:bg-[#1a1d27] dark:border-slate-700">
+                <Plus className="w-3 h-3" /> {tr.field_email}
               </button>
             )}
-            {isFieldOpen("website") ? (
-              <Field label={tr.field_website}>
-                <input type="text" value={form.website} onChange={(e) => set("website", e.target.value)} onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }} placeholder="www.qr-card.ch" className={input} />
-              </Field>
-            ) : (
-              <button type="button" onClick={() => openField("website")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors w-fit">
-                <Plus className="w-3.5 h-3.5" /> {tr.field_website}
+            {!isFieldOpen("website") && (
+              <button type="button" onClick={() => openField("website")} className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 rounded-lg px-2.5 py-1.5 transition-colors bg-white dark:bg-[#1a1d27] dark:border-slate-700">
+                <Plus className="w-3 h-3" /> {tr.field_website}
               </button>
             )}
           </>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors">
-              <Plus className="w-3.5 h-3.5" /> {tr.field_phone}
-            </button>
-            <button type="button" onClick={() => openField("email")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors">
-              <Plus className="w-3.5 h-3.5" /> {tr.field_email}
-            </button>
-            <button type="button" onClick={() => openField("website")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-200 hover:border-blue-300 rounded-xl px-3 py-2 transition-colors">
-              <Plus className="w-3.5 h-3.5" /> {tr.field_website}
-            </button>
-          </div>
+        }
+      >
+        {/* Open fields */}
+        {isFieldOpen("phone") && (
+          <Field label={tr.field_phone}>
+            <input type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+41 123 456 789" className={input} autoFocus />
+          </Field>
+        )}
+        {isFieldOpen("email") && (
+          <Field label={tr.field_email}>
+            <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="max@qr-card.ch" className={input} />
+          </Field>
+        )}
+        {isFieldOpen("website") && (
+          <Field label={tr.field_website}>
+            <input type="text" value={form.website} onChange={(e) => set("website", e.target.value)} onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }} placeholder="www.qr-card.ch" className={input} />
+          </Field>
         )}
         <Field label="Land">
           <select
@@ -623,7 +615,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       </Section>
 
       {/* Social */}
-      <Section title={tr.section_social}>
+      <Section title={tr.section_social} iconKey="social">
         <div className="flex flex-wrap gap-2">
           {([
             { key: "linkedinUrl", label: "LinkedIn", prefix: "linkedin.com/in/", fullPrefix: "https://linkedin.com/in/" },
@@ -677,7 +669,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       </Section>
 
       {/* PDF / Links */}
-      <Section title={tr.section_pdf}>
+      <Section title={tr.section_pdf} iconKey="pdf">
         <div className="space-y-3">
           {/* Existing links */}
           {form.links.map((link, i) => (
@@ -814,7 +806,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       </Section>
 
       {/* Notes */}
-      <Section title={tr.section_notes}>
+      <Section title={tr.section_notes} iconKey="notes">
         <Field label={tr.field_notes}>
           <textarea
             value={form.notes}
@@ -871,19 +863,42 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
   );
 }
 
+const SECTION_ICONS: Record<string, { icon: string; bg: string; text: string }> = {
+  default:        { icon: "article",          bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600 dark:text-blue-400" },
+  identity:       { icon: "badge",            bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600 dark:text-blue-400" },
+  design:         { icon: "palette",          bg: "bg-orange-100 dark:bg-orange-900/30", text: "text-orange-500 dark:text-orange-400" },
+  qrdesign:       { icon: "qr_code_2",        bg: "bg-purple-100 dark:bg-purple-900/30", text: "text-purple-600 dark:text-purple-400" },
+  contact:        { icon: "contact_page",     bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600 dark:text-blue-400" },
+  social:         { icon: "share",            bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600 dark:text-blue-400" },
+  pdf:            { icon: "description",      bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600 dark:text-blue-400" },
+  notes:          { icon: "format_list_bulleted", bg: "bg-blue-100 dark:bg-blue-900/30", text: "text-blue-600 dark:text-blue-400" },
+  basicinfo:      { icon: "sell",             bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600 dark:text-blue-400" },
+};
+
 function Section({
   title,
+  iconKey,
+  actions,
   children,
 }: {
   title: string;
+  iconKey?: keyof typeof SECTION_ICONS;
+  actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const ic = SECTION_ICONS[iconKey ?? "default"];
   return (
     <div>
-      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-        {title}
-      </h3>
-      <div className="bg-white rounded-2xl border border-gray-200 border-l-4 border-l-blue-500 p-6 space-y-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${ic.bg}`}>
+            <span className={`material-symbols-outlined text-[20px] ${ic.text}`}>{ic.icon}</span>
+          </div>
+          <h3 className="text-base font-bold tracking-tight text-gray-900 dark:text-gray-100 uppercase">{title}</h3>
+        </div>
+        {actions && <div className="flex items-center gap-2 flex-wrap">{actions}</div>}
+      </div>
+      <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm p-6 space-y-5">
         {children}
       </div>
     </div>
@@ -901,7 +916,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+      <label className="block text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2">
         {label}
         {required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
@@ -911,7 +926,7 @@ function Field({
 }
 
 const input =
-  "w-full border border-gray-200 dark:border-slate-700 dark:bg-[#242736] dark:text-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-slate-500";
+  "w-full bg-gray-50 dark:bg-[#242736] border border-gray-200 dark:border-slate-700 dark:text-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-slate-500";
 
 function PrefixInput({
   prefix,
