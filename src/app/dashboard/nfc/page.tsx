@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getAllContacts } from "@/lib/store";
 import { QRContact } from "@/lib/types";
 
@@ -14,6 +14,141 @@ interface NFCCard {
   updated_at: string;
 }
 
+/* ── Searchable contact picker ── */
+function ContactPicker({
+  contacts,
+  value,
+  onChange,
+  placeholder = "Search by name or company…",
+  size = "normal",
+}: {
+  contacts: QRContact[];
+  value: string;
+  onChange: (id: string) => void;
+  placeholder?: string;
+  size?: "normal" | "small";
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const selected = contacts.find((c) => c.id === value);
+  const displayName = selected
+    ? `${selected.firstName ?? ""} ${selected.lastName ?? ""}`.trim() || selected.company || selected.qrLabel || selected.id.slice(0, 8)
+    : "";
+
+  const filtered = query.trim()
+    ? contacts.filter((c) => {
+        const name = `${c.firstName ?? ""} ${c.lastName ?? ""} ${c.company ?? ""} ${c.qrLabel ?? ""}`.toLowerCase();
+        return name.includes(query.toLowerCase());
+      })
+    : contacts;
+
+  // Close on outside click
+  useEffect(() => {
+    function onDown(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQuery("");
+      }
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
+
+  function select(id: string) {
+    onChange(id);
+    setOpen(false);
+    setQuery("");
+  }
+
+  const inputCls = size === "small"
+    ? "w-full bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer"
+    : "w-full bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer";
+
+  return (
+    <div ref={containerRef} className="relative">
+      {/* Trigger */}
+      {!open ? (
+        <button
+          type="button"
+          onClick={() => { setOpen(true); setQuery(""); }}
+          className={`${inputCls} text-left flex items-center justify-between gap-2`}
+        >
+          <span className={value ? "text-slate-900 dark:text-slate-100" : "text-slate-400"}>
+            {value ? displayName : (size === "small" ? "— Unassign / pick —" : "— Assign later —")}
+          </span>
+          <span className="material-symbols-outlined text-slate-400 shrink-0" style={{ fontSize: 16 }}>expand_more</span>
+        </button>
+      ) : (
+        <input
+          autoFocus
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={placeholder}
+          className={inputCls}
+        />
+      )}
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] rounded-xl shadow-xl overflow-hidden">
+          {/* Clear / unassign option */}
+          <button
+            type="button"
+            onClick={() => select("")}
+            className="w-full text-left px-3 py-2.5 text-sm text-slate-400 hover:bg-slate-50 dark:hover:bg-[#242736] border-b border-slate-100 dark:border-[#242736] transition-colors"
+          >
+            — {size === "small" ? "Unassign" : "Assign later"} —
+          </button>
+
+          {/* Scrollable list */}
+          <div className="max-h-52 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <p className="px-3 py-4 text-sm text-slate-400 text-center">No contacts found</p>
+            ) : (
+              filtered.map((c) => {
+                const name = `${c.firstName ?? ""} ${c.lastName ?? ""}`.trim();
+                const sub = c.company || c.qrLabel || "";
+                const isSelected = c.id === value;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => select(c.id)}
+                    className={`w-full text-left px-3 py-2.5 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors ${isSelected ? "bg-blue-50 dark:bg-blue-900/20" : ""}`}
+                  >
+                    {/* Avatar */}
+                    <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                        {(name || sub || "?")[0].toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{name || sub || c.id.slice(0, 8)}</p>
+                      {name && sub && <p className="text-xs text-slate-400 truncate">{sub}</p>}
+                    </div>
+                    {isSelected && <span className="material-symbols-outlined text-blue-600 shrink-0" style={{ fontSize: 16 }}>check</span>}
+                  </button>
+                );
+              })
+            )}
+          </div>
+
+          {/* Count hint */}
+          {filtered.length > 0 && (
+            <p className="px-3 py-1.5 text-[10px] text-slate-400 border-t border-slate-100 dark:border-[#242736]">
+              {query ? `${filtered.length} of ${contacts.length}` : `${contacts.length} profile${contacts.length !== 1 ? "s" : ""}`}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Main Page ── */
 export default function NFCPage() {
   const [cards, setCards] = useState<NFCCard[]>([]);
   const [contacts, setContacts] = useState<QRContact[]>([]);
@@ -64,7 +199,6 @@ export default function NFCPage() {
     const data = await res.json();
     if (!res.ok) { setRegisterError(data.error ?? "Failed"); setRegisterLoading(false); return; }
 
-    // Enrich with contact name
     const contact = contacts.find((c) => c.id === data.contact_id);
     setCards((prev) => [{ ...data, contactName: contact ? `${contact.firstName} ${contact.lastName}`.trim() || contact.company : null }, ...prev]);
     setNewUid(""); setNewLabel(""); setNewContact(""); setShowRegister(false);
@@ -183,18 +317,11 @@ export default function NFCPage() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Assign to profile (optional)</label>
-                <select
+                <ContactPicker
+                  contacts={contacts}
                   value={newContact}
-                  onChange={(e) => setNewContact(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                >
-                  <option value="">— Assign later —</option>
-                  {contacts.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {`${c.firstName} ${c.lastName}`.trim() || c.company || c.qrLabel || c.id.slice(0, 8)}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setNewContact}
+                />
               </div>
               {registerError && <p className="text-xs text-red-500">{registerError}</p>}
               <div className="flex gap-3 pt-2">
@@ -264,29 +391,26 @@ export default function NFCPage() {
                         </button>
                       )}
                     </div>
+
                     {/* Assignment */}
                     {reassignId === card.id ? (
-                      <div className="flex items-center gap-2 mt-1">
-                        <select
-                          value={reassignContact}
-                          onChange={(e) => setReassignContact(e.target.value)}
-                          className="text-xs bg-white dark:bg-[#242736] border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer"
-                        >
-                          <option value="">— Unassign —</option>
-                          {contacts.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {`${c.firstName} ${c.lastName}`.trim() || c.company || c.qrLabel || c.id.slice(0, 8)}
-                            </option>
-                          ))}
-                        </select>
+                      <div className="mt-2 flex items-start gap-2">
+                        <div className="flex-1">
+                          <ContactPicker
+                            contacts={contacts}
+                            value={reassignContact}
+                            onChange={setReassignContact}
+                            size="small"
+                          />
+                        </div>
                         <button
                           onClick={() => handleReassign(card.id)}
                           disabled={reassignLoading}
-                          className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
+                          className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium shrink-0 mt-0.5"
                         >
                           {reassignLoading ? "…" : "Save"}
                         </button>
-                        <button onClick={() => setReassignId(null)} className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
+                        <button onClick={() => setReassignId(null)} className="text-xs text-slate-400 hover:text-slate-600 transition-colors shrink-0 mt-1.5">Cancel</button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
