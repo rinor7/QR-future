@@ -296,7 +296,14 @@ export default function SettingsPage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Organization Name</label>
-              <input type="text" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder="Your organization" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
+              <input
+                type="text"
+                value={organizationName}
+                onChange={(e) => (isOwner || userRole === "admin") && setOrganizationName(e.target.value)}
+                readOnly={!isOwner && userRole !== "admin"}
+                placeholder="Your organization"
+                className={`w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all ${!isOwner && userRole !== "admin" ? "opacity-50 cursor-not-allowed" : ""}`}
+              />
             </div>
             {emailError && <p className="text-xs text-red-500">{emailError}</p>}
             {emailSuccess && <p className="text-xs text-green-600">{tr.settings_email_success}</p>}
