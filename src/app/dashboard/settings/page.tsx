@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { getUserProfile } from "@/lib/store";
-import { Plan, PLAN_LABELS } from "@/lib/types";
+import { Plan, PLAN_LABELS, PLAN_LIMITS } from "@/lib/types";
 import { useLang } from "@/lib/language";
 
 export default function SettingsPage() {
@@ -664,22 +664,77 @@ export default function SettingsPage() {
 
         {/* Billing (12 cols) */}
         {isOwner && !isPlatformAdmin && (
-          <section className="col-span-12 overflow-hidden relative bg-blue-900 rounded-xl p-8 text-white shadow-lg">
-            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
+          <section className="col-span-12 overflow-hidden relative rounded-2xl text-white shadow-xl" style={{ background: "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 60%, #2563eb 100%)" }}>
+            {/* QR pattern decoration — right side */}
+            <div className="absolute right-0 top-0 bottom-0 w-48 sm:w-64 flex items-center justify-center opacity-[0.07] pointer-events-none select-none">
+              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                {/* Top-left finder */}
+                <rect x="10" y="10" width="60" height="60" rx="4" fill="none" stroke="white" strokeWidth="8"/>
+                <rect x="24" y="24" width="32" height="32" rx="2" fill="white"/>
+                {/* Top-right finder */}
+                <rect x="130" y="10" width="60" height="60" rx="4" fill="none" stroke="white" strokeWidth="8"/>
+                <rect x="144" y="24" width="32" height="32" rx="2" fill="white"/>
+                {/* Bottom-left finder */}
+                <rect x="10" y="130" width="60" height="60" rx="4" fill="none" stroke="white" strokeWidth="8"/>
+                <rect x="24" y="144" width="32" height="32" rx="2" fill="white"/>
+                {/* Data dots */}
+                {[
+                  [88,10],[100,10],[112,10],[88,22],[112,22],[100,34],[88,46],[100,46],[112,46],
+                  [88,58],[112,58],[100,70],[88,82],[100,82],[112,82],
+                  [130,82],[142,82],[154,82],[166,82],[178,82],[190,82],
+                  [10,88],[22,88],[34,88],[46,88],[58,88],[70,88],
+                  [88,88],[100,88],[112,88],[124,88],[136,88],[148,88],[160,88],[172,88],[184,88],[196,88],
+                  [10,100],[34,100],[58,100],[82,100],[106,100],[130,100],[154,100],[178,100],
+                  [10,112],[22,112],[46,112],[70,112],[94,112],[118,112],[142,112],[166,112],[190,112],
+                  [88,124],[112,124],[136,124],[160,124],[184,124],
+                  [88,136],[100,136],[124,136],[148,136],[172,136],
+                  [88,148],[112,148],[136,148],[160,148],
+                  [130,148],[142,148],[154,148],[166,148],[178,148],[190,148],
+                  [130,160],[154,160],[178,160],
+                  [130,172],[142,172],[166,172],[190,172],
+                  [130,184],[154,184],[178,184],
+                ].map(([x, y], i) => (
+                  <rect key={i} x={x} y={y} width="8" height="8" rx="1" fill="white"/>
+                ))}
+              </svg>
+            </div>
+
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-7 sm:p-8">
+              {/* Left: plan info */}
               <div>
-                <span className="text-xs font-black uppercase tracking-widest text-blue-300">Subscription Status</span>
-                <h3 className="text-2xl sm:text-3xl font-bold font-headline mt-1">{PLAN_LABELS[plan]} Plan</h3>
-                <p className="text-blue-200 mt-2">Manage your QR Orchestrator subscription.</p>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-200 block mb-2">Subscription Status</span>
+                <h3 className="text-2xl sm:text-3xl font-bold font-headline leading-tight">{PLAN_LABELS[plan]} Plan</h3>
+                <p className="text-blue-200 text-sm mt-1.5">Active subscription · QR Orchestrator</p>
               </div>
-              <div className="flex items-center gap-4">
-                <div>
-                  <span className="text-sm block text-blue-300">QR Codes Used</span>
-                  <span className="text-2xl font-bold">{planUsed} Used</span>
-                </div>
-                <Link href="/dashboard/upgrade" className="bg-white text-blue-900 dark:bg-blue-900 dark:text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-50 dark:hover:bg-blue-800 transition-colors shadow-xl">
-                  Manage Billing
-                </Link>
+
+              {/* Center: usage */}
+              <div className="sm:text-center">
+                <span className="text-xs font-semibold text-blue-200 block mb-1">
+                  {PLAN_LIMITS[plan] === -1 ? "QR Codes" : "QR Codes Used"}
+                </span>
+                <span className="text-3xl font-extrabold font-headline">
+                  {planUsed}
+                  {PLAN_LIMITS[plan] !== -1 && (
+                    <span className="text-blue-300 font-bold text-2xl"> / {PLAN_LIMITS[plan]}</span>
+                  )}
+                </span>
+                {PLAN_LIMITS[plan] !== -1 && (
+                  <div className="mt-2 w-36 h-1.5 bg-blue-800/60 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-white/70"
+                      style={{ width: `${Math.min(100, Math.round((planUsed / PLAN_LIMITS[plan]) * 100))}%` }}
+                    />
+                  </div>
+                )}
               </div>
+
+              {/* Right: button */}
+              <Link
+                href="/dashboard/upgrade"
+                className="bg-white text-blue-900 px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors shadow-xl shrink-0 text-center"
+              >
+                Manage Billing
+              </Link>
             </div>
           </section>
         )}
