@@ -301,7 +301,7 @@ export default function SettingsPage() {
                 <span className="text-sm font-semibold text-blue-600">{PLAN_LABELS[plan]}</span>
                 {isOwner && <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline ml-1">Change</Link>}
               </div>
-              <button type="submit" disabled={emailLoading} className="bg-blue-600text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-60">
+              <button type="submit" disabled={emailLoading} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-60">
                 {emailLoading ? tr.settings_email_saving : "Update Account"}
               </button>
             </div>
