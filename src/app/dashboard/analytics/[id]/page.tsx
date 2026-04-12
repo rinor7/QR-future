@@ -123,7 +123,7 @@ export default function AnalyticsPage() {
 
   const name = contact ? `${contact.firstName} ${contact.lastName}`.trim() || contact.company || "QR Code" : "QR Code";
   const returningRate = data.total > 0 ? Math.round((data.returning / data.total) * 100) : 0;
-  const totalInteractions = data.interactions?.reduce((s, i) => s + i.count, 0) ?? 0;
+
   const freq = data.visitFrequency ?? { once: 0, twice: 0, threeplus: 0 };
   const freqTotal = freq.once + freq.twice + freq.threeplus;
 
