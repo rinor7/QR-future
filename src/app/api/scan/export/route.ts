@@ -29,7 +29,7 @@ export async function GET() {
 
   const { data: contacts } = await supabase
     .from("contacts")
-    .select("id, first_name, last_name, company, label")
+    .select("id, first_name, last_name, company, qr_label")
     .eq("user_id", ownerId);
 
   const rows = [[
@@ -61,7 +61,7 @@ export async function GET() {
   (scans ?? []).forEach((s) => {
     const c = contactMap[s.contact_id];
     if (!c) return;
-    const label = c.label || `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || c.id;
+    const label = c.qr_label || `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || c.id;
     const name = `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim();
     const dt = s.scanned_at ? new Date(s.scanned_at) : null;
     const date = dt ? dt.toISOString().slice(0, 10) : "";
