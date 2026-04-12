@@ -14,7 +14,6 @@ async function getAuthedUser() {
   return user;
 }
 
-// GET /api/templates — list templates for the owner org
 export async function GET() {
   const user = await getAuthedUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -38,13 +37,18 @@ export async function GET() {
   return NextResponse.json(data ?? []);
 }
 
-// POST /api/templates — create a template
 export async function POST(req: NextRequest) {
   const user = await getAuthedUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { name, primary_color, theme, bg_image_url, show_logo_in_qr, lead_capture_enabled } = body;
+  const {
+    name, primary_color, theme, bg_image_url, show_logo_in_qr, lead_capture_enabled,
+    company, logo_url, website, description,
+    linkedin_url, instagram_url, facebook_url, tiktok_url, snapchat_url, x_url, other_social_url,
+    qr_dot_style, qr_corner_style, qr_dot_color, qr_bg_color, qr_gradient, qr_gradient_color,
+  } = body;
+
   if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
 
   const supabase = createClient(
@@ -64,6 +68,23 @@ export async function POST(req: NextRequest) {
     bg_image_url: bg_image_url ?? null,
     show_logo_in_qr: show_logo_in_qr ?? true,
     lead_capture_enabled: lead_capture_enabled ?? false,
+    company: company ?? null,
+    logo_url: logo_url ?? null,
+    website: website ?? null,
+    description: description ?? null,
+    linkedin_url: linkedin_url ?? null,
+    instagram_url: instagram_url ?? null,
+    facebook_url: facebook_url ?? null,
+    tiktok_url: tiktok_url ?? null,
+    snapchat_url: snapchat_url ?? null,
+    x_url: x_url ?? null,
+    other_social_url: other_social_url ?? null,
+    qr_dot_style: qr_dot_style ?? null,
+    qr_corner_style: qr_corner_style ?? null,
+    qr_dot_color: qr_dot_color ?? null,
+    qr_bg_color: qr_bg_color ?? null,
+    qr_gradient: qr_gradient ?? false,
+    qr_gradient_color: qr_gradient_color ?? null,
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

@@ -132,7 +132,16 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
   }
 
   // Templates
-  const [templates, setTemplates] = useState<{ id: string; name: string; primary_color: string; theme: string; bg_image_url: string | null; show_logo_in_qr: boolean; lead_capture_enabled: boolean }[]>([]);
+  type QRTemplate = {
+    id: string; name: string; primary_color: string; theme: string;
+    bg_image_url: string | null; show_logo_in_qr: boolean; lead_capture_enabled: boolean;
+    company: string | null; logo_url: string | null; website: string | null; description: string | null;
+    linkedin_url: string | null; instagram_url: string | null; facebook_url: string | null;
+    tiktok_url: string | null; snapchat_url: string | null; x_url: string | null; other_social_url: string | null;
+    qr_dot_style: string | null; qr_corner_style: string | null; qr_dot_color: string | null;
+    qr_bg_color: string | null; qr_gradient: boolean; qr_gradient_color: string | null;
+  };
+  const [templates, setTemplates] = useState<QRTemplate[]>([]);
   const [templateName, setTemplateName] = useState("");
   const [templateSaving, setTemplateSaving] = useState(false);
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
@@ -143,15 +152,35 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
     }).catch(() => {});
   }, []);
 
-  function applyTemplate(t: typeof templates[0]) {
+  function applyTemplate(t: QRTemplate) {
     setForm((prev) => {
-      const next = {
+      const next: CreateQRContact = {
         ...prev,
+        // Branding & style
         primaryColor: t.primary_color,
         theme: t.theme as CreateQRContact["theme"],
         bgImageUrl: t.bg_image_url ?? prev.bgImageUrl,
         showLogoInQr: t.show_logo_in_qr,
         leadCaptureEnabled: t.lead_capture_enabled,
+        // Company fields (only override if template has a value)
+        ...(t.company && { company: t.company }),
+        ...(t.logo_url && { logoUrl: t.logo_url }),
+        ...(t.website && { website: t.website }),
+        ...(t.description && { description: t.description }),
+        ...(t.linkedin_url && { linkedinUrl: t.linkedin_url }),
+        ...(t.instagram_url && { instagramUrl: t.instagram_url }),
+        ...(t.facebook_url && { facebookUrl: t.facebook_url }),
+        ...(t.tiktok_url && { tiktokUrl: t.tiktok_url }),
+        ...(t.snapchat_url && { snapchatUrl: t.snapchat_url }),
+        ...(t.x_url && { xUrl: t.x_url }),
+        ...(t.other_social_url && { otherSocialUrl: t.other_social_url }),
+        // QR style
+        ...(t.qr_dot_style && { qrDotStyle: t.qr_dot_style as CreateQRContact["qrDotStyle"] }),
+        ...(t.qr_corner_style && { qrCornerStyle: t.qr_corner_style as CreateQRContact["qrCornerStyle"] }),
+        ...(t.qr_dot_color && { qrDotColor: t.qr_dot_color }),
+        ...(t.qr_bg_color && { qrBgColor: t.qr_bg_color }),
+        qrGradient: t.qr_gradient ?? prev.qrGradient,
+        ...(t.qr_gradient_color && { qrGradientColor: t.qr_gradient_color }),
       };
       onFormChange?.(next);
       return next;
@@ -171,6 +200,23 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         bg_image_url: form.bgImageUrl || null,
         show_logo_in_qr: form.showLogoInQr,
         lead_capture_enabled: form.leadCaptureEnabled,
+        company: form.company || null,
+        logo_url: form.logoUrl || null,
+        website: form.website || null,
+        description: form.description || null,
+        linkedin_url: form.linkedinUrl || null,
+        instagram_url: form.instagramUrl || null,
+        facebook_url: form.facebookUrl || null,
+        tiktok_url: form.tiktokUrl || null,
+        snapchat_url: form.snapchatUrl || null,
+        x_url: form.xUrl || null,
+        other_social_url: form.otherSocialUrl || null,
+        qr_dot_style: form.qrDotStyle || null,
+        qr_corner_style: form.qrCornerStyle || null,
+        qr_dot_color: form.qrDotColor || null,
+        qr_bg_color: form.qrBgColor || null,
+        qr_gradient: form.qrGradient,
+        qr_gradient_color: form.qrGradientColor || null,
       }),
     }).then((r) => r.json()).then((t) => {
       if (t.id) setTemplates((prev) => [t, ...prev]);
@@ -338,7 +384,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           </div>
           <button
             type="button"
-            onClick={() => setShowSaveTemplate((v) => !v)}
+            onClick={() => { setShowSaveTemplate((v) => !v); if (!templateName) setTemplateName(form.company || ""); }}
             className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-purple-600 transition-colors shrink-0"
           >
             <Plus className="w-3.5 h-3.5" /> Save current
@@ -371,7 +417,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       {templates.length === 0 && !showSaveTemplate && (
         <button
           type="button"
-          onClick={() => setShowSaveTemplate(true)}
+          onClick={() => { setShowSaveTemplate(true); if (!templateName) setTemplateName(form.company || ""); }}
           className="flex items-center gap-2 text-xs font-medium text-gray-400 hover:text-purple-600 transition-colors px-3 py-2 rounded-xl border border-dashed border-gray-200 hover:border-purple-300 w-fit"
         >
           <span className="material-symbols-outlined text-[14px]">style</span>

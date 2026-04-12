@@ -212,9 +212,12 @@ export default function CreatePage() {
     if (!roleLoading && isReader) router.replace("/dashboard/codes");
   }, [isReader, roleLoading, router]);
 
+  const [orgDefaults, setOrgDefaults] = useState<{ company?: string; logoUrl?: string }>({});
+
   useEffect(() => {
-    getUserProfile().then((profile) => {
+    getUserProfile().then(async (profile) => {
       if (!profile) return;
+      // Load folders
       getAllFolders(profile.ownerId).then((folders) => {
         const tree = buildTree(folders);
         const display = tree.length === 1 && tree[0].name === "Root"
@@ -222,6 +225,20 @@ export default function CreatePage() {
           : tree.filter((f) => f.name !== "Root");
         setFolderTree(display);
       }).catch(() => {});
+      // Load org defaults to pre-fill company + logo
+      const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
+      const supabase = getSupabaseBrowser();
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("organization_name, brand_logo_url")
+        .eq("user_id", profile.ownerId)
+        .single();
+      if (prof) {
+        setOrgDefaults({
+          company: prof.organization_name ?? undefined,
+          logoUrl: prof.brand_logo_url ?? undefined,
+        });
+      }
     });
   }, []);
 
@@ -398,6 +415,7 @@ export default function CreatePage() {
             loading={submitting}
             hideActions
             onFormChange={(data) => setFormData(data)}
+            initial={orgDefaults}
           />
 
           {/* ── Bottom action bar ─────────────────────────────────────── */}

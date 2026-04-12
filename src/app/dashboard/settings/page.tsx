@@ -52,6 +52,7 @@ export default function SettingsPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Branding / White label
+  const [organizationName, setOrganizationName] = useState("");
   const [brandName, setBrandName] = useState("");
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
   const [brandColor, setBrandColor] = useState("#2563eb");
@@ -109,7 +110,7 @@ export default function SettingsPage() {
         const supabaseInner = getSupabaseBrowser();
         const { data: { user: u } } = await supabaseInner.auth.getUser();
         if (u) {
-          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id").eq("user_id", u.id).single();
+          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id, organization_name").eq("user_id", u.id).single();
           if (prof) {
             setHasStripeSubscription(!!prof.stripe_customer_id);
             setLeadCaptureDisabled(!!prof.lead_capture_disabled);
@@ -117,6 +118,7 @@ export default function SettingsPage() {
             setBrandName(prof.brand_name ?? "");
             setBrandLogoUrl(prof.brand_logo_url ?? "");
             setBrandColor(prof.brand_primary_color ?? "#2563eb");
+            setOrganizationName(prof.organization_name ?? "");
           }
         }
       }
@@ -219,11 +221,23 @@ export default function SettingsPage() {
     e.preventDefault();
     setEmailError(null);
     setEmailSuccess(false);
-    if (!newEmail || newEmail === email) { setEmailError(tr.settings_email_error_same); return; }
     setEmailLoading(true);
     const supabase = getSupabaseBrowser();
-    const { error } = await supabase.auth.updateUser({ email: newEmail });
-    if (error) { setEmailError(error.message); } else { setEmailSuccess(true); setNewEmail(""); }
+    const { data: { user } } = await supabase.auth.getUser();
+    // Save organization name
+    if (user) {
+      await supabase.from("profiles").update({ organization_name: organizationName || null }).eq("user_id", user.id);
+    }
+    // Update email only if changed
+    if (newEmail && newEmail !== email) {
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      if (error) { setEmailError(error.message); setEmailLoading(false); return; }
+      setEmailSuccess(true);
+      setNewEmail("");
+    } else {
+      setEmailSuccess(true);
+      setTimeout(() => setEmailSuccess(false), 2500);
+    }
     setEmailLoading(false);
   }
 
@@ -282,7 +296,7 @@ export default function SettingsPage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Organization Name</label>
-              <input type="text" defaultValue="" placeholder="Your organization" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
+              <input type="text" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder="Your organization" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
             </div>
             {emailError && <p className="text-xs text-red-500">{emailError}</p>}
             {emailSuccess && <p className="text-xs text-green-600">{tr.settings_email_success}</p>}
