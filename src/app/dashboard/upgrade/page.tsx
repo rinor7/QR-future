@@ -87,7 +87,68 @@ export default function UpgradePage() {
             Scale your enterprise QR infrastructure with surgical precision. Choose a tier that matches your global footprint and security requirements.
           </p>
         </div>
-        <div className="hidden lg:block w-1/3 aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-primary-container opacity-80" style={{ boxShadow: "0px 20px 40px rgba(25,28,30,0.06)" }} />
+        <div className="hidden lg:block w-1/3 aspect-video rounded-2xl overflow-hidden" style={{ boxShadow: "0px 20px 40px rgba(0,62,199,0.18)" }}>
+          <svg viewBox="0 0 480 270" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+            <defs>
+              <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#001a6e" />
+                <stop offset="60%" stopColor="#003ec7" />
+                <stop offset="100%" stopColor="#6b21a8" />
+              </linearGradient>
+              <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#a78bfa" stopOpacity="0.2" />
+              </linearGradient>
+            </defs>
+            {/* Background */}
+            <rect width="480" height="270" fill="url(#bg)" />
+            {/* Grid lines */}
+            {[0,40,80,120,160,200,240,280,320,360,400,440,480].map(x => (
+              <line key={`v${x}`} x1={x} y1="0" x2={x} y2="270" stroke="#ffffff" strokeOpacity="0.04" strokeWidth="1"/>
+            ))}
+            {[0,45,90,135,180,225,270].map(y => (
+              <line key={`h${y}`} x1="0" y1={y} x2="480" y2={y} stroke="#ffffff" strokeOpacity="0.04" strokeWidth="1"/>
+            ))}
+            {/* QR corner squares — top left */}
+            <rect x="30" y="30" width="54" height="54" rx="6" fill="none" stroke="#60a5fa" strokeWidth="3" strokeOpacity="0.9"/>
+            <rect x="40" y="40" width="34" height="34" rx="3" fill="#60a5fa" fillOpacity="0.25"/>
+            <rect x="50" y="50" width="14" height="14" rx="2" fill="#93c5fd" fillOpacity="0.9"/>
+            {/* QR corner squares — top right */}
+            <rect x="396" y="30" width="54" height="54" rx="6" fill="none" stroke="#a78bfa" strokeWidth="3" strokeOpacity="0.9"/>
+            <rect x="406" y="40" width="34" height="34" rx="3" fill="#a78bfa" fillOpacity="0.25"/>
+            <rect x="416" y="50" width="14" height="14" rx="2" fill="#c4b5fd" fillOpacity="0.9"/>
+            {/* QR corner squares — bottom left */}
+            <rect x="30" y="186" width="54" height="54" rx="6" fill="none" stroke="#60a5fa" strokeWidth="3" strokeOpacity="0.9"/>
+            <rect x="40" y="196" width="34" height="34" rx="3" fill="#60a5fa" fillOpacity="0.25"/>
+            <rect x="50" y="206" width="14" height="14" rx="2" fill="#93c5fd" fillOpacity="0.9"/>
+            {/* QR data dots — center pattern */}
+            {[
+              [140,90],[160,90],[200,90],[220,90],[260,90],[300,90],[320,90],
+              [140,110],[180,110],[240,110],[280,110],[340,110],
+              [160,130],[200,130],[220,130],[300,130],[320,130],
+              [140,150],[180,150],[260,150],[280,150],[340,150],
+              [160,170],[200,170],[240,170],[300,170],[320,170],
+            ].map(([x,y], i) => (
+              <rect key={i} x={x} y={y} width="12" height="12" rx="2" fill="#bfdbfe" fillOpacity="0.55 "/>
+            ))}
+            {/* Glow blob center */}
+            <ellipse cx="240" cy="135" rx="90" ry="60" fill="url(#glow)" />
+            {/* Network nodes */}
+            <circle cx="240" cy="135" r="8" fill="#ffffff" fillOpacity="0.95"/>
+            <circle cx="180" cy="95" r="5" fill="#60a5fa" fillOpacity="0.9"/>
+            <circle cx="300" cy="95" r="5" fill="#a78bfa" fillOpacity="0.9"/>
+            <circle cx="200" cy="175" r="5" fill="#60a5fa" fillOpacity="0.9"/>
+            <circle cx="290" cy="170" r="5" fill="#a78bfa" fillOpacity="0.9"/>
+            {/* Connection lines */}
+            <line x1="240" y1="135" x2="180" y2="95" stroke="#93c5fd" strokeWidth="1.5" strokeOpacity="0.6"/>
+            <line x1="240" y1="135" x2="300" y2="95" stroke="#c4b5fd" strokeWidth="1.5" strokeOpacity="0.6"/>
+            <line x1="240" y1="135" x2="200" y2="175" stroke="#93c5fd" strokeWidth="1.5" strokeOpacity="0.6"/>
+            <line x1="240" y1="135" x2="290" y2="170" stroke="#c4b5fd" strokeWidth="1.5" strokeOpacity="0.6"/>
+            {/* Floating ring accent */}
+            <circle cx="390" cy="200" r="40" fill="none" stroke="#a78bfa" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="4 6"/>
+            <circle cx="390" cy="200" r="25" fill="none" stroke="#60a5fa" strokeWidth="1" strokeOpacity="0.2" strokeDasharray="3 5"/>
+          </svg>
+        </div>
       </section>
 
       {/* Plan cards */}
