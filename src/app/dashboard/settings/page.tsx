@@ -46,6 +46,12 @@ export default function SettingsPage() {
   const [webhookSaved, setWebhookSaved] = useState(false);
   const [webhookError, setWebhookError] = useState<string | null>(null);
 
+  // Delete account
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   // Branding / White label
   const [brandName, setBrandName] = useState("");
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
@@ -165,6 +171,28 @@ export default function SettingsPage() {
       setBrandLogoUrl(publicUrl);
     }
     setBrandLogoUploading(false);
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteConfirmText !== "DELETE") return;
+    setDeleteLoading(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/account/delete", { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) {
+        setDeleteError(data.error || "Failed to delete account");
+        setDeleteLoading(false);
+        return;
+      }
+      // Sign out and redirect to login
+      const supabase = getSupabaseBrowser();
+      await supabase.auth.signOut();
+      router.push("/login");
+    } catch {
+      setDeleteError("Something went wrong. Please try again.");
+      setDeleteLoading(false);
+    }
   }
 
   async function handleManageBilling() {
@@ -716,14 +744,70 @@ export default function SettingsPage() {
       <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700/50">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-red-50 dark:bg-red-900/10 rounded-xl">
           <div>
-            <h4 className="text-lg font-bold text-red-800 dark:text-red-200 font-headline">Deactivate Account</h4>
-            <p className="text-sm text-red-800 dark:text-red-200/70 mt-1">Permanently remove all QR data and orchestrator logs. This action is irreversible.</p>
+            <h4 className="text-lg font-bold text-red-800 dark:text-red-200 font-headline">Delete Account</h4>
+            <p className="text-sm text-red-800 dark:text-red-200/70 mt-1">
+              {isOwner
+                ? "Permanently deletes your account, all QR codes, scans, NFC cards, folders and sub-users. Irreversible."
+                : "Permanently removes your account from this organisation. Your admin's data is not affected."}
+            </p>
           </div>
-          <button className="border-2 border-red-500 text-red-500 px-6 py-2.5 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all w-full sm:w-auto shrink-0">
-            Deactivate
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="border-2 border-red-500 text-red-500 px-6 py-2.5 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all w-full sm:w-auto shrink-0"
+          >
+            Delete Account
           </button>
         </div>
       </div>
+
+      {/* Delete account confirmation modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#1a1d27] rounded-3xl shadow-2xl w-full max-w-md p-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-red-600 text-[22px]">warning</span>
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Delete Account</h3>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+              {isOwner
+                ? "This will permanently delete your entire organisation including all QR codes, scan analytics, NFC cards, folders, and all sub-user accounts."
+                : "This will permanently remove your account from this organisation."}
+            </p>
+            <p className="text-sm font-semibold text-red-600 mb-5">This cannot be undone.</p>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              Type <span className="text-red-500 font-bold">DELETE</span> to confirm
+            </label>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="DELETE"
+              className="w-full bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 text-slate-900 dark:text-slate-100 mb-5"
+            />
+            {deleteError && (
+              <p className="text-xs text-red-500 mb-4">{deleteError}</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== "DELETE" || deleteLoading}
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white py-3 rounded-xl font-bold text-sm transition-colors"
+              >
+                {deleteLoading ? "Deleting…" : "Yes, delete everything"}
+              </button>
+              <button
+                onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(""); setDeleteError(null); }}
+                disabled={deleteLoading}
+                className="px-5 py-3 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
