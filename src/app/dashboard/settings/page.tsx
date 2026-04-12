@@ -13,6 +13,8 @@ export default function SettingsPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<Plan>("free");
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [userRole, setUserRole] = useState<string>("");
@@ -183,6 +185,24 @@ export default function SettingsPage() {
     const data = await res.json();
     setDomainStatus(data.ok ? { domain: data.domain, verified: false, vercelStatus: data.vercelStatus, cname: data.cname } : null);
     setDomainSaving(false);
+  }
+
+  async function handleManageBilling() {
+    setPortalLoading(true);
+    setPortalError(null);
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setPortalError(data.error ?? "Could not open billing portal.");
+        setPortalLoading(false);
+      }
+    } catch {
+      setPortalError("Something went wrong. Please try again.");
+      setPortalLoading(false);
+    }
   }
 
   async function handleCheckDomain() {
@@ -729,12 +749,21 @@ export default function SettingsPage() {
               </div>
 
               {/* Right: button */}
-              <Link
-                href="/dashboard/upgrade"
-                className="bg-white text-blue-900 px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors shadow-xl shrink-0 text-center"
-              >
-                Manage Billing
-              </Link>
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <button
+                  onClick={handleManageBilling}
+                  disabled={portalLoading}
+                  className="bg-white text-blue-900 px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors shadow-xl disabled:opacity-70 flex items-center gap-2"
+                >
+                  {portalLoading && (
+                    <span className="w-4 h-4 border-2 border-blue-900/30 border-t-blue-900 rounded-full animate-spin" />
+                  )}
+                  {portalLoading ? "Opening…" : "Manage Billing"}
+                </button>
+                {portalError && (
+                  <p className="text-xs text-red-200 max-w-[180px] text-right">{portalError}</p>
+                )}
+              </div>
             </div>
           </section>
         )}
