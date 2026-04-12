@@ -388,9 +388,19 @@ export default function AnalyticsPage() {
               <h3 className="font-semibold text-slate-900 dark:text-slate-100">Captured Leads</h3>
               <p className="text-xs text-slate-400">Visitors who submitted their contact details</p>
             </div>
-            <span className="ml-auto text-xs font-bold text-teal-600 bg-teal-50 dark:bg-teal-900/20 px-2.5 py-1 rounded-full">
+            <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs font-bold text-teal-600 bg-teal-50 dark:bg-teal-900/20 px-2.5 py-1 rounded-full">
               {data.leads.length} {data.leads.length === 1 ? "lead" : "leads"}
             </span>
+            <a
+              href={`/api/leads/export?contact_id=${id}`}
+              download
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[14px]">download</span>
+              CSV
+            </a>
+          </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

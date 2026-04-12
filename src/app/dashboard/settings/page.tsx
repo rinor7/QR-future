@@ -39,6 +39,10 @@ export default function SettingsPage() {
   const [errorCorrection, setErrorCorrection] = useState("H");
   const [leadCaptureDisabled, setLeadCaptureDisabled] = useState(false);
   const [leadCaptureSaving, setLeadCaptureSaving] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookSaving, setWebhookSaving] = useState(false);
+  const [webhookSaved, setWebhookSaved] = useState(false);
+  const [webhookError, setWebhookError] = useState<string | null>(null);
 
   // Load saved preferences on mount
   useEffect(() => {
@@ -68,6 +72,25 @@ export default function SettingsPage() {
     localStorage.setItem("qr-error-correction", val);
   }
 
+  async function handleSaveWebhook(e: React.FormEvent) {
+    e.preventDefault();
+    setWebhookError(null);
+    setWebhookSaved(false);
+    if (webhookUrl && !webhookUrl.startsWith("https://")) {
+      setWebhookError("Webhook URL must start with https://");
+      return;
+    }
+    setWebhookSaving(true);
+    const supabase = getSupabaseBrowser();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("profiles").update({ lead_webhook_url: webhookUrl || null }).eq("user_id", user.id);
+      setWebhookSaved(true);
+      setTimeout(() => setWebhookSaved(false), 3000);
+    }
+    setWebhookSaving(false);
+  }
+
   async function handleToggleLeadCapture(val: boolean) {
     setLeadCaptureDisabled(val);
     setLeadCaptureSaving(true);
@@ -93,12 +116,15 @@ export default function SettingsPage() {
         setUserRole(p.role);
         setSupportEmail(p.supportEmail ?? "");
         setSupportEmailSaved(!!p.supportEmail);
-        // Load lead capture disabled state
+        // Load lead capture + webhook settings
         const supabaseInner = getSupabaseBrowser();
         const { data: { user: u } } = await supabaseInner.auth.getUser();
         if (u) {
-          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled").eq("user_id", u.id).single();
-          if (prof) setLeadCaptureDisabled(!!prof.lead_capture_disabled);
+          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url").eq("user_id", u.id).single();
+          if (prof) {
+            setLeadCaptureDisabled(!!prof.lead_capture_disabled);
+            setWebhookUrl(prof.lead_webhook_url ?? "");
+          }
         }
       }
     });
@@ -346,6 +372,104 @@ export default function SettingsPage() {
             )}
           </div>
         </section>
+
+        {/* CRM / Export (owner or admin only) */}
+        {(isOwner || userRole === "admin") && (
+          <section className="col-span-12 bg-surface-container-lowest rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-teal-500/10 p-3 rounded-xl text-teal-600">
+                <span className="material-symbols-outlined">hub</span>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold font-headline">CRM / Export</h3>
+                <p className="text-sm text-outline mt-0.5">Export leads or connect to external tools via webhook</p>
+              </div>
+              <a
+                href="/api/leads/export"
+                download
+                className="ml-auto flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-sm"
+              >
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                Export All Leads (CSV)
+              </a>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Webhook / Zapier */}
+              <div>
+                <h4 className="font-bold text-on-surface flex items-center gap-2 mb-4">
+                  <span className="material-symbols-outlined text-outline text-[18px]">webhook</span>
+                  Webhook / Zapier
+                </h4>
+                <p className="text-sm text-outline mb-4">
+                  When a new lead is captured, we will POST the lead data to this URL. Works with Zapier, Make, n8n, or any custom endpoint.
+                </p>
+                <form onSubmit={handleSaveWebhook} className="space-y-3">
+                  <input
+                    type="url"
+                    value={webhookUrl}
+                    onChange={(e) => setWebhookUrl(e.target.value)}
+                    placeholder="https://hooks.zapier.com/hooks/catch/..."
+                    className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                  />
+                  {webhookError && <p className="text-xs text-error">{webhookError}</p>}
+                  <div className="flex items-center gap-3">
+                    <button type="submit" disabled={webhookSaving} className="bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-container transition-colors disabled:opacity-60">
+                      {webhookSaving ? "Saving…" : "Save Webhook"}
+                    </button>
+                    {webhookSaved && (
+                      <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
+                        <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                        Saved
+                      </span>
+                    )}
+                    {webhookUrl && !webhookSaving && (
+                      <button type="button" onClick={() => { setWebhookUrl(""); }} className="text-sm text-outline hover:text-on-surface transition-colors">
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </form>
+                <div className="mt-4 p-3 bg-surface rounded-xl border border-outline-variant/15">
+                  <p className="text-xs font-semibold text-outline mb-2">Payload preview</p>
+                  <pre className="text-xs text-on-surface/70 font-mono overflow-x-auto whitespace-pre-wrap">{`{
+  "event": "lead.captured",
+  "timestamp": "2025-01-01T12:00:00Z",
+  "lead": { "name": "…", "email": "…", "company": "…" },
+  "source": { "qr_label": "…", "employee": "…" }
+}`}</pre>
+                </div>
+              </div>
+
+              {/* Lead Assignment info */}
+              <div>
+                <h4 className="font-bold text-on-surface flex items-center gap-2 mb-4">
+                  <span className="material-symbols-outlined text-outline text-[18px]">assignment_ind</span>
+                  Lead Assignment
+                </h4>
+                <p className="text-sm text-outline mb-4">
+                  Every lead is automatically assigned to the employee whose QR code was scanned. The employee name and QR label are included in all exports and webhook payloads.
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-3 bg-surface rounded-xl border border-outline-variant/15">
+                    <span className="material-symbols-outlined text-[18px] text-teal-600 shrink-0 mt-0.5">qr_code</span>
+                    <div>
+                      <p className="text-sm font-semibold">QR → Employee → Lead</p>
+                      <p className="text-xs text-outline mt-0.5">Each QR code belongs to one employee. When someone scans it and submits their contact, the lead is tagged to that employee.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-surface rounded-xl border border-outline-variant/15">
+                    <span className="material-symbols-outlined text-[18px] text-blue-600 shrink-0 mt-0.5">analytics</span>
+                    <div>
+                      <p className="text-sm font-semibold">Per-QR Analytics</p>
+                      <p className="text-xs text-outline mt-0.5">View and export leads per QR code from the Analytics page of each code.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Platform Support Email (platform admin only) */}
         {isPlatformAdmin && (

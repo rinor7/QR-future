@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Lead capture disabled" }, { status: 403 });
   }
 
+  const now = new Date().toISOString();
   const { error } = await supabase.from("qr_leads").insert({
     contact_id: contactId,
     visitor_id: visitorId ?? null,
@@ -42,10 +43,51 @@ export async function POST(req: NextRequest) {
     email: email.trim().toLowerCase(),
     company: company?.trim() || null,
     consent: true,
-    consented_at: new Date().toISOString(),
+    consented_at: now,
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Fire webhook if configured (non-blocking)
+  const { data: webhookProfile } = await supabase
+    .from("profiles")
+    .select("lead_webhook_url")
+    .eq("user_id", contact.user_id)
+    .single();
+
+  if (webhookProfile?.lead_webhook_url) {
+    // Fetch QR label for the payload
+    const { data: qrContact } = await supabase
+      .from("contacts")
+      .select("first_name, last_name, company, qr_label")
+      .eq("id", contactId)
+      .single();
+
+    const payload = {
+      event: "lead.captured",
+      timestamp: now,
+      lead: {
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        company: company?.trim() || null,
+      },
+      source: {
+        contact_id: contactId,
+        qr_label: qrContact?.qr_label || null,
+        employee: [qrContact?.first_name, qrContact?.last_name].filter(Boolean).join(" ") || qrContact?.company || null,
+      },
+    };
+
+    try {
+      await fetch(webhookProfile.lead_webhook_url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      // Webhook failure must not block the response
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }
