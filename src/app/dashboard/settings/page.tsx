@@ -362,11 +362,11 @@ export default function SettingsPage() {
                 Regional
               </h4>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130]hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors cursor-pointer">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130] hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors cursor-pointer">
                   <span className="text-sm">Language</span>
                   <button onClick={toggleLang} className="text-sm font-bold text-blue-600">{lang === "de" ? "Deutsch" : "English (EN)"}</button>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130]hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors cursor-pointer">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130] hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors cursor-pointer">
                   <span className="text-sm">Timezone</span>
                   <span className="text-sm font-bold text-blue-600">UTC+1 (CET)</span>
                 </div>
@@ -384,7 +384,7 @@ export default function SettingsPage() {
                   <select
                     value={errorCorrection}
                     onChange={(e) => handleErrorCorrectionChange(e.target.value)}
-                    className="bg-transparent border-none text-sm font-bold text-blue-600 p-0 focus:ring-0 cursor-pointer"
+                    className="bg-gray-50 dark:bg-[#1e2130] border-none text-sm font-bold text-blue-600 dark:text-blue-400 px-2 py-1 rounded-lg focus:ring-0 cursor-pointer"
                   >
                     <option value="H">High (30%)</option>
                     <option value="Q">Medium-High (25%)</option>
@@ -409,14 +409,14 @@ export default function SettingsPage() {
               <div className="flex gap-4">
                 <div
                   onClick={() => handleToggleDarkMode(false)}
-                  className={`flex-1 p-4 rounded-xl text-center cursor-pointer transition-all ${!darkMode ? "border-2 border-blue-600 bg-blue-50 dark:bg-blue-900/10" : "border border-slate-200 dark:border-slate-700 bg-gray-50 dark:bg-[#1e2130]opacity-60 hover:opacity-80"}`}
+                  className={`flex-1 p-4 rounded-xl text-center cursor-pointer transition-all ${!darkMode ? "border-2 border-blue-600 bg-blue-50 dark:bg-blue-900/10" : "border border-slate-200 dark:border-slate-700 bg-gray-50 dark:bg-[#1e2130] opacity-60 hover:opacity-80"}`}
                 >
                   <span className="material-symbols-outlined block mb-1">light_mode</span>
                   <span className="text-xs font-bold">Light</span>
                 </div>
                 <div
                   onClick={() => handleToggleDarkMode(true)}
-                  className={`flex-1 p-4 rounded-xl text-center cursor-pointer transition-all ${darkMode ? "border-2 border-blue-600 bg-blue-50 dark:bg-blue-900/10" : "border border-slate-200 dark:border-slate-700 bg-gray-50 dark:bg-[#1e2130]opacity-60 hover:opacity-80"}`}
+                  className={`flex-1 p-4 rounded-xl text-center cursor-pointer transition-all ${darkMode ? "border-2 border-blue-600 bg-blue-50 dark:bg-blue-900/10" : "border border-slate-200 dark:border-slate-700 bg-gray-50 dark:bg-[#1e2130] opacity-60 hover:opacity-80"}`}
                 >
                   <span className="material-symbols-outlined block mb-1">dark_mode</span>
                   <span className="text-xs font-bold">Dark</span>
@@ -492,7 +492,7 @@ export default function SettingsPage() {
                   />
                   {webhookError && <p className="text-xs text-red-500">{webhookError}</p>}
                   <div className="flex items-center gap-3">
-                    <button type="submit" disabled={webhookSaving} className="bg-blue-600text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
+                    <button type="submit" disabled={webhookSaving} className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
                       {webhookSaving ? "Saving…" : "Save Webhook"}
                     </button>
                     {webhookSaved && (
@@ -508,7 +508,7 @@ export default function SettingsPage() {
                     )}
                   </div>
                 </form>
-                <div className="mt-4 p-3 bg-gray-50 dark:bg-[#1e2130]rounded-xl border border-slate-200 dark:border-slate-700/50">
+                <div className="mt-4 p-3 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700/50">
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Payload preview</p>
                   <pre className="text-xs text-slate-600 dark:text-slate-400 font-mono overflow-x-auto whitespace-pre-wrap">{`{
   "event": "lead.captured",
@@ -529,14 +529,14 @@ export default function SettingsPage() {
                   Every lead is automatically assigned to the employee whose QR code was scanned. The employee name and QR label are included in all exports and webhook payloads.
                 </p>
                 <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-[#1e2130]rounded-xl border border-slate-200 dark:border-slate-700/50">
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700/50">
                     <span className="material-symbols-outlined text-[18px] text-teal-600 shrink-0 mt-0.5">qr_code</span>
                     <div>
                       <p className="text-sm font-semibold">QR → Employee → Lead</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Each QR code belongs to one employee. When someone scans it and submits their contact, the lead is tagged to that employee.</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-[#1e2130]rounded-xl border border-slate-200 dark:border-slate-700/50">
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700/50">
                     <span className="material-symbols-outlined text-[18px] text-blue-600 shrink-0 mt-0.5">analytics</span>
                     <div>
                       <p className="text-sm font-semibold">Per-QR Analytics</p>
@@ -584,14 +584,14 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Brand Logo</label>
                     {brandLogoUrl ? (
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#1e2130]rounded-xl border border-slate-200 dark:border-slate-700">
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={brandLogoUrl} alt="Brand logo" className="h-10 w-10 object-contain rounded-lg bg-white border border-slate-200 dark:border-slate-700" />
                         <span className="text-sm text-slate-900 dark:text-slate-100 flex-1 truncate">Logo uploaded</span>
                         <button type="button" onClick={() => setBrandLogoUrl("")} className="text-xs text-red-500 hover:underline">Remove</button>
                       </div>
                     ) : (
-                      <label className={`flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#1e2130]rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors ${brandLogoUploading ? "opacity-60 pointer-events-none" : ""}`}>
+                      <label className={`flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors ${brandLogoUploading ? "opacity-60 pointer-events-none" : ""}`}>
                         <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">upload</span>
                         <span className="text-sm text-slate-500 dark:text-slate-400">{brandLogoUploading ? "Uploading…" : "Upload logo (PNG, SVG, JPG)"}</span>
                         <input type="file" accept="image/*" className="sr-only" onChange={handleBrandLogoUpload} />
@@ -606,7 +606,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 pt-2">
-                    <button type="submit" disabled={brandSaving} className="bg-blue-600text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
+                    <button type="submit" disabled={brandSaving} className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
                       {brandSaving ? "Saving…" : "Save Branding"}
                     </button>
                     {brandSaved && (
@@ -637,7 +637,7 @@ export default function SettingsPage() {
                     <p className="text-xs text-slate-500 dark:text-slate-400">QR codes will use this domain instead of the default URL</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button type="submit" disabled={domainSaving} className="bg-blue-600text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
+                    <button type="submit" disabled={domainSaving} className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
                       {domainSaving ? "Saving…" : "Save Domain"}
                     </button>
                     {domainStatus?.domain && (
@@ -658,7 +658,7 @@ export default function SettingsPage() {
                     {domainStatus.vercelStatus === "registered" ? (
                       <p className="text-xs text-slate-500 dark:text-slate-400">Domain registered with Vercel automatically.</p>
                     ) : (
-                      <div className="p-4 bg-gray-50 dark:bg-[#1e2130]rounded-xl border border-slate-200 dark:border-slate-700/50 space-y-3">
+                      <div className="p-4 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700/50 space-y-3">
                         <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">Add this DNS record at your domain registrar:</p>
                         <div className="grid grid-cols-3 gap-2 text-xs">
                           <div className="font-semibold text-slate-500 dark:text-slate-400 uppercase">Type</div>
@@ -696,7 +696,7 @@ export default function SettingsPage() {
                 <div className="flex-1">
                   <input type="email" value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} placeholder="support@yourcompany.com" autoFocus className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500" />
                 </div>
-                <button type="submit" disabled={supportEmailLoading} className="bg-blue-600text-white px-6 py-3 rounded-xl font-bold disabled:opacity-60">{supportEmailLoading ? "..." : tr.settings_support_email_btn}</button>
+                <button type="submit" disabled={supportEmailLoading} className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold disabled:opacity-60">{supportEmailLoading ? "..." : tr.settings_support_email_btn}</button>
                 {editingSupport && <button type="button" onClick={() => setEditingSupport(false)} className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-100 px-4 py-3">{tr.cancel}</button>}
               </form>
             )}
