@@ -11,6 +11,7 @@ type NavItem = { href: string; label: string; icon: string };
 const USER_NAV: NavItem[] = [
   { href: "/dashboard",         label: "Dashboard", icon: "dashboard" },
   { href: "/dashboard/codes",   label: "QR Codes",  icon: "qr_code_2" },
+  { href: "/dashboard/nfc",     label: "NFC Cards", icon: "tap_and_play" },
   { href: "/dashboard/users",   label: "Users",     icon: "group" },
   { href: "/dashboard/upgrade", label: "Plans",     icon: "payments" },
   { href: "/dashboard/settings",label: "Settings",  icon: "settings" },
@@ -60,6 +61,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
 
   const baseNav = isPlatformAdmin ? ADMIN_NAV : USER_NAV.filter((item) => {
     if (item.href === "/dashboard/users")   return isOwner || isAdmin;
+    if (item.href === "/dashboard/nfc")     return isOwner || isAdmin;
     if (item.href === "/dashboard/upgrade") return isOwner;
     return true;
   });
