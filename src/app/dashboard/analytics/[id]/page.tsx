@@ -132,7 +132,7 @@ export default function AnalyticsPage() {
     <div className="p-6 max-w-6xl mx-auto space-y-6">
 
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -142,10 +142,20 @@ export default function AnalyticsPage() {
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{name}</h1>
           </div>
         </div>
-        <Link href={`/dashboard/edit/${id}`} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-          <span className="material-symbols-outlined text-[16px]">edit</span>
-          Edit QR
-        </Link>
+        <div className="flex items-center gap-2">
+          <a
+            href={`/api/scan/export/${id}`}
+            download
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700/40 rounded-xl hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[16px]">download</span>
+            Export CSV
+          </a>
+          <Link href={`/dashboard/edit/${id}`} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <span className="material-symbols-outlined text-[16px]">edit</span>
+            Edit QR
+          </Link>
+        </div>
       </div>
 
       {/* KPI row */}

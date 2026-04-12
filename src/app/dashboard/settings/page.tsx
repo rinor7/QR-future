@@ -237,10 +237,10 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="pt-8 pb-12 px-10 max-w-6xl mx-auto">
+    <div className="pt-8 pb-12 px-4 sm:px-10 max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-10">
-        <h2 className="text-4xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-headline">Settings</h2>
+        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-headline">Settings</h2>
         <p className="text-slate-500 dark:text-slate-400 mt-2">Manage your account orchestration and global platform preferences.</p>
       </div>
 
@@ -261,7 +261,7 @@ export default function SettingsPage() {
             </span>
           </div>
           <form onSubmit={handleChangeEmail} className="space-y-6">
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Full Name</label>
                 <input type="text" defaultValue="" placeholder="Your name" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
@@ -277,13 +277,13 @@ export default function SettingsPage() {
             </div>
             {emailError && <p className="text-xs text-red-500">{emailError}</p>}
             {emailSuccess && <p className="text-xs text-green-600">{tr.settings_email_success}</p>}
-            <div className="pt-2 flex items-center justify-between">
+            <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Plan:</span>
                 <span className="text-sm font-semibold text-blue-600">{PLAN_LABELS[plan]}</span>
                 {isOwner && <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline ml-1">Change</Link>}
               </div>
-              <button type="submit" disabled={emailLoading} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-60">
+              <button type="submit" disabled={emailLoading} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-60 w-full sm:w-auto">
                 {emailLoading ? tr.settings_email_saving : "Update Account"}
               </button>
             </div>
@@ -413,18 +413,18 @@ export default function SettingsPage() {
         {/* CRM / Export (owner or admin only) */}
         {(isOwner || userRole === "admin") && (
           <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="bg-teal-500/10 p-3 rounded-xl text-teal-600">
+            <div className="flex flex-wrap items-start gap-4 mb-8">
+              <div className="bg-teal-500/10 p-3 rounded-xl text-teal-600 shrink-0">
                 <span className="material-symbols-outlined">hub</span>
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-2xl font-bold font-headline">CRM / Export</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Export leads or connect to external tools via webhook</p>
               </div>
               <a
                 href="/api/leads/export"
                 download
-                className="ml-auto flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-sm"
+                className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-sm w-full sm:w-auto"
               >
                 <span className="material-symbols-outlined text-[18px]">download</span>
                 Export All Leads (CSV)
@@ -665,18 +665,18 @@ export default function SettingsPage() {
         {/* Billing (12 cols) */}
         {isOwner && !isPlatformAdmin && (
           <section className="col-span-12 overflow-hidden relative bg-blue-900 rounded-xl p-8 text-white shadow-lg">
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
               <div>
                 <span className="text-xs font-black uppercase tracking-widest text-blue-300">Subscription Status</span>
-                <h3 className="text-3xl font-bold font-headline mt-1">{PLAN_LABELS[plan]} Plan</h3>
+                <h3 className="text-2xl sm:text-3xl font-bold font-headline mt-1">{PLAN_LABELS[plan]} Plan</h3>
                 <p className="text-blue-200 mt-2">Manage your QR Orchestrator subscription.</p>
               </div>
               <div className="flex items-center gap-4">
-                <div className="text-right">
+                <div>
                   <span className="text-sm block text-blue-300">QR Codes Used</span>
                   <span className="text-2xl font-bold">{planUsed} Used</span>
                 </div>
-                <Link href="/dashboard/upgrade" className="bg-white text-blue-900 dark:bg-blue-900 dark:text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-50 dark:hover:bg-blue-800 transition-colors shadow-xl">
+                <Link href="/dashboard/upgrade" className="bg-white text-blue-900 dark:bg-blue-900 dark:text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-50 dark:hover:bg-blue-800 transition-colors shadow-xl">
                   Manage Billing
                 </Link>
               </div>
@@ -687,12 +687,12 @@ export default function SettingsPage() {
 
       {/* Danger Zone */}
       <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700/50">
-        <div className="flex items-center justify-between p-6 bg-red-50 dark:bg-red-900/10 rounded-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-red-50 dark:bg-red-900/10 rounded-xl">
           <div>
             <h4 className="text-lg font-bold text-red-800 dark:text-red-200 font-headline">Deactivate Account</h4>
             <p className="text-sm text-red-800 dark:text-red-200/70 mt-1">Permanently remove all QR data and orchestrator logs. This action is irreversible.</p>
           </div>
-          <button className="border-2 border-red-500 text-red-500 px-6 py-2 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all">
+          <button className="border-2 border-red-500 text-red-500 px-6 py-2.5 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all w-full sm:w-auto shrink-0">
             Deactivate
           </button>
         </div>

@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const cookieStore = cookies();
   const supabaseAuth = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,13 +24,27 @@ export async function GET() {
     .select("owner_id")
     .eq("user_id", user.id)
     .single();
-
   const ownerId = profile?.owner_id ?? user.id;
 
-  const { data: contacts } = await supabase
+  // Verify the contact belongs to this user's org
+  const { data: contact } = await supabase
     .from("contacts")
     .select("id, first_name, last_name, company, label")
-    .eq("user_id", ownerId);
+    .eq("id", params.id)
+    .eq("user_id", ownerId)
+    .single();
+
+  if (!contact) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const label = contact.label || `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() || contact.id;
+  const name = `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim();
+
+  // Fetch all scans for this QR code
+  const { data: scans } = await supabase
+    .from("qr_scans")
+    .select("scanned_at, device_type, os, country, city, referrer, is_returning, visitor_id")
+    .eq("contact_id", params.id)
+    .order("scanned_at", { ascending: false });
 
   const rows = [[
     "QR Label", "Employee Name", "Company",
@@ -39,30 +53,7 @@ export async function GET() {
     "Referrer", "Returning Visitor", "Visitor ID",
   ]];
 
-  if (!contacts || contacts.length === 0) {
-    const csv = rows.map((r) => r.map((v) => `"${v}"`).join(",")).join("\n");
-    return new NextResponse(csv, {
-      headers: {
-        "Content-Type": "text/csv",
-        "Content-Disposition": `attachment; filename="scan-data.csv"`,
-      },
-    });
-  }
-
-  const contactIds = contacts.map((c) => c.id);
-  const contactMap = Object.fromEntries(contacts.map((c) => [c.id, c]));
-
-  const { data: scans } = await supabase
-    .from("qr_scans")
-    .select("contact_id, scanned_at, device_type, os, country, city, referrer, is_returning, visitor_id")
-    .in("contact_id", contactIds)
-    .order("scanned_at", { ascending: false });
-
   (scans ?? []).forEach((s) => {
-    const c = contactMap[s.contact_id];
-    if (!c) return;
-    const label = c.label || `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || c.id;
-    const name = `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim();
     const dt = s.scanned_at ? new Date(s.scanned_at) : null;
     const date = dt ? dt.toISOString().slice(0, 10) : "";
     const time = dt ? dt.toISOString().slice(11, 19) + " UTC" : "";
@@ -70,7 +61,7 @@ export async function GET() {
     rows.push([
       label,
       name,
-      c.company ?? "",
+      contact.company ?? "",
       timestamp,
       date,
       time,
@@ -85,11 +76,12 @@ export async function GET() {
   });
 
   const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+  const filename = `scans-${label.replace(/[^a-z0-9]/gi, "-").toLowerCase()}.csv`;
 
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv",
-      "Content-Disposition": `attachment; filename="scan-data.csv"`,
+      "Content-Disposition": `attachment; filename="${filename}"`,
     },
   });
 }

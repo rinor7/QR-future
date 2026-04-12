@@ -131,7 +131,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
 
       {/* Create QR Code CTA */}
       {!isPlatformAdmin && (
-        <div className="px-4 py-6">
+        <div className="px-4 pt-4 pb-10">
           <Link
             href="/dashboard/create"
             onClick={onClose}

@@ -75,15 +75,15 @@ export default function UpgradePage() {
   }
 
   return (
-    <div className="pt-8 pb-12 min-h-screen bg-surface p-8">
+    <div className="pt-8 pb-12 min-h-screen p-4 sm:p-8">
       {/* Hero */}
-      <section className="max-w-7xl mx-auto mb-16 flex flex-col md:flex-row gap-12 items-end">
+      <section className="max-w-7xl mx-auto mb-10 sm:mb-16 flex flex-col md:flex-row gap-8 sm:gap-12 items-end">
         <div className="flex-1">
-          <span className="text-primary font-bold tracking-widest text-xs uppercase mb-4 block">Subscription Management</span>
-          <h3 className="text-5xl font-bold font-headline leading-tight tracking-tight text-on-surface mb-6">
-            Elevate your <span className="text-primary">orchestration</span> experience.
+          <span className="text-blue-600 font-bold tracking-widest text-xs uppercase mb-4 block">Subscription Management</span>
+          <h3 className="text-3xl sm:text-5xl font-bold font-headline leading-tight tracking-tight text-slate-900 dark:text-slate-100 mb-4 sm:mb-6">
+            Elevate your <span className="text-blue-600">orchestration</span> experience.
           </h3>
-          <p className="text-xl text-on-surface-variant max-w-2xl leading-relaxed">
+          <p className="text-base sm:text-xl text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
             Scale your enterprise QR infrastructure with surgical precision. Choose a tier that matches your global footprint and security requirements.
           </p>
         </div>
@@ -162,38 +162,38 @@ export default function UpgradePage() {
           return (
             <div
               key={config.plan}
-              className={`relative bg-surface-container-low p-8 rounded-xl flex flex-col transition-all hover:-translate-y-1 ${isCurrent ? "scale-105 z-10 border-2 border-primary/20 bg-surface-container-lowest shadow-[0px_20px_40px_rgba(25,28,30,0.06)]" : "hover:bg-surface-container-high"}`}
+              className={`relative bg-white dark:bg-[#1a1d27] border p-8 rounded-xl flex flex-col transition-all hover:-translate-y-1 ${isCurrent ? "scale-105 z-10 border-2 border-blue-200 dark:border-blue-500/30 shadow-[0px_20px_40px_rgba(25,28,30,0.08)]" : "border-slate-200 dark:border-[#242736] hover:border-slate-300 dark:hover:border-[#2a2e3e]"}`}
             >
               {isCurrent && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-on-primary text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
                   Current Plan
                 </div>
               )}
               <div className="mb-8">
-                <h4 className={`text-lg font-bold font-headline mb-1 ${isPlatinum ? "text-tertiary" : "text-on-surface"}`}>{planName}</h4>
-                <p className="text-sm text-on-surface-variant mb-6">
+                <h4 className={`text-lg font-bold font-headline mb-1 ${isPlatinum ? "text-purple-600" : "text-slate-900 dark:text-slate-100"}`}>{planName}</h4>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                   {config.plan === "free" ? "For individual experimenters." : config.plan === "star" ? "Perfect for small businesses." : config.plan === "premium" ? "High-volume orchestration." : "Ultimate enterprise control."}
                 </p>
                 <div className="flex items-baseline gap-1">
-                  <span className={`text-4xl font-extrabold font-headline ${isCurrent ? "text-primary" : "text-on-surface"}`}>CHF {config.price}</span>
-                  <span className="text-on-surface-variant text-sm font-medium">/mo</span>
+                  <span className={`text-4xl font-extrabold font-headline ${isCurrent ? "text-blue-600" : "text-slate-900 dark:text-slate-100"}`}>CHF {config.price}</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">/mo</span>
                 </div>
               </div>
               <ul className="space-y-4 mb-10 flex-1">
                 {(config.features.length > 0 ? config.features : [tr.upgrade_no_expiry]).map((f, i) => (
-                  <li key={i} className={`flex items-center gap-3 text-sm ${isCurrent ? "font-semibold" : "text-on-surface-variant"}`}>
-                    <span className={`material-symbols-outlined text-primary text-lg ${isCurrent ? "text-primary" : ""}`} style={isCurrent ? { fontVariationSettings: "'FILL' 1" } : {}}>check_circle</span>
+                  <li key={i} className={`flex items-center gap-3 text-sm ${isCurrent ? "font-semibold text-slate-900 dark:text-slate-100" : "text-slate-500 dark:text-slate-400"}`}>
+                    <span className="material-symbols-outlined text-blue-600 text-lg" style={isCurrent ? { fontVariationSettings: "'FILL' 1" } : {}}>check_circle</span>
                     <span>{f}</span>
                   </li>
                 ))}
               </ul>
 
               {isCurrent ? (
-                <button className="w-full py-3 px-4 rounded-xl bg-surface-container-high text-on-surface-variant font-bold cursor-default opacity-50">Active</button>
+                <button className="w-full py-3 px-4 rounded-xl bg-gray-100 dark:bg-[#242736] text-slate-500 font-bold cursor-default opacity-60">Active</button>
               ) : config.plan === "free" ? (
-                <button className="w-full py-3 px-4 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors">Stay on Free</button>
+                <button className="w-full py-3 px-4 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors">Stay on Free</button>
               ) : isPlatinum ? (
-                <button className="w-full py-3 px-4 rounded-xl border-2 border-tertiary text-tertiary font-bold hover:bg-tertiary/5 transition-colors">Contact Sales</button>
+                <button className="w-full py-3 px-4 rounded-xl border-2 border-purple-600 text-purple-600 font-bold hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-colors">Contact Sales</button>
               ) : meta.priceId && isOwner ? (
                 <button
                   onClick={() => handleUpgrade(meta.priceId!)}
@@ -210,20 +210,20 @@ export default function UpgradePage() {
       </div>
 
       {/* Comparison table */}
-      <section className="max-w-5xl mx-auto mt-8 mb-32">
-        <h5 className="text-3xl font-bold font-headline text-center mb-16">Compare full capabilities</h5>
-        <div className="space-y-0.5">
-          <div className="grid grid-cols-5 py-4 px-6 items-center text-xs font-black uppercase tracking-widest text-on-surface-variant border-b border-outline-variant/10">
+      <section className="max-w-5xl mx-auto mt-8 mb-12 overflow-x-auto">
+        <h5 className="text-2xl sm:text-3xl font-bold font-headline text-center mb-8 sm:mb-16 text-slate-900 dark:text-slate-100">Compare full capabilities</h5>
+        <div className="space-y-0.5 min-w-[480px]">
+          <div className="grid grid-cols-5 py-4 px-6 items-center text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-[#242736]">
             <div className="col-span-2">Core Feature</div>
             <div className="text-center">Free</div>
-            <div className="text-center text-primary">Star</div>
+            <div className="text-center text-blue-600">Star</div>
             <div className="text-center">Premium</div>
           </div>
           {COMPARE_ROWS.map((row) => (
-            <div key={row.label} className="grid grid-cols-5 py-6 px-6 items-center hover:bg-surface-container-low transition-colors rounded-xl">
+            <div key={row.label} className="grid grid-cols-5 py-6 px-6 items-center hover:bg-gray-50 dark:hover:bg-[#1e2130] transition-colors rounded-xl">
               <div className="col-span-2">
-                <p className="font-bold text-on-surface">{row.label}</p>
-                {row.sub && <p className="text-xs text-outline mt-0.5">{row.sub}</p>}
+                <p className="font-bold text-slate-900 dark:text-slate-100">{row.label}</p>
+                {row.sub && <p className="text-xs text-slate-400 mt-0.5">{row.sub}</p>}
               </div>
               {(["free", "star", "premium"] as Plan[]).map((p) => {
                 const val = row[p as keyof typeof row];
@@ -231,10 +231,10 @@ export default function UpgradePage() {
                   <div key={p} className="flex justify-center">
                     {typeof val === "boolean" ? (
                       val
-                        ? <span className="material-symbols-outlined text-primary">check</span>
-                        : <span className="material-symbols-outlined text-outline-variant">close</span>
+                        ? <span className="material-symbols-outlined text-blue-600">check</span>
+                        : <span className="material-symbols-outlined text-slate-300 dark:text-slate-600">close</span>
                     ) : (
-                      <span className={`text-sm font-medium ${p === "star" ? "font-bold text-primary" : ""}`}>{val as string}</span>
+                      <span className={`text-sm font-medium ${p === "star" ? "font-bold text-blue-600" : "text-slate-700 dark:text-slate-300"}`}>{val as string}</span>
                     )}
                   </div>
                 );
@@ -243,19 +243,6 @@ export default function UpgradePage() {
           ))}
         </div>
       </section>
-
-      {/* CTA panel */}
-      <div className="max-w-7xl mx-auto bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] p-10 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-8 mb-12 overflow-hidden relative shadow-ambient-sm">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
-        <div className="relative z-10 max-w-lg">
-          <h6 className="text-2xl font-bold font-headline mb-4 text-slate-900 dark:text-slate-100">Unsure which plan fits your scale?</h6>
-          <p className="text-slate-500 dark:text-slate-400">Our solution architects can provide a customized audit of your current QR volume and predict future scaling needs.</p>
-        </div>
-        <div className="relative z-10 flex gap-4">
-          <button className="bg-slate-100 dark:bg-[#242736] text-slate-700 dark:text-slate-300 px-8 py-4 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-[#2a2e3e] transition-colors">View FAQ</button>
-          <button className="text-white px-8 py-4 rounded-xl font-bold shadow-lg transition-transform active:scale-95" style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>Schedule a Demo</button>
-        </div>
-      </div>
     </div>
   );
 }

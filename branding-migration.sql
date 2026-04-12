@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS qr_templates (
 );
 CREATE INDEX IF NOT EXISTS qr_templates_user_id_idx ON qr_templates(user_id);
 ALTER TABLE qr_templates ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "Users manage own templates"
+CREATE POLICY "Users manage own templates"
   ON qr_templates FOR ALL
   USING (user_id = auth.uid()::text)
   WITH CHECK (user_id = auth.uid()::text);

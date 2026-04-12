@@ -130,10 +130,10 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
 
       {/* Header */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
           <h2 className="text-3xl font-extrabold font-headline tracking-tight text-slate-900 dark:text-slate-100">Dashboard</h2>
           <p className="text-slate-500 mt-1 text-sm">{tr.dashboard_subtitle}</p>
@@ -214,7 +214,8 @@ export default function DashboardPage() {
           ) : chart.every((d) => d.count === 0) ? (
             <div className="h-48 flex items-center justify-center text-slate-300 dark:text-slate-600 text-sm">No scans in this period</div>
           ) : (
-            <div className="flex items-end gap-1.5 h-48">
+            <div className="overflow-x-auto -mx-1 px-1">
+            <div className={`flex items-end gap-1.5 h-48 ${chartRange === "30" ? "min-w-[480px]" : ""}`}>
               {chart.map((day, i) => {
                 const pct = Math.max(4, Math.round((day.count / chartMax) * 100));
                 const label = chartRange === "7"
@@ -234,6 +235,7 @@ export default function DashboardPage() {
                   </div>
                 );
               })}
+            </div>
             </div>
           )}
         </div>

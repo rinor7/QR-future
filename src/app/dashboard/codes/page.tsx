@@ -463,15 +463,15 @@ export default function CodesPage() {
   const pickerContact = pickerContactId ? contacts.find((c) => c.id === pickerContactId) : null;
 
   return (
-    <div className="pt-6 pb-12 px-8 max-w-7xl mx-auto">
+    <div className="pt-6 pb-12 px-4 sm:px-8 max-w-7xl mx-auto">
       {/* ── Header ── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 sm:mb-12">
         <div>
-          <h1 className="font-headline text-[3.5rem] font-bold leading-none tracking-tighter mb-2">QR Codes</h1>
+          <h1 className="font-headline text-3xl sm:text-[3.5rem] font-bold leading-none tracking-tighter mb-2">QR Codes</h1>
           <p className="text-on-surface-variant font-medium">Manage and monitor your enterprise QR infrastructure.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <a href="/api/scan/export" download="scan-data.csv" className="flex items-center gap-2 bg-surface-container-high px-5 py-3 rounded-xl font-headline font-semibold text-primary hover:bg-surface-container-highest transition-colors">
+        <div className="flex flex-wrap items-center gap-3">
+          <a href="/api/scan/export" download="scan-data.csv" className="flex items-center gap-2 bg-gray-100 dark:bg-[#242736] px-5 py-3 rounded-xl font-headline font-semibold text-blue-600 hover:bg-gray-200 dark:hover:bg-[#2a2e3e] transition-colors">
             <span className="material-symbols-outlined">file_download</span>
             CSV export
           </a>
@@ -511,28 +511,28 @@ export default function CodesPage() {
 
       {/* ── Filters ── */}
       <div className="flex flex-wrap items-center gap-3 mb-8">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
+        <div className="relative flex-1 min-w-[180px] max-w-md">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
           <input
             type="text"
             placeholder={tr.search_placeholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-surface-container-low border-none rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary transition-all"
+            className="w-full bg-gray-100 dark:bg-[#242736] text-slate-900 dark:text-slate-100 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 transition-all"
           />
         </div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "paused")} className="bg-surface-container-low border-none rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary text-on-surface-variant">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "paused")} className="bg-gray-100 dark:bg-[#242736] text-slate-700 dark:text-slate-300 border-none rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500">
           <option value="all">{tr.filter_all}</option>
           <option value="active">{tr.filter_active}</option>
           <option value="paused">{tr.filter_paused}</option>
         </select>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as "newest" | "oldest" | "name")} className="bg-surface-container-low border-none rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary text-on-surface-variant">
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as "newest" | "oldest" | "name")} className="bg-gray-100 dark:bg-[#242736] text-slate-700 dark:text-slate-300 border-none rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500">
           <option value="newest">{tr.sort_newest}</option>
           <option value="oldest">{tr.sort_oldest}</option>
           <option value="name">{tr.sort_name}</option>
         </select>
         {canCreateFolder && (
-          <button onClick={() => { setCreatingFolder(true); setFolderNameError(null); setNewFolderName(""); }} className="flex items-center gap-2 bg-surface-container-low border-none rounded-xl px-4 py-2.5 text-sm font-semibold text-primary hover:bg-surface-container transition-colors">
+          <button onClick={() => { setCreatingFolder(true); setFolderNameError(null); setNewFolderName(""); }} className="flex items-center gap-2 bg-gray-100 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm font-semibold text-blue-600 hover:bg-gray-200 dark:hover:bg-[#2a2e3e] transition-colors">
             <span className="material-symbols-outlined text-base">create_new_folder</span>
             Neuer Ordner
           </button>
@@ -638,13 +638,13 @@ export default function CodesPage() {
               <div className="flex gap-1">
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-surface-container-high text-primary" : "text-outline hover:bg-surface-container-high"}`}
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-gray-200 dark:bg-[#2a2e3e] text-blue-600" : "text-slate-400 hover:bg-gray-100 dark:hover:bg-[#242736]"}`}
                 >
                   <span className="material-symbols-outlined">grid_view</span>
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-surface-container-high text-primary" : "text-outline hover:bg-surface-container-high"}`}
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-gray-200 dark:bg-[#2a2e3e] text-blue-600" : "text-slate-400 hover:bg-gray-100 dark:hover:bg-[#242736]"}`}
                 >
                   <span className="material-symbols-outlined">list</span>
                 </button>
@@ -692,7 +692,7 @@ export default function CodesPage() {
                             </h4>
                             {contact.title && <p className="text-primary font-semibold text-sm mb-0.5">{contact.title}</p>}
                             {contact.company && <p className="text-slate-500 text-sm mb-5">{contact.company}</p>}
-                            <div className="flex items-center gap-8 mt-2">
+                            <div className="flex items-center gap-4 sm:gap-8 mt-2 flex-wrap">
                               <div>
                                 <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Created</span>
                                 <span className="text-sm font-semibold text-slate-800">{new Date(contact.createdAt).toLocaleDateString("de-DE")}</span>
@@ -832,12 +832,12 @@ export default function CodesPage() {
 
           {/* ── Pagination ── */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-10 pt-6" style={{ borderTop: "1px solid rgba(195,197,217,0.3)" }}>
-              <p className="text-sm text-on-surface-variant font-medium">
-                Showing <span className="font-bold text-on-surface">{Math.min(page * PAGE_SIZE, filtered.length)}</span> of <span className="font-bold text-on-surface">{filtered.length}</span> QR codes
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-10 pt-6" style={{ borderTop: "1px solid rgba(195,197,217,0.3)" }}>
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                Showing <span className="font-bold text-slate-900 dark:text-slate-100">{Math.min(page * PAGE_SIZE, filtered.length)}</span> of <span className="font-bold text-slate-900 dark:text-slate-100">{filtered.length}</span> QR codes
               </p>
               <div className="flex gap-2">
-                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-5 py-2.5 bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-bold rounded-xl hover:bg-surface-container-low transition-colors disabled:opacity-40 shadow-sm">
+                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-5 py-2.5 bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors disabled:opacity-40 shadow-sm">
                   Previous
                 </button>
                 <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-5 py-2.5 text-white font-bold rounded-xl transition-colors shadow-md disabled:opacity-40" style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}>

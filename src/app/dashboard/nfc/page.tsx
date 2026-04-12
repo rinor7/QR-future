@@ -251,11 +251,11 @@ export default function NFCPage() {
   const unassigned = cards.filter((c) => !c.contact_id);
 
   return (
-    <div className="pt-8 pb-12 px-6 lg:px-10 max-w-6xl mx-auto">
+    <div className="pt-8 pb-12 px-4 sm:px-6 lg:px-10 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-10 gap-4 flex-wrap">
+      <div className="flex items-center justify-between mb-8 sm:mb-10 gap-4 flex-wrap">
         <div>
-          <h2 className="text-4xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">NFC Cards</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">NFC Cards</h2>
           <p className="text-slate-400 mt-2">Register physical NFC cards and assign them to profiles</p>
         </div>
         <button

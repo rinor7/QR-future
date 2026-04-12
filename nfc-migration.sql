@@ -14,7 +14,7 @@ CREATE INDEX IF NOT EXISTS nfc_cards_user_id_idx ON nfc_cards(user_id);
 CREATE INDEX IF NOT EXISTS nfc_cards_card_uid_idx ON nfc_cards(card_uid);
 
 ALTER TABLE nfc_cards ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "Users manage own NFC cards"
+CREATE POLICY "Users manage own NFC cards"
   ON nfc_cards FOR ALL
   USING (user_id = auth.uid()::text)
   WITH CHECK (user_id = auth.uid()::text);
