@@ -27,6 +27,23 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [brandName, setBrandName] = useState("");
+  const [brandLogoUrl, setBrandLogoUrl] = useState("");
+  const [brandColor, setBrandColor] = useState("");
+
+  async function loadBranding() {
+    const supabase = (await import("@/lib/supabase-browser")).getSupabaseBrowser();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("profiles").select("owner_id").eq("user_id", user.id).single();
+    const ownerId = data?.owner_id ?? user.id;
+    const { data: prof } = await supabase.from("profiles").select("brand_name, brand_logo_url, brand_primary_color").eq("user_id", ownerId).single();
+    if (prof) {
+      setBrandName(prof.brand_name ?? "");
+      setBrandLogoUrl(prof.brand_logo_url ?? "");
+      setBrandColor(prof.brand_primary_color ?? "");
+    }
+  }
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -36,6 +53,9 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
         setIsOwner(p.userId === p.ownerId);
       }
     });
+    loadBranding();
+    window.addEventListener("brand-updated", loadBranding);
+    return () => window.removeEventListener("brand-updated", loadBranding);
   }, []);
 
   const baseNav = isPlatformAdmin ? ADMIN_NAV : USER_NAV.filter((item) => {
@@ -57,14 +77,19 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
       {/* Logo */}
       <div className="px-6 pt-8 pb-6 flex items-center gap-3">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0"
-          style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 overflow-hidden"
+          style={brandLogoUrl ? {} : { background: brandColor ? `linear-gradient(135deg, ${brandColor}cc 0%, ${brandColor} 100%)` : "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
         >
-          <span className="material-symbols-outlined text-xl">qr_code_2</span>
+          {brandLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={brandLogoUrl} alt="logo" className="w-10 h-10 object-contain" />
+          ) : (
+            <span className="material-symbols-outlined text-xl">qr_code_2</span>
+          )}
         </div>
         <div>
           <h1 className="text-base font-bold font-headline leading-tight text-slate-900 tracking-tight">
-            QR Orchestrator
+            {brandName || "QR Orchestrator"}
           </h1>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mt-0.5">
             Enterprise Suite

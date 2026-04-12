@@ -44,6 +44,20 @@ export default function SettingsPage() {
   const [webhookSaved, setWebhookSaved] = useState(false);
   const [webhookError, setWebhookError] = useState<string | null>(null);
 
+  // Branding / White label
+  const [brandName, setBrandName] = useState("");
+  const [brandLogoUrl, setBrandLogoUrl] = useState("");
+  const [brandColor, setBrandColor] = useState("#2563eb");
+  const [brandSaving, setBrandSaving] = useState(false);
+  const [brandSaved, setBrandSaved] = useState(false);
+  const [brandLogoUploading, setBrandLogoUploading] = useState(false);
+
+  // Custom domain
+  const [customDomain, setCustomDomain] = useState("");
+  const [domainSaving, setDomainSaving] = useState(false);
+  const [domainStatus, setDomainStatus] = useState<{ domain: string | null; verified: boolean; vercelStatus?: string; cname?: { host: string; target: string } } | null>(null);
+  const [domainChecking, setDomainChecking] = useState(false);
+
   // Load saved preferences on mount
   useEffect(() => {
     const savedDark = localStorage.getItem("qr-dark-mode") === "true";
@@ -120,10 +134,17 @@ export default function SettingsPage() {
         const supabaseInner = getSupabaseBrowser();
         const { data: { user: u } } = await supabaseInner.auth.getUser();
         if (u) {
-          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url").eq("user_id", u.id).single();
+          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, custom_domain, custom_domain_verified").eq("user_id", u.id).single();
           if (prof) {
             setLeadCaptureDisabled(!!prof.lead_capture_disabled);
             setWebhookUrl(prof.lead_webhook_url ?? "");
+            setBrandName(prof.brand_name ?? "");
+            setBrandLogoUrl(prof.brand_logo_url ?? "");
+            setBrandColor(prof.brand_primary_color ?? "#2563eb");
+            if (prof.custom_domain) {
+              setCustomDomain(prof.custom_domain);
+              setDomainStatus({ domain: prof.custom_domain, verified: !!prof.custom_domain_verified });
+            }
           }
         }
       }
@@ -133,6 +154,62 @@ export default function SettingsPage() {
       getAllContacts().then((c) => setPlanUsed(c.length));
     });
   }, [router]);
+
+  async function handleSaveBranding(e: React.FormEvent) {
+    e.preventDefault();
+    setBrandSaving(true);
+    const supabase = getSupabaseBrowser();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("profiles").update({
+        brand_name: brandName || null,
+        brand_logo_url: brandLogoUrl || null,
+        brand_primary_color: brandColor || null,
+      }).eq("user_id", user.id);
+      setBrandSaved(true);
+      setTimeout(() => setBrandSaved(false), 3000);
+      // Trigger sidebar refresh
+      window.dispatchEvent(new CustomEvent("brand-updated"));
+    }
+    setBrandSaving(false);
+  }
+
+  async function handleBrandLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBrandLogoUploading(true);
+    const supabase = getSupabaseBrowser();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const ext = file.name.split(".").pop() ?? "png";
+      const path = `logos/${user.id}/brand-logo.${ext}`;
+      await supabase.storage.from("Uploads").upload(path, file, { upsert: true });
+      const { data: { publicUrl } } = supabase.storage.from("Uploads").getPublicUrl(path);
+      setBrandLogoUrl(publicUrl);
+    }
+    setBrandLogoUploading(false);
+  }
+
+  async function handleSaveDomain(e: React.FormEvent) {
+    e.preventDefault();
+    setDomainSaving(true);
+    const res = await fetch("/api/custom-domain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domain: customDomain.trim().toLowerCase() || null }),
+    });
+    const data = await res.json();
+    setDomainStatus(data.ok ? { domain: data.domain, verified: false, vercelStatus: data.vercelStatus, cname: data.cname } : null);
+    setDomainSaving(false);
+  }
+
+  async function handleCheckDomain() {
+    setDomainChecking(true);
+    const res = await fetch("/api/custom-domain");
+    const data = await res.json();
+    setDomainStatus((prev) => prev ? { ...prev, verified: data.verified } : data);
+    setDomainChecking(false);
+  }
 
   async function handleSaveSupportEmail(e: React.FormEvent) {
     e.preventDefault();
@@ -466,6 +543,135 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Branding / White Label (owner or admin only) */}
+        {(isOwner || userRole === "admin") && (
+          <section className="col-span-12 bg-surface-container-lowest rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-purple-500/10 p-3 rounded-xl text-purple-600">
+                <span className="material-symbols-outlined">style</span>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold font-headline">Branding</h3>
+                <p className="text-sm text-outline mt-0.5">White-label the platform and set up your custom domain</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              {/* White Label */}
+              <div>
+                <h4 className="font-bold text-on-surface flex items-center gap-2 mb-5">
+                  <span className="material-symbols-outlined text-outline text-[18px]">palette</span>
+                  White Label
+                </h4>
+                <form onSubmit={handleSaveBranding} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-outline uppercase tracking-wider">Brand Name</label>
+                    <input
+                      type="text"
+                      value={brandName}
+                      onChange={(e) => setBrandName(e.target.value)}
+                      placeholder="e.g. Acme Corp"
+                      className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary"
+                    />
+                    <p className="text-xs text-outline">Replaces &quot;QR Orchestrator&quot; in the sidebar and dashboard</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-outline uppercase tracking-wider">Brand Logo</label>
+                    {brandLogoUrl ? (
+                      <div className="flex items-center gap-3 p-3 bg-surface rounded-xl border border-outline-variant/20">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={brandLogoUrl} alt="Brand logo" className="h-10 w-10 object-contain rounded-lg bg-white border border-outline-variant/20" />
+                        <span className="text-sm text-on-surface flex-1 truncate">Logo uploaded</span>
+                        <button type="button" onClick={() => setBrandLogoUrl("")} className="text-xs text-error hover:underline">Remove</button>
+                      </div>
+                    ) : (
+                      <label className={`flex items-center gap-3 p-3 bg-surface rounded-xl border border-outline-variant/20 cursor-pointer hover:bg-surface-container-low transition-colors ${brandLogoUploading ? "opacity-60 pointer-events-none" : ""}`}>
+                        <span className="material-symbols-outlined text-outline">upload</span>
+                        <span className="text-sm text-outline">{brandLogoUploading ? "Uploading…" : "Upload logo (PNG, SVG, JPG)"}</span>
+                        <input type="file" accept="image/*" className="sr-only" onChange={handleBrandLogoUpload} />
+                      </label>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-outline uppercase tracking-wider">Brand Color</label>
+                    <div className="flex items-center gap-3 bg-surface-container-low rounded-xl px-4 py-3">
+                      <input type="color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)} className="w-8 h-8 rounded-md border-0 cursor-pointer bg-transparent shrink-0" />
+                      <span className="text-sm font-mono text-on-surface">{brandColor}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 pt-2">
+                    <button type="submit" disabled={brandSaving} className="bg-primary text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-container transition-colors disabled:opacity-60">
+                      {brandSaving ? "Saving…" : "Save Branding"}
+                    </button>
+                    {brandSaved && (
+                      <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
+                        <span className="material-symbols-outlined text-[16px]">check_circle</span>Saved
+                      </span>
+                    )}
+                  </div>
+                </form>
+              </div>
+
+              {/* Custom Domain */}
+              <div>
+                <h4 className="font-bold text-on-surface flex items-center gap-2 mb-5">
+                  <span className="material-symbols-outlined text-outline text-[18px]">domain</span>
+                  Custom Domain
+                </h4>
+                <form onSubmit={handleSaveDomain} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-outline uppercase tracking-wider">Your Domain</label>
+                    <input
+                      type="text"
+                      value={customDomain}
+                      onChange={(e) => setCustomDomain(e.target.value)}
+                      placeholder="card.yourcompany.com"
+                      className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary font-mono"
+                    />
+                    <p className="text-xs text-outline">QR codes will use this domain instead of the default URL</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button type="submit" disabled={domainSaving} className="bg-primary text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-container transition-colors disabled:opacity-60">
+                      {domainSaving ? "Saving…" : "Save Domain"}
+                    </button>
+                    {domainStatus?.domain && (
+                      <button type="button" onClick={handleCheckDomain} disabled={domainChecking} className="text-sm font-medium text-primary hover:underline disabled:opacity-60">
+                        {domainChecking ? "Checking…" : "Check DNS"}
+                      </button>
+                    )}
+                  </div>
+                </form>
+
+                {/* DNS Instructions */}
+                {domainStatus?.domain && (
+                  <div className="mt-5 space-y-3">
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${domainStatus.verified ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
+                      <span className="material-symbols-outlined text-[16px]">{domainStatus.verified ? "check_circle" : "pending"}</span>
+                      {domainStatus.verified ? "Domain verified and active" : "Waiting for DNS propagation"}
+                    </div>
+                    {domainStatus.vercelStatus === "registered" ? (
+                      <p className="text-xs text-outline">Domain registered with Vercel automatically.</p>
+                    ) : (
+                      <div className="p-4 bg-surface rounded-xl border border-outline-variant/15 space-y-3">
+                        <p className="text-xs font-semibold text-on-surface">Add this DNS record at your domain registrar:</p>
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div className="font-semibold text-outline uppercase">Type</div>
+                          <div className="font-semibold text-outline uppercase">Host</div>
+                          <div className="font-semibold text-outline uppercase">Value</div>
+                          <div className="font-mono text-on-surface bg-surface-container-low rounded px-2 py-1">CNAME</div>
+                          <div className="font-mono text-on-surface bg-surface-container-low rounded px-2 py-1 truncate">{domainStatus.cname?.host ?? customDomain}</div>
+                          <div className="font-mono text-on-surface bg-surface-container-low rounded px-2 py-1 truncate">{domainStatus.cname?.target ?? "cname.vercel-dns.com"}</div>
+                        </div>
+                        <p className="text-xs text-outline">DNS changes can take up to 48 hours to propagate.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </section>

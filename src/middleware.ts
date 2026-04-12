@@ -2,7 +2,34 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// Hosts that are our own (not custom domains)
+const OWN_HOSTS = new Set([
+  "localhost",
+  "qr-card.ch",
+  "www.qr-card.ch",
+  ...(process.env.NEXT_PUBLIC_APP_URL
+    ? [new URL(process.env.NEXT_PUBLIC_APP_URL).hostname]
+    : []),
+]);
+
 export async function middleware(request: NextRequest) {
+  const host = request.headers.get("host")?.split(":")[0] ?? "";
+  const isCustomDomain = host && !OWN_HOSTS.has(host) && !host.endsWith(".vercel.app");
+
+  // Custom domain: only serve /qr/* and public pages — block dashboard access
+  if (isCustomDomain) {
+    const { pathname } = request.nextUrl;
+    if (pathname.startsWith("/dashboard")) {
+      return NextResponse.redirect(
+        new URL(process.env.NEXT_PUBLIC_APP_URL ?? "/", request.url)
+      );
+    }
+    // Let /qr/[id] and other public pages through with custom-domain header
+    const res = NextResponse.next({ request });
+    res.headers.set("x-custom-domain", host);
+    return res;
+  }
+
   const response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -55,5 +82,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/login", "/qr/:path*"],
 };

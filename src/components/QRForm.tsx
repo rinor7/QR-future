@@ -131,6 +131,62 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
     setOpenFields((prev) => { const next = new Set(prev); next.add(field); return next; });
   }
 
+  // Templates
+  const [templates, setTemplates] = useState<{ id: string; name: string; primary_color: string; theme: string; bg_image_url: string | null; show_logo_in_qr: boolean; lead_capture_enabled: boolean }[]>([]);
+  const [templateOpen, setTemplateOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateSaving, setTemplateSaving] = useState(false);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/templates").then((r) => r.json()).then((data) => {
+      if (Array.isArray(data)) setTemplates(data);
+    }).catch(() => {});
+  }, []);
+
+  function applyTemplate(t: typeof templates[0]) {
+    setForm((prev) => {
+      const next = {
+        ...prev,
+        primaryColor: t.primary_color,
+        theme: t.theme as CreateQRContact["theme"],
+        bgImageUrl: t.bg_image_url ?? prev.bgImageUrl,
+        showLogoInQr: t.show_logo_in_qr,
+        leadCaptureEnabled: t.lead_capture_enabled,
+      };
+      onFormChange?.(next);
+      return next;
+    });
+    setTemplateOpen(false);
+  }
+
+  async function saveTemplate() {
+    if (!templateName.trim()) return;
+    setTemplateSaving(true);
+    await fetch("/api/templates", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: templateName.trim(),
+        primary_color: form.primaryColor,
+        theme: form.theme,
+        bg_image_url: form.bgImageUrl || null,
+        show_logo_in_qr: form.showLogoInQr,
+        lead_capture_enabled: form.leadCaptureEnabled,
+      }),
+    }).then((r) => r.json()).then((t) => {
+      if (t.id) setTemplates((prev) => [t, ...prev]);
+    });
+    setTemplateName("");
+    setShowSaveTemplate(false);
+    setTemplateSaving(false);
+  }
+
+  async function deleteTemplate(id: string) {
+    await fetch(`/api/templates/${id}`, { method: "DELETE" });
+    setTemplates((prev) => prev.filter((t) => t.id !== id));
+  }
+
   const [userId, setUserId] = useState("");
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
@@ -259,6 +315,72 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
 
   return (
     <form id={formId} onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
+
+      {/* Template picker bar */}
+      {templates.length > 0 && (
+        <div className="flex items-center gap-3 p-3 bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm">
+          <span className="material-symbols-outlined text-[18px] text-purple-500 shrink-0">style</span>
+          <span className="text-sm font-medium text-gray-600 dark:text-slate-300 shrink-0">Company Template:</span>
+          <div className="flex flex-wrap gap-2 flex-1">
+            {templates.map((t) => (
+              <div key={t.id} className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => applyTemplate(t)}
+                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:border-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors bg-gray-50 dark:bg-[#242736]"
+                >
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: t.primary_color }} />
+                  {t.name}
+                </button>
+                <button type="button" onClick={() => deleteTemplate(t.id)} className="text-gray-300 hover:text-red-400 transition-colors p-0.5">
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowSaveTemplate((v) => !v)}
+            className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-purple-600 transition-colors shrink-0"
+          >
+            <Plus className="w-3.5 h-3.5" /> Save current
+          </button>
+        </div>
+      )}
+
+      {/* Save template prompt */}
+      {showSaveTemplate && (
+        <div className="flex items-center gap-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-2xl border border-purple-200 dark:border-purple-800">
+          <input
+            type="text"
+            value={templateName}
+            onChange={(e) => setTemplateName(e.target.value)}
+            placeholder="Template name…"
+            className="flex-1 bg-white dark:bg-[#242736] border border-purple-200 dark:border-purple-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+            autoFocus
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveTemplate(); } }}
+          />
+          <button type="button" onClick={saveTemplate} disabled={!templateName.trim() || templateSaving} className="bg-purple-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors">
+            {templateSaving ? "…" : "Save"}
+          </button>
+          <button type="button" onClick={() => { setShowSaveTemplate(false); setTemplateName(""); }} className="text-gray-400 hover:text-gray-600 p-1 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* No templates yet — show save button */}
+      {templates.length === 0 && !showSaveTemplate && (
+        <button
+          type="button"
+          onClick={() => setShowSaveTemplate(true)}
+          className="flex items-center gap-2 text-xs font-medium text-gray-400 hover:text-purple-600 transition-colors px-3 py-2 rounded-xl border border-dashed border-gray-200 hover:border-purple-300 w-fit"
+        >
+          <span className="material-symbols-outlined text-[14px]">style</span>
+          Save as company template
+        </button>
+      )}
+
       {/* Basic Information */}
       <Section title="Basic Information" iconKey="basicinfo">
         <Field label={tr.qr_label}>

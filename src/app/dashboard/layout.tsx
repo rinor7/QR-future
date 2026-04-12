@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <Menu className="w-5 h-5" />
           </button>
-          <span className="ml-3 font-bold text-gray-900">QR Orchestrator</span>
+          <span className="ml-3 font-bold text-gray-900" id="mobile-brand-name">QR Orchestrator</span>
         </div>
 
         {/* Backdrop */}

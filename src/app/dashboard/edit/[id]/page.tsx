@@ -49,7 +49,10 @@ export default function EditPage() {
   }, [id, router]);
 
   function getQRUrl() {
-    return `${window.location.origin}/qr/${id}`;
+    // Use custom domain if set for this org
+    const storedDomain = typeof window !== "undefined" ? localStorage.getItem("qr_custom_domain") : null;
+    const base = storedDomain ? `https://${storedDomain}` : window.location.origin;
+    return `${base}/qr/${id}`;
   }
 
   function handleCopy() {
