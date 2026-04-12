@@ -38,7 +38,6 @@ export default function SettingsPage() {
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState(false);
 
-  const [errorCorrection, setErrorCorrection] = useState("H");
   const [leadCaptureDisabled, setLeadCaptureDisabled] = useState(false);
   const [leadCaptureSaving, setLeadCaptureSaving] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState("");
@@ -61,16 +60,6 @@ export default function SettingsPage() {
   const [brandLogoUploading, setBrandLogoUploading] = useState(false);
 
 
-  // Load saved preferences on mount
-  useEffect(() => {
-    const savedEc = localStorage.getItem("qr-error-correction") ?? "H";
-    setErrorCorrection(savedEc);
-  }, []);
-
-  function handleErrorCorrectionChange(val: string) {
-    setErrorCorrection(val);
-    localStorage.setItem("qr-error-correction", val);
-  }
 
   async function handleSaveWebhook(e: React.FormEvent) {
     e.preventDefault();
@@ -380,34 +369,6 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130] hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors cursor-pointer">
                   <span className="text-sm">Timezone</span>
                   <span className="text-sm font-bold text-blue-600">UTC+1 (CET)</span>
-                </div>
-              </div>
-            </div>
-            {/* QR Defaults */}
-            <div className="space-y-4">
-              <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">analytics</span>
-                QR Defaults
-              </h4>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130]">
-                  <span className="text-sm">Default Error Correction</span>
-                  <select
-                    value={errorCorrection}
-                    onChange={(e) => handleErrorCorrectionChange(e.target.value)}
-                    className="bg-gray-50 dark:bg-[#1e2130] border-none text-sm font-bold text-blue-600 dark:text-blue-400 px-2 py-1 rounded-lg focus:ring-0 cursor-pointer"
-                  >
-                    <option value="H">High (30%)</option>
-                    <option value="Q">Medium-High (25%)</option>
-                    <option value="M">Medium (15%)</option>
-                    <option value="L">Low (7%)</option>
-                  </select>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130]">
-                  <span className="text-sm">Auto-generate tracking</span>
-                  <div className="w-12 h-6 bg-blue-600 rounded-full relative cursor-pointer">
-                    <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full" />
-                  </div>
                 </div>
               </div>
             </div>
