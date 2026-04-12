@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UserPlus, Mail, MessageSquare, Calendar, Search, Download } from "lucide-react";
+import Link from "next/link";
+import { UserPlus, Mail, MessageSquare, Calendar, Search, Download, X, ExternalLink, Pencil, BarChart2, QrCode } from "lucide-react";
+import QRCodeDisplay from "@/components/QRCodeDisplay";
 
 type Lead = {
   id: string;
@@ -15,10 +17,86 @@ type Lead = {
   contact_name: string | null;
 };
 
+type PreviewCard = {
+  contact_id: string;
+  qr_label: string | null;
+  contact_name: string | null;
+};
+
+function QRPreviewModal({ card, onClose }: { card: PreviewCard; onClose: () => void }) {
+  const cardUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/qr/${card.contact_id}`;
+  const label = card.qr_label || card.contact_name || card.contact_id;
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-3">
+          <div className="flex items-center gap-2">
+            <QrCode className="w-4 h-4 text-blue-600" />
+            <span className="font-bold text-gray-900 dark:text-white text-sm truncate max-w-[200px]">{label}</span>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* QR code */}
+        <div className="flex items-center justify-center py-8" style={{ background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)" }}>
+          <div className="p-3 bg-white rounded-2xl shadow-xl">
+            <QRCodeDisplay value={cardUrl} size={160} />
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="p-5 space-y-2.5">
+          <a
+            href={cardUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Open Live Card
+          </a>
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              href={`/dashboard/edit/${card.contact_id}`}
+              onClick={onClose}
+              className="flex items-center justify-center gap-2 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Edit
+            </Link>
+            <Link
+              href={`/dashboard/analytics/${card.contact_id}`}
+              onClick={onClose}
+              className="flex items-center justify-center gap-2 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              <BarChart2 className="w-3.5 h-3.5" />
+              Analytics
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [preview, setPreview] = useState<PreviewCard | null>(null);
 
   useEffect(() => {
     fetch("/api/leads")
@@ -60,6 +138,8 @@ export default function LeadsPage() {
 
   return (
     <div className="p-4 wide:p-8">
+      {preview && <QRPreviewModal card={preview} onClose={() => setPreview(null)} />}
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Leads</h1>
@@ -133,9 +213,13 @@ export default function LeadsPage() {
                     </div>
                   )}
                   <div className="flex flex-wrap items-center gap-x-3 mt-1.5 text-xs text-gray-400">
-                    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-lg font-medium">
+                    <button
+                      onClick={() => setPreview({ contact_id: lead.contact_id, qr_label: lead.qr_label, contact_name: lead.contact_name })}
+                      className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 px-2 py-0.5 rounded-lg font-medium transition-colors"
+                    >
+                      <QrCode className="w-3 h-3" />
                       {lead.qr_label || lead.contact_name || lead.contact_id}
-                    </span>
+                    </button>
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
                       {new Date(lead.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
