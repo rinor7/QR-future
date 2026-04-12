@@ -86,7 +86,7 @@ function FloatingDropdown({ anchor, memberId, memberEmail, memberRole, isOwnerRo
             {resendMsg === memberId ? "Sent!" : resendingId === memberId ? "Sending…" : tr.users_resend ?? "Resend Invite"}
           </button>
           <button
-            onClick={() => { onRemove(memberId); onClose(); }}
+            onClick={() => { onRemove(memberId); if (removingId === memberId) onClose(); }}
             className={`w-full text-left px-3 py-2 flex items-center gap-2 transition-colors ${removingId === memberId ? "text-red-600 font-semibold bg-red-50 dark:bg-red-900/20" : "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10"}`}
           >
             <span className="material-symbols-outlined text-[14px]">person_remove</span>

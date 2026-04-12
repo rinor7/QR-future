@@ -40,7 +40,7 @@ export async function GET() {
 
   // Enrich with contact name
   const contactIds = (cards ?? []).map((c) => c.contact_id).filter(Boolean);
-  let contactMap: Record<string, string> = {};
+  const contactMap: Record<string, string> = {};
   if (contactIds.length > 0) {
     const { data: contacts } = await supabase
       .from("contacts")
