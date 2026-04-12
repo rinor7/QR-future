@@ -192,14 +192,12 @@ export default function UpgradePage() {
                 <button className="w-full py-3 px-4 rounded-xl bg-gray-100 dark:bg-[#242736] text-slate-500 font-bold cursor-default opacity-60">Active</button>
               ) : config.plan === "free" ? (
                 <button className="w-full py-3 px-4 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors">Stay on Free</button>
-              ) : isPlatinum ? (
-                <button className="w-full py-3 px-4 rounded-xl border-2 border-purple-600 text-purple-600 font-bold hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-colors">Contact Sales</button>
               ) : meta.priceId && isOwner ? (
                 <button
                   onClick={() => handleUpgrade(meta.priceId!)}
                   disabled={loading === meta.priceId}
                   className="w-full py-4 px-4 rounded-xl text-white font-bold transition-all active:scale-95 shadow-md disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
+                  style={{ background: isPlatinum ? "linear-gradient(135deg, #6b21a8 0%, #9333ea 100%)" : "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
                 >
                   {loading === meta.priceId ? tr.upgrade_loading : "Upgrade Now"}
                 </button>
