@@ -30,6 +30,13 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     .eq("id", contactId).eq("user_id", ownerId).single();
   if (!contact) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // Fetch leads
+  const { data: leads } = await supabase
+    .from("qr_leads")
+    .select("id, name, email, company, consented_at, created_at")
+    .eq("contact_id", contactId)
+    .order("created_at", { ascending: false });
+
   // Fetch all scans
   const { data: scans } = await supabase
     .from("qr_scans")
@@ -197,5 +204,6 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     conversionRate,
     convertedVisitors: convertedVisitorCount,
     conversionBreakdown,
+    leads: leads ?? [],
   });
 }

@@ -37,6 +37,8 @@ export default function SettingsPage() {
 
   const [darkMode, setDarkMode] = useState(false);
   const [errorCorrection, setErrorCorrection] = useState("H");
+  const [leadCaptureDisabled, setLeadCaptureDisabled] = useState(false);
+  const [leadCaptureSaving, setLeadCaptureSaving] = useState(false);
 
   // Load saved preferences on mount
   useEffect(() => {
@@ -66,13 +68,24 @@ export default function SettingsPage() {
     localStorage.setItem("qr-error-correction", val);
   }
 
+  async function handleToggleLeadCapture(val: boolean) {
+    setLeadCaptureDisabled(val);
+    setLeadCaptureSaving(true);
+    const supabase = getSupabaseBrowser();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("profiles").update({ lead_capture_disabled: val }).eq("user_id", user.id);
+    }
+    setLeadCaptureSaving(false);
+  }
+
   useEffect(() => {
     const supabase = getSupabaseBrowser();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.push("/login"); return; }
       setEmail(user.email ?? "");
     });
-    getUserProfile().then((p) => {
+    getUserProfile().then(async (p) => {
       if (p) {
         setPlan(p.plan);
         setIsOwner(p.userId === p.ownerId);
@@ -80,6 +93,13 @@ export default function SettingsPage() {
         setUserRole(p.role);
         setSupportEmail(p.supportEmail ?? "");
         setSupportEmailSaved(!!p.supportEmail);
+        // Load lead capture disabled state
+        const supabaseInner = getSupabaseBrowser();
+        const { data: { user: u } } = await supabaseInner.auth.getUser();
+        if (u) {
+          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled").eq("user_id", u.id).single();
+          if (prof) setLeadCaptureDisabled(!!prof.lead_capture_disabled);
+        }
       }
     });
     // Get QR count for plan usage
@@ -230,7 +250,7 @@ export default function SettingsPage() {
             </div>
             <h3 className="text-2xl font-bold font-headline">Platform Preferences</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
             {/* Regional */}
             <div className="space-y-4">
               <h4 className="font-bold text-on-surface flex items-center gap-2">
@@ -299,6 +319,31 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
+            {/* Features */}
+            {(isOwner || userRole === "admin") && (
+              <div className="space-y-4">
+                <h4 className="font-bold text-on-surface flex items-center gap-2">
+                  <span className="material-symbols-outlined text-outline">feature_search</span>
+                  Features
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-surface">
+                    <div>
+                      <p className="text-sm font-medium">Lead Capture</p>
+                      <p className="text-xs text-outline mt-0.5">Allow QR profiles to collect visitor contacts</p>
+                    </div>
+                    <button
+                      onClick={() => handleToggleLeadCapture(!leadCaptureDisabled)}
+                      disabled={leadCaptureSaving}
+                      className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ml-3 ${leadCaptureDisabled ? "bg-outline-variant/30" : "bg-primary-container"} disabled:opacity-60`}
+                      aria-label="Toggle lead capture"
+                    >
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${leadCaptureDisabled ? "left-1" : "translate-x-6"}`} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 

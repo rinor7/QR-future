@@ -39,6 +39,7 @@ interface AnalyticsData {
   conversionRate: number;
   convertedVisitors: number;
   conversionBreakdown: { event: string; visitors: number; rate: number }[];
+  leads: { id: string; name: string; email: string; company: string | null; consented_at: string; created_at: string }[];
 }
 
 function MiniBar({ value, max, color = "bg-blue-500" }: { value: number; max: number; color?: string }) {
@@ -375,6 +376,57 @@ export default function AnalyticsPage() {
         </div>
 
       </div>
+
+      {/* Captured Leads */}
+      {(data.leads ?? []).length > 0 && (
+        <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[18px] text-teal-600">contact_mail</span>
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100">Captured Leads</h3>
+              <p className="text-xs text-slate-400">Visitors who submitted their contact details</p>
+            </div>
+            <span className="ml-auto text-xs font-bold text-teal-600 bg-teal-50 dark:bg-teal-900/20 px-2.5 py-1 rounded-full">
+              {data.leads.length} {data.leads.length === 1 ? "lead" : "leads"}
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 dark:border-[#242736]">
+                  <th className="text-left text-xs font-semibold text-slate-400 pb-3 pr-4">Name</th>
+                  <th className="text-left text-xs font-semibold text-slate-400 pb-3 pr-4">Email</th>
+                  <th className="text-left text-xs font-semibold text-slate-400 pb-3 pr-4">Company</th>
+                  <th className="text-left text-xs font-semibold text-slate-400 pb-3">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50 dark:divide-[#242736]">
+                {data.leads.map((lead) => (
+                  <tr key={lead.id} className="hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors">
+                    <td className="py-3 pr-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-teal-700 dark:text-teal-400 text-xs font-bold shrink-0">
+                          {lead.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-medium text-slate-800 dark:text-slate-200">{lead.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <a href={`mailto:${lead.email}`} className="text-blue-600 hover:underline">{lead.email}</a>
+                    </td>
+                    <td className="py-3 pr-4 text-slate-500 dark:text-slate-400">{lead.company || <span className="text-slate-300 dark:text-slate-600">—</span>}</td>
+                    <td className="py-3 text-slate-400 text-xs whitespace-nowrap">
+                      {new Date(lead.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Hot Leads */}
       <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">

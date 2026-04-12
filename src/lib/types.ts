@@ -51,6 +51,7 @@ export interface QRContact {
   notes: string;
   showLogoInQr: boolean;
   isActive: boolean;
+  leadCaptureEnabled: boolean;
   theme: 'classic' | 'dark' | 'minimal';
 
   // QR Code styling

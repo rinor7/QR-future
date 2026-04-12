@@ -18,6 +18,7 @@ const DEFAULTS: CreateQRContact = {
   description: "",
   logoUrl: "",
   showLogoInQr: true,
+  leadCaptureEnabled: false,
   phone: "",
   email: "",
   website: "",
@@ -432,6 +433,20 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
               >
                 <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.showLogoInQr ? "translate-x-4" : "translate-x-0.5"}`} />
               </div>
+            </div>
+          </div>
+
+          {/* Lead Capture toggle */}
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Lead Capture</p>
+              <p className="text-xs text-gray-400 mt-0.5">Show a &ldquo;Leave contact&rdquo; button on this profile</p>
+            </div>
+            <div
+              onClick={() => setForm((prev) => { const next = { ...prev, leadCaptureEnabled: !prev.leadCaptureEnabled }; onFormChange?.(next); return next; })}
+              className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer shrink-0 ml-3 ${form.leadCaptureEnabled ? "bg-blue-600" : "bg-gray-200"}`}
+            >
+              <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.leadCaptureEnabled ? "translate-x-4" : "translate-x-0.5"}`} />
             </div>
           </div>
 

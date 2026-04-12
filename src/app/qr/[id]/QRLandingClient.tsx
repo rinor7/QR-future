@@ -13,6 +13,8 @@ import {
   Mail,
   MapPin,
   Check,
+  UserPlus,
+  X,
 } from "lucide-react";
 
 function XBrandIcon({ className }: { className?: string }) {
@@ -112,9 +114,40 @@ const THEMES = {
   },
 } as const;
 
-export default function QRLandingClient({ contact }: { contact: QRContact }) {
+export default function QRLandingClient({ contact, leadCaptureActive = false }: { contact: QRContact; leadCaptureActive?: boolean }) {
   const [shared, setShared] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  // Lead capture form state
+  const [showLeadForm, setShowLeadForm] = useState(false);
+  const [leadName, setLeadName] = useState("");
+  const [leadEmail, setLeadEmail] = useState("");
+  const [leadCompany, setLeadCompany] = useState("");
+  const [leadConsent, setLeadConsent] = useState(false);
+  const [leadSubmitting, setLeadSubmitting] = useState(false);
+  const [leadSubmitted, setLeadSubmitted] = useState(false);
+  const [leadError, setLeadError] = useState<string | null>(null);
+
+  async function handleLeadSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!leadConsent) { setLeadError("Please tick the consent checkbox to continue."); return; }
+    setLeadSubmitting(true);
+    setLeadError(null);
+    const visitorId = typeof window !== "undefined" ? localStorage.getItem("qr_visitor_id") : null;
+    try {
+      const res = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contactId: contact.id, visitorId, name: leadName, email: leadEmail, company: leadCompany, consent: leadConsent }),
+      });
+      if (!res.ok) { const d = await res.json(); setLeadError(d.error ?? "Something went wrong."); }
+      else {
+        track("lead_capture_submit");
+        setLeadSubmitted(true);
+      }
+    } catch { setLeadError("Network error. Please try again."); }
+    finally { setLeadSubmitting(false); }
+  }
   const color = contact.primaryColor || "#2563eb";
 
   useEffect(() => {
@@ -193,6 +226,7 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
   }
 
   return (
+    <>
     <div className={`min-h-screen flex items-center justify-center p-4 ${th.page}`}>
       <div className={`w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden ${th.card}`}>
 
@@ -332,6 +366,20 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
           </div>
         )}
 
+        {/* Lead Capture button */}
+        {leadCaptureActive && (
+          <div className="px-5 pb-4">
+            <button
+              onClick={() => { track("lead_capture_open"); setShowLeadForm(true); }}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{ backgroundColor: color }}
+            >
+              <UserPlus className="w-4 h-4" />
+              Leave your contact
+            </button>
+          </div>
+        )}
+
         {/* Social media icons */}
         {(contact.linkedinUrl || contact.instagramUrl || contact.facebookUrl || contact.tiktokUrl || contact.snapchatUrl || contact.xUrl || contact.otherSocialUrl) && (
           <div className="px-5 pb-6 flex items-center justify-center flex-wrap gap-3">
@@ -374,5 +422,100 @@ export default function QRLandingClient({ contact }: { contact: QRContact }) {
         )}
       </div>
     </div>
+
+    {/* Lead Capture Modal */}
+    {showLeadForm && (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 pt-6 pb-4">
+            <div>
+              <h3 className="font-bold text-gray-900 text-lg">Leave your contact</h3>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {`${contact.firstName} ${contact.lastName}`.trim() || contact.company} will be in touch.
+              </p>
+            </div>
+            <button onClick={() => setShowLeadForm(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {leadSubmitted ? (
+            <div className="px-6 pb-8 text-center">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: `${color}20` }}>
+                <Check className="w-7 h-7" style={{ color }} />
+              </div>
+              <p className="font-semibold text-gray-900">Thank you!</p>
+              <p className="text-sm text-gray-400 mt-1">Your contact has been received.</p>
+              <button onClick={() => setShowLeadForm(false)} className="mt-5 w-full py-3 rounded-2xl font-semibold text-sm text-white transition-colors" style={{ backgroundColor: color }}>
+                Close
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleLeadSubmit} className="px-6 pb-6 space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={leadName}
+                  onChange={(e) => setLeadName(e.target.value)}
+                  placeholder="Your full name"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2"
+                  style={{ focusRingColor: color } as React.CSSProperties}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Email *</label>
+                <input
+                  type="email"
+                  required
+                  value={leadEmail}
+                  onChange={(e) => setLeadEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Company <span className="normal-case text-gray-400 font-normal">(optional)</span></label>
+                <input
+                  type="text"
+                  value={leadCompany}
+                  onChange={(e) => setLeadCompany(e.target.value)}
+                  placeholder="Your company"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2"
+                />
+              </div>
+
+              {/* Consent */}
+              <label className="flex items-start gap-3 cursor-pointer pt-1">
+                <input
+                  type="checkbox"
+                  checked={leadConsent}
+                  onChange={(e) => setLeadConsent(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 shrink-0"
+                  style={{ accentColor: color }}
+                />
+                <span className="text-xs text-gray-500 leading-relaxed">
+                  I agree that my name, email and company may be stored and used to contact me. I can withdraw my consent at any time.
+                </span>
+              </label>
+
+              {leadError && <p className="text-xs text-red-500">{leadError}</p>}
+
+              <button
+                type="submit"
+                disabled={leadSubmitting || !leadConsent}
+                className="w-full py-3 rounded-2xl font-semibold text-sm text-white transition-all disabled:opacity-40 mt-1"
+                style={{ backgroundColor: color }}
+              >
+                {leadSubmitting ? "Sending…" : "Send contact"}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    )}
+    </>
   );
 }
