@@ -72,20 +72,5 @@ export default async function QRLandingPage({ params }: { params: { id: string }
     qrGradientColor: (row.qr_gradient_color as string) ?? "#2563eb",
   };
 
-  // Check if org has globally disabled lead capture
-  let leadCaptureActive = contact.leadCaptureEnabled;
-  if (leadCaptureActive && row.user_id) {
-    try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("lead_capture_disabled")
-        .eq("user_id", row.user_id)
-        .single();
-      if (profile?.lead_capture_disabled === true) leadCaptureActive = false;
-    } catch {
-      // If column doesn't exist or query fails, keep lead capture active
-    }
-  }
-
-  return <QRLandingClient contact={contact} leadCaptureActive={leadCaptureActive} />;
+  return <QRLandingClient contact={contact} leadCaptureActive={contact.leadCaptureEnabled} />;
 }
