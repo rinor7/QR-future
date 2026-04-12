@@ -11,6 +11,7 @@ type NavItem = { href: string; label: string; icon: string };
 const USER_NAV: NavItem[] = [
   { href: "/dashboard",         label: "Dashboard", icon: "dashboard" },
   { href: "/dashboard/codes",   label: "QR Codes",  icon: "qr_code_2" },
+  { href: "/dashboard/leads",   label: "Leads",     icon: "contacts" },
   { href: "/dashboard/nfc",     label: "NFC Cards", icon: "tap_and_play" },
   { href: "/dashboard/users",   label: "Users",     icon: "group" },
   { href: "/dashboard/upgrade", label: "Plans",     icon: "payments" },

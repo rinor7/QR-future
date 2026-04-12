@@ -122,7 +122,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [leadName, setLeadName] = useState("");
   const [leadEmail, setLeadEmail] = useState("");
-  const [leadCompany, setLeadCompany] = useState("");
+  const [leadComment, setLeadComment] = useState("");
   const [leadConsent, setLeadConsent] = useState(false);
   const [leadSubmitting, setLeadSubmitting] = useState(false);
   const [leadSubmitted, setLeadSubmitted] = useState(false);
@@ -138,7 +138,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
       const res = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contactId: contact.id, visitorId, name: leadName, email: leadEmail, company: leadCompany, consent: leadConsent }),
+        body: JSON.stringify({ contactId: contact.id, visitorId, name: leadName, email: leadEmail, comment: leadComment, consent: leadConsent }),
       });
       if (!res.ok) { const d = await res.json(); setLeadError(d.error ?? "Something went wrong."); }
       else {
@@ -477,13 +477,13 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Company <span className="normal-case text-gray-400 font-normal">(optional)</span></label>
-                <input
-                  type="text"
-                  value={leadCompany}
-                  onChange={(e) => setLeadCompany(e.target.value)}
-                  placeholder="Your company"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2"
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Comment <span className="normal-case text-gray-400 font-normal">(optional)</span></label>
+                <textarea
+                  value={leadComment}
+                  onChange={(e) => setLeadComment(e.target.value)}
+                  placeholder="Any message or note…"
+                  rows={3}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 resize-none"
                 />
               </div>
 
@@ -497,7 +497,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
                   style={{ accentColor: color }}
                 />
                 <span className="text-xs text-gray-500 leading-relaxed">
-                  I agree that my name, email and company may be stored and used to contact me. I can withdraw my consent at any time.
+                  I agree that my name, email and message may be stored and used to contact me. I can withdraw my consent at any time.
                 </span>
               </label>
 

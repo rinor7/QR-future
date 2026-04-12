@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { contactId, visitorId, name, email, company, consent } = await req.json();
+  const { contactId, visitorId, name, email, comment, consent } = await req.json();
 
   if (!contactId || !name || !email || !consent) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     visitor_id: visitorId ?? null,
     name: name.trim(),
     email: email.trim().toLowerCase(),
-    company: company?.trim() || null,
+    comment: comment?.trim() || null,
     consent: true,
     consented_at: now,
   });
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     // Fetch QR label for the payload
     const { data: qrContact } = await supabase
       .from("contacts")
-      .select("first_name, last_name, company, qr_label")
+      .select("name, company, qr_label")
       .eq("id", contactId)
       .single();
 
@@ -69,12 +69,12 @@ export async function POST(req: NextRequest) {
       lead: {
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        company: company?.trim() || null,
+        comment: comment?.trim() || null,
       },
       source: {
         contact_id: contactId,
         qr_label: qrContact?.qr_label || null,
-        employee: [qrContact?.first_name, qrContact?.last_name].filter(Boolean).join(" ") || qrContact?.company || null,
+        employee: qrContact?.name || qrContact?.company || null,
       },
     };
 
