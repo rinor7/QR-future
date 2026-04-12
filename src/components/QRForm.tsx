@@ -395,7 +395,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 onDragOver={(e) => { e.preventDefault(); setLogoDragging(true); }}
                 onDragLeave={() => setLogoDragging(false)}
                 onDrop={handleLogoDrop}
-                className={`flex items-center gap-4 p-4 cursor-pointer border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-[#242736] hover:bg-gray-100 dark:hover:bg-[#2a2d3e] transition-colors ${logoUploading ? "opacity-50 pointer-events-none" : ""}`}
+                className={`flex items-center gap-4 p-4 cursor-pointer border rounded-xl transition-colors ${logoDragging ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20" : "border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-[#242736] hover:bg-gray-100 dark:hover:bg-[#2a2d3e]"} ${logoUploading ? "opacity-50 pointer-events-none" : ""}`}
               >
                 <div className="w-14 h-14 bg-gray-200 dark:bg-slate-600 rounded-xl flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-[24px] text-gray-400">image</span>
