@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getAllContacts } from "@/lib/store";
 import { QRContact } from "@/lib/types";
@@ -90,7 +90,6 @@ function SparkLine({ data }: { data: { date: string; count: number }[] }) {
 
 export default function AnalyticsPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [contact, setContact] = useState<QRContact | null>(null);
   const [loading, setLoading] = useState(true);
@@ -134,9 +133,9 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+          <Link href="/dashboard/codes" className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          </button>
+          </Link>
           <div>
             <p className="text-xs text-slate-400 mb-0.5">Analytics for</p>
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{name}</h1>
