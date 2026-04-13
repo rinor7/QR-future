@@ -140,11 +140,18 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
     tiktok_url: string | null; snapchat_url: string | null; x_url: string | null; other_social_url: string | null;
     qr_dot_style: string | null; qr_corner_style: string | null; qr_dot_color: string | null;
     qr_bg_color: string | null; qr_gradient: boolean; qr_gradient_color: string | null;
+    locked_fields: string[];
   };
   const [templates, setTemplates] = useState<QRTemplate[]>([]);
   const [templateName, setTemplateName] = useState("");
   const [templateSaving, setTemplateSaving] = useState(false);
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [appliedTemplate, setAppliedTemplate] = useState<{ id: string; name: string; locked: Set<string> } | null>(null);
+
+  function isLocked(dbKey: string): boolean {
+    return !!appliedTemplate?.locked.has(dbKey);
+  }
+  const lockedCls = "opacity-50 cursor-not-allowed";
 
   useEffect(() => {
     fetch("/api/templates").then((r) => r.json()).then((data) => {
@@ -153,16 +160,25 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
   }, []);
 
   function applyTemplate(t: QRTemplate) {
+    const locked = new Set(t.locked_fields ?? []);
+    setAppliedTemplate({ id: t.id, name: t.name, locked });
+    // Force-open expandable fields that are locked so they show as disabled
+    if (locked.has("company") || locked.has("description")) {
+      setOpenFields((prev) => {
+        const next = new Set(prev);
+        if (locked.has("company")) next.add("company");
+        if (locked.has("description")) next.add("description");
+        return next;
+      });
+    }
     setForm((prev) => {
       const next: CreateQRContact = {
         ...prev,
-        // Branding & style
         primaryColor: t.primary_color,
         theme: t.theme as CreateQRContact["theme"],
         bgImageUrl: t.bg_image_url ?? prev.bgImageUrl,
         showLogoInQr: t.show_logo_in_qr,
         leadCaptureEnabled: t.lead_capture_enabled,
-        // Company fields (only override if template has a value)
         ...(t.company && { company: t.company }),
         ...(t.logo_url && { logoUrl: t.logo_url }),
         ...(t.website && { website: t.website }),
@@ -174,7 +190,6 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         ...(t.snapchat_url && { snapchatUrl: t.snapchat_url }),
         ...(t.x_url && { xUrl: t.x_url }),
         ...(t.other_social_url && { otherSocialUrl: t.other_social_url }),
-        // QR style
         ...(t.qr_dot_style && { qrDotStyle: t.qr_dot_style as CreateQRContact["qrDotStyle"] }),
         ...(t.qr_corner_style && { qrCornerStyle: t.qr_corner_style as CreateQRContact["qrCornerStyle"] }),
         ...(t.qr_dot_color && { qrDotColor: t.qr_dot_color }),
@@ -185,6 +200,14 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       onFormChange?.(next);
       return next;
     });
+    // Open website field if locked
+    if (locked.has("website")) {
+      setOpenFields((prev) => { const next = new Set(prev); next.add("website"); return next; });
+    }
+  }
+
+  function removeTemplate() {
+    setAppliedTemplate(null);
   }
 
   async function saveTemplate() {
@@ -392,6 +415,26 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         </div>
       )}
 
+      {/* Applied template banner */}
+      {appliedTemplate && (
+        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px] text-orange-500">lock</span>
+            <span className="text-sm font-semibold text-orange-700 dark:text-orange-300">Template applied: {appliedTemplate.name}</span>
+            {appliedTemplate.locked.size > 0 && (
+              <span className="text-xs text-orange-500">{appliedTemplate.locked.size} field{appliedTemplate.locked.size !== 1 ? "s" : ""} locked</span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={removeTemplate}
+            className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-800 border border-orange-300 dark:border-orange-700 px-3 py-1 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors shrink-0"
+          >
+            Remove
+          </button>
+        </div>
+      )}
+
       {/* Save template prompt */}
       {showSaveTemplate && (
         <div className="flex items-center gap-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-2xl border border-purple-200 dark:border-purple-800">
@@ -477,7 +520,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
             )}
             {isFieldOpen("company") ? (
               <Field label={tr.field_company}>
-                <input type="text" value={form.company} onChange={(e) => set("company", e.target.value)} placeholder="z.B. Builtech Gruppe" className={input} />
+                <input type="text" value={form.company} onChange={(e) => set("company", e.target.value)} placeholder="z.B. Builtech Gruppe" disabled={isLocked("company")} className={`${input} ${isLocked("company") ? lockedCls : ""}`} />
               </Field>
             ) : (
               <button type="button" onClick={() => openField("company")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-300 hover:border-blue-300 rounded-full px-4 py-1.5 transition-colors w-fit">
@@ -486,7 +529,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
             )}
             {isFieldOpen("description") ? (
               <Field label={tr.field_description}>
-                <textarea value={(form as unknown as Record<string, string>).description ?? ""} onChange={(e) => set("description" as keyof CreateQRContact, e.target.value)} placeholder="Kurze Beschreibung oder Slogan…" rows={2} className={`${input} resize-none`} />
+                <textarea value={(form as unknown as Record<string, string>).description ?? ""} onChange={(e) => set("description" as keyof CreateQRContact, e.target.value)} placeholder="Kurze Beschreibung oder Slogan…" rows={2} disabled={isLocked("description")} className={`${input} resize-none ${isLocked("description") ? lockedCls : ""}`} />
               </Field>
             ) : (
               <button type="button" onClick={() => openField("description")} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 border border-dashed border-gray-300 hover:border-blue-300 rounded-full px-4 py-1.5 transition-colors w-fit">
@@ -544,7 +587,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           </div>
 
           {/* Logo */}
-          <div>
+          <div className={isLocked("logo_url") ? "pointer-events-none opacity-60 relative" : ""}>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{tr.field_logo}</p>
             {form.logoUrl ? (
               <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-[#242736] rounded-xl border border-gray-200 dark:border-slate-700">
@@ -581,8 +624,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{tr.field_color}</p>
-              <div className="flex items-center bg-gray-50 dark:bg-[#242736] border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                <input type="color" value={form.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} className="w-11 h-11 cursor-pointer border-0 bg-transparent shrink-0 p-1" />
+              <div className={`flex items-center bg-gray-50 dark:bg-[#242736] border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden ${isLocked("primary_color") ? "opacity-60 pointer-events-none" : ""}`}>
+                <input type="color" value={form.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} disabled={isLocked("primary_color")} className="w-11 h-11 cursor-pointer border-0 bg-transparent shrink-0 p-1" />
                 <div className="w-px h-5 bg-gray-300 dark:bg-slate-600 shrink-0" />
                 <span className="text-sm text-gray-600 dark:text-slate-300 font-mono px-3">{form.primaryColor}</span>
               </div>
@@ -591,8 +634,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{tr.qr_logo_in_center}</p>
               <div className="flex items-center gap-3 bg-gray-50 dark:bg-[#242736] border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-3">
                 <div
-                  onClick={() => setForm((prev) => { const next = { ...prev, showLogoInQr: !prev.showLogoInQr }; onFormChange?.(next); return next; })}
-                  className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer shrink-0 ${form.showLogoInQr ? "bg-blue-600" : "bg-gray-200"}`}
+                  onClick={isLocked("show_logo_in_qr") ? undefined : () => setForm((prev) => { const next = { ...prev, showLogoInQr: !prev.showLogoInQr }; onFormChange?.(next); return next; })}
+                  className={`relative w-10 h-6 rounded-full transition-colors shrink-0 ${form.showLogoInQr ? "bg-blue-600" : "bg-gray-200"} ${isLocked("show_logo_in_qr") ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.showLogoInQr ? "translate-x-4" : "translate-x-0.5"}`} />
                 </div>
@@ -608,8 +651,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
               <p className="text-xs text-gray-400 mt-0.5">Show a &ldquo;Leave contact&rdquo; button on this profile</p>
             </div>
             <div
-              onClick={() => setForm((prev) => { const next = { ...prev, leadCaptureEnabled: !prev.leadCaptureEnabled }; onFormChange?.(next); return next; })}
-              className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer shrink-0 ml-3 ${form.leadCaptureEnabled ? "bg-blue-600" : "bg-gray-200"}`}
+              onClick={isLocked("lead_capture_enabled") ? undefined : () => setForm((prev) => { const next = { ...prev, leadCaptureEnabled: !prev.leadCaptureEnabled }; onFormChange?.(next); return next; })}
+              className={`relative w-10 h-6 rounded-full transition-colors shrink-0 ml-3 ${form.leadCaptureEnabled ? "bg-blue-600" : "bg-gray-200"} ${isLocked("lead_capture_enabled") ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
             >
               <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.leadCaptureEnabled ? "translate-x-4" : "translate-x-0.5"}`} />
             </div>
@@ -618,7 +661,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           {/* Theme picker */}
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{tr.field_theme}</p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className={`grid grid-cols-3 gap-3 ${isLocked("theme") ? "pointer-events-none opacity-60" : ""}`}>
               {(["classic", "dark", "minimal"] as const).map((t) => {
                 const labels: Record<string, string> = { classic: tr.theme_classic, dark: tr.theme_dark, minimal: tr.theme_minimal };
                 const cardBg: Record<string, string> = { classic: "#ffffff", dark: "#111827", minimal: "#f9fafb" };
@@ -661,6 +704,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
 
       {/* QR Code Design */}
       <Section title="QR Code Design" iconKey="qrdesign">
+        <div className={["qr_dot_style","qr_corner_style","qr_dot_color","qr_bg_color","qr_gradient","qr_gradient_color"].some(f => isLocked(f)) ? "pointer-events-none opacity-60" : ""}>
         <QRStylePicker
           value={{
             qrDotStyle: form.qrDotStyle,
@@ -678,6 +722,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           logoUrl={form.showLogoInQr ? form.logoUrl : undefined}
           showLogo={form.showLogoInQr}
         />
+        </div>
       </Section>
 
       {/* Contact */}
@@ -717,7 +762,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         )}
         {isFieldOpen("website") && (
           <Field label={tr.field_website}>
-            <input type="text" value={form.website} onChange={(e) => set("website", e.target.value)} onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }} placeholder="www.qr-card.ch" className={input} />
+            <input type="text" value={form.website} onChange={(e) => set("website", e.target.value)} onBlur={(e) => { if (e.target.value) set("website", normalizeUrl(e.target.value.trim())); }} placeholder="www.qr-card.ch" disabled={isLocked("website")} className={`${input} ${isLocked("website") ? lockedCls : ""}`} />
           </Field>
         )}
         <Field label="Land">
@@ -783,54 +828,69 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
 
       {/* Social */}
       <Section title={tr.section_social} iconKey="social">
-        <div className="flex flex-wrap gap-2">
-          {([
-            { key: "linkedinUrl", label: "LinkedIn", prefix: "linkedin.com/in/", fullPrefix: "https://linkedin.com/in/" },
-            { key: "instagramUrl", label: "Instagram", prefix: "instagram.com/", fullPrefix: "https://instagram.com/" },
-            { key: "facebookUrl", label: "Facebook", prefix: "facebook.com/", fullPrefix: "https://facebook.com/" },
-            { key: "tiktokUrl", label: "TikTok", prefix: "tiktok.com/@", fullPrefix: "https://tiktok.com/@" },
-            { key: "snapchatUrl", label: "Snapchat", prefix: "snapchat.com/add/", fullPrefix: "https://snapchat.com/add/" },
-            { key: "xUrl", label: "X / Twitter", prefix: "x.com/", fullPrefix: "https://x.com/" },
-            { key: "otherSocialUrl", label: tr.field_other_social, prefix: null, fullPrefix: null },
-          ] as { key: keyof CreateQRContact; label: string; prefix: string | null; fullPrefix: string | null }[]).map((s) => {
-            const hasValue = !!(form[s.key] as string);
-            const isActive = activeSocial === s.key;
-            return (
-              <button
-                key={s.key}
-                type="button"
-                onClick={() => setActiveSocial(isActive ? null : s.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
-                  hasValue ? "bg-blue-50 border-blue-200 text-blue-700"
-                  : isActive ? "bg-gray-100 border-gray-300 text-gray-700"
-                  : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
-                }`}
-              >
-                {hasValue
-                  ? <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                  : <Plus className="w-3.5 h-3.5 shrink-0" />}
-                {s.label}
-              </button>
-            );
-          })}
-        </div>
-        {activeSocial && (() => {
-          const s = [
-            { key: "linkedinUrl", prefix: "linkedin.com/in/", fullPrefix: "https://linkedin.com/in/" },
-            { key: "instagramUrl", prefix: "instagram.com/", fullPrefix: "https://instagram.com/" },
-            { key: "facebookUrl", prefix: "facebook.com/", fullPrefix: "https://facebook.com/" },
-            { key: "tiktokUrl", prefix: "tiktok.com/@", fullPrefix: "https://tiktok.com/@" },
-            { key: "snapchatUrl", prefix: "snapchat.com/add/", fullPrefix: "https://snapchat.com/add/" },
-            { key: "xUrl", prefix: "x.com/", fullPrefix: "https://x.com/" },
-          ].find((x) => x.key === activeSocial);
+        {(() => {
+          const SOCIAL_DB_KEY: Record<string, string> = {
+            linkedinUrl: "linkedin_url", instagramUrl: "instagram_url", facebookUrl: "facebook_url",
+            tiktokUrl: "tiktok_url", snapchatUrl: "snapchat_url", xUrl: "x_url", otherSocialUrl: "other_social_url",
+          };
           return (
-            <div className="mt-2">
-              {s ? (
-                <PrefixInput prefix={s.prefix} fullPrefix={s.fullPrefix} value={form[activeSocial as keyof CreateQRContact] as string} onChange={(v) => set(activeSocial as keyof CreateQRContact, v)} placeholder={tr.social_placeholder} />
-              ) : (
-                <input type="text" value={form[activeSocial as keyof CreateQRContact] as string} onChange={(e) => set(activeSocial as keyof CreateQRContact, e.target.value)} onBlur={(e) => { if (e.target.value) set(activeSocial as keyof CreateQRContact, normalizeUrl(e.target.value.trim())); }} placeholder="example.com" className={input} autoFocus />
-              )}
-            </div>
+            <>
+              <div className="flex flex-wrap gap-2">
+                {([
+                  { key: "linkedinUrl", label: "LinkedIn", prefix: "linkedin.com/in/", fullPrefix: "https://linkedin.com/in/" },
+                  { key: "instagramUrl", label: "Instagram", prefix: "instagram.com/", fullPrefix: "https://instagram.com/" },
+                  { key: "facebookUrl", label: "Facebook", prefix: "facebook.com/", fullPrefix: "https://facebook.com/" },
+                  { key: "tiktokUrl", label: "TikTok", prefix: "tiktok.com/@", fullPrefix: "https://tiktok.com/@" },
+                  { key: "snapchatUrl", label: "Snapchat", prefix: "snapchat.com/add/", fullPrefix: "https://snapchat.com/add/" },
+                  { key: "xUrl", label: "X / Twitter", prefix: "x.com/", fullPrefix: "https://x.com/" },
+                  { key: "otherSocialUrl", label: tr.field_other_social, prefix: null, fullPrefix: null },
+                ] as { key: keyof CreateQRContact; label: string; prefix: string | null; fullPrefix: string | null }[]).map((s) => {
+                  const hasValue = !!(form[s.key] as string);
+                  const isActive = activeSocial === s.key;
+                  const fieldLocked = isLocked(SOCIAL_DB_KEY[s.key]);
+                  return (
+                    <button
+                      key={s.key}
+                      type="button"
+                      onClick={() => !fieldLocked && setActiveSocial(isActive ? null : s.key)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
+                        fieldLocked ? "opacity-60 cursor-not-allowed bg-orange-50 border-orange-200 text-orange-600"
+                        : hasValue ? "bg-blue-50 border-blue-200 text-blue-700"
+                        : isActive ? "bg-gray-100 border-gray-300 text-gray-700"
+                        : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                      }`}
+                    >
+                      {fieldLocked
+                        ? <span className="material-symbols-outlined text-[12px]">lock</span>
+                        : hasValue
+                        ? <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                        : <Plus className="w-3.5 h-3.5 shrink-0" />}
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {activeSocial && (() => {
+                const fieldLocked = isLocked(SOCIAL_DB_KEY[activeSocial]);
+                const s = [
+                  { key: "linkedinUrl", prefix: "linkedin.com/in/", fullPrefix: "https://linkedin.com/in/" },
+                  { key: "instagramUrl", prefix: "instagram.com/", fullPrefix: "https://instagram.com/" },
+                  { key: "facebookUrl", prefix: "facebook.com/", fullPrefix: "https://facebook.com/" },
+                  { key: "tiktokUrl", prefix: "tiktok.com/@", fullPrefix: "https://tiktok.com/@" },
+                  { key: "snapchatUrl", prefix: "snapchat.com/add/", fullPrefix: "https://snapchat.com/add/" },
+                  { key: "xUrl", prefix: "x.com/", fullPrefix: "https://x.com/" },
+                ].find((x) => x.key === activeSocial);
+                return (
+                  <div className={`mt-2 ${fieldLocked ? "pointer-events-none opacity-60" : ""}`}>
+                    {s ? (
+                      <PrefixInput prefix={s.prefix} fullPrefix={s.fullPrefix} value={form[activeSocial as keyof CreateQRContact] as string} onChange={(v) => set(activeSocial as keyof CreateQRContact, v)} placeholder={tr.social_placeholder} />
+                    ) : (
+                      <input type="text" value={form[activeSocial as keyof CreateQRContact] as string} onChange={(e) => set(activeSocial as keyof CreateQRContact, e.target.value)} onBlur={(e) => { if (e.target.value) set(activeSocial as keyof CreateQRContact, normalizeUrl(e.target.value.trim())); }} placeholder="example.com" className={input} autoFocus />
+                    )}
+                  </div>
+                );
+              })()}
+            </>
           );
         })()}
       </Section>

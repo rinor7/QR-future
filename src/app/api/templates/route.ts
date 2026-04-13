@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
     company, logo_url, website, description,
     linkedin_url, instagram_url, facebook_url, tiktok_url, snapchat_url, x_url, other_social_url,
     qr_dot_style, qr_corner_style, qr_dot_color, qr_bg_color, qr_gradient, qr_gradient_color,
+    locked_fields,
   } = body;
 
   if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -85,6 +86,7 @@ export async function POST(req: NextRequest) {
     qr_bg_color: qr_bg_color ?? null,
     qr_gradient: qr_gradient ?? false,
     qr_gradient_color: qr_gradient_color ?? null,
+    locked_fields: locked_fields ?? [],
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

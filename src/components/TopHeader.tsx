@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { getUserProfile } from "@/lib/store";
 import type { Plan } from "@/lib/types";
+import { useLang } from "@/lib/language";
 
 export default function TopHeader() {
   const router = useRouter();
+  const { lang, toggleLang } = useLang();
   const [userEmail, setUserEmail] = useState("");
   const [userRole, setUserRole] = useState("Enterprise Admin");
   const [plan, setPlan] = useState<Plan>("free");
@@ -81,6 +83,15 @@ export default function TopHeader() {
 
       {/* Actions + User */}
       <div className="flex items-center gap-3">
+        {/* Language toggle */}
+        <button
+          onClick={toggleLang}
+          title={lang === "de" ? "Switch to English" : "Zu Deutsch wechseln"}
+          className="h-9 px-3 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors text-xs font-bold tracking-wide"
+        >
+          {lang === "de" ? "DE" : "EN"}
+        </button>
+
         {/* Dark / Light toggle */}
         <button
           onClick={toggleDark}
