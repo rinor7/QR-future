@@ -14,12 +14,15 @@ export async function POST(req: NextRequest) {
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
 
-  const { error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    data: { owner_id: ownerId },
+  // Use generateLink to force a new invite email even for already-invited users.
+  // inviteUserByEmail silently skips the email when the user already exists in auth.
+  const { error } = await supabase.auth.admin.generateLink({
+    type: "invite",
+    email,
+    options: { data: { owner_id: ownerId } },
   });
 
-  // "Already registered" means they already accepted — not a real error
-  if (error && !error.message.includes("already been registered")) {
+  if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
