@@ -248,7 +248,7 @@ export default function EditPage() {
       })()}
 
       <div className="flex gap-8">
-        <div className="flex-1">
+        <div className="flex-1 min-w-0 max-w-[68rem]">
           <QRForm
             initial={contact}
             onSubmit={handleSubmit}

@@ -346,11 +346,10 @@ export default function CreatePage() {
       {/* ── Two-column body ─────────────────────────────────────────────── */}
       <div className="flex gap-6 pl-6 wide:pl-8 pr-6 wide:pr-8 py-6 items-start">
         {/* ── Left: form ─────────────────────────────────────────────────── */}
-        <div className="flex-1 min-w-0 space-y-5">
+        <div className="flex-1 min-w-0 max-w-[68rem] space-y-5">
 
           {/* Basic Information */}
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Basic Information</p>
             <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] border-l-4 border-l-blue-500 p-6 space-y-4">
               {/* QR Name field is inside QRForm as the first field, so we need the folder picker here */}
               <div>
