@@ -640,7 +640,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
 
       {/* Phone Numbers */}
       <Section title={tr.field_phone} iconKey="contact">
-        <p className="text-xs text-gray-400 dark:text-slate-500 -mt-2 mb-1">You can add up to 4 phone numbers. Optionally set a display name for each button (e.g. "Mobile", "Office").</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 -mt-2 mb-1">You can add up to 4 phone numbers. Optionally set a display name for each button (e.g. &quot;Mobile&quot;, &quot;Office&quot;).</p>
         <div className="space-y-3">
           {(form.phones.length === 0 ? [{ number: "", label: "" }] : form.phones).map((ph, idx) => (
             <div key={idx} className="flex items-start gap-2">
@@ -693,7 +693,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
 
       {/* Email Addresses */}
       <Section title={tr.field_email} iconKey="contact">
-        <p className="text-xs text-gray-400 dark:text-slate-500 -mt-2 mb-1">You can add up to 3 email addresses. Optionally set a display name (e.g. "Work", "Personal").</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 -mt-2 mb-1">You can add up to 3 email addresses. Optionally set a display name (e.g. &quot;Work&quot;, &quot;Personal&quot;).</p>
         <div className="space-y-3">
           {(form.emails.length === 0 ? [{ email: "", label: "" }] : form.emails).map((em, idx) => (
             <div key={idx} className="flex items-start gap-2">
@@ -746,7 +746,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
 
       {/* Websites */}
       <Section title={tr.field_website} iconKey="contact">
-        <p className="text-xs text-gray-400 dark:text-slate-500 -mt-2 mb-1">You can add up to 3 websites. Optionally set a display name (e.g. "Portfolio", "LinkedIn").</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 -mt-2 mb-1">You can add up to 3 websites. Optionally set a display name (e.g. &quot;Portfolio&quot;, &quot;LinkedIn&quot;).</p>
         <div className="space-y-3">
           {(form.websites.length === 0 ? [{ url: "", label: "" }] : form.websites).map((ws, idx) => (
             <div key={idx} className="flex items-start gap-2">
