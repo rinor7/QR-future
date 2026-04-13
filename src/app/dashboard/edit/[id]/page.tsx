@@ -215,18 +215,20 @@ export default function EditPage() {
         const selectedFolder = selectedFolderId ? findFolder(folderTree, selectedFolderId) : null;
         return (
           <div className="mb-6 mr-4 wide:mr-8">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Folder <span className="text-slate-400 font-normal">(optional)</span></label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Destination Folder <span className="text-slate-400 font-normal">(optional)</span></label>
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setFolderOpen((v) => !v)}
-                className="w-full flex items-center gap-3 px-4 py-3 bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] rounded-xl text-left hover:border-blue-400 transition-colors"
+                className="w-full flex items-center justify-between gap-2 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm bg-slate-50 dark:bg-[#242736] hover:bg-white dark:hover:bg-[#1e2130] transition-colors text-left"
               >
-                <span className="material-symbols-outlined text-[18px] text-blue-500 shrink-0">folder</span>
-                <span className={`flex-1 truncate text-sm ${selectedFolder ? "text-slate-800 dark:text-slate-200 font-medium" : "text-slate-400 dark:text-slate-500"}`}>
-                  {selectedFolder ? selectedFolder.name : "No folder selected"}
-                </span>
-                <span className="material-symbols-outlined text-[18px] text-slate-400">{folderOpen ? "expand_less" : "expand_more"}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="material-symbols-outlined text-[18px] text-blue-500 shrink-0">folder</span>
+                  <span className={`truncate ${selectedFolder ? "text-slate-800 dark:text-slate-200 font-medium" : "text-slate-400 dark:text-slate-500"}`}>
+                    {selectedFolder ? selectedFolder.name : "No folder selected"}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-[18px] text-slate-400 shrink-0">{folderOpen ? "expand_less" : "expand_more"}</span>
               </button>
               {folderOpen && (
                 <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] rounded-xl shadow-xl max-h-52 overflow-y-auto">
