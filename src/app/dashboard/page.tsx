@@ -108,7 +108,7 @@ export default function DashboardPage() {
 
   const activeCount = contacts.filter((c) => c.isActive !== false).length;
   const pausedCount = contacts.filter((c) => c.isActive === false).length;
-  const recentContacts = contacts.slice(0, 4);
+  const recentContacts = contacts.slice(0, 3);
   const limit = PLAN_LIMITS[plan];
   const limitReached = !roleLoading && !isReader && limit !== -1 && contacts.length >= limit;
 
