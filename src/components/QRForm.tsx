@@ -337,7 +337,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
   }
 
   return (
-    <form id={formId} onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
 
       {/* Template picker bar */}
       <div className="flex items-center gap-2 p-3 bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm">

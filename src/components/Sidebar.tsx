@@ -70,7 +70,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
   return (
     <aside
       className={`
-        w-64 flex flex-col shrink-0 fixed top-0 left-0 h-screen z-50 bg-[#eef1f8] dark:bg-[#0f1117]
+        w-72 flex flex-col shrink-0 fixed top-0 left-0 h-screen z-50 bg-[#eef1f8] dark:bg-[#0f1117]
         transition-transform duration-300 ease-in-out
         wide:sticky wide:top-0 wide:h-screen wide:translate-x-0 wide:overflow-y-auto
         ${open ? "translate-x-0" : "-translate-x-full"}

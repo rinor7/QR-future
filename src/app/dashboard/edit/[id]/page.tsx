@@ -183,7 +183,7 @@ export default function EditPage() {
   if (!contact) return null;
 
   return (
-    <div className="p-4 wide:p-8 max-w-5xl">
+    <div className="p-4 wide:p-8 max-w-[1400px]">
       {/* Created success banner */}
       {saved && searchParams.get("created") === "1" && (
         <div className="mb-6 flex items-center gap-3 px-5 py-4 bg-green-50 border border-green-200 rounded-2xl text-green-800">
@@ -263,7 +263,7 @@ export default function EditPage() {
         </div>
 
         {/* QR Preview */}
-        <div className="w-72 shrink-0">
+        <div className="w-[340px] shrink-0">
           <div className="sticky top-8">
             <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
