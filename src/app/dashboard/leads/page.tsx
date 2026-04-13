@@ -191,20 +191,17 @@ export default function LeadsPage() {
           </div>
           <div className="divide-y divide-gray-100 dark:divide-gray-800">
             {filtered.map((lead) => (
-              <div key={lead.id} className="px-5 py-4 flex flex-col sm:flex-row sm:items-start gap-3">
+              <div key={lead.id} className="px-5 py-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0 text-blue-600 font-bold text-sm">
                   {lead.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className="font-semibold text-gray-900 dark:text-white text-sm">{lead.name}</span>
-                    <a
-                      href={`mailto:${lead.email}`}
-                      className="flex items-center gap-1 text-blue-600 text-xs hover:underline"
-                    >
+                    <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-xs">
                       <Mail className="w-3 h-3" />
                       {lead.email}
-                    </a>
+                    </span>
                   </div>
                   {lead.comment && (
                     <div className="flex items-start gap-1.5 mt-1.5">
@@ -213,18 +210,28 @@ export default function LeadsPage() {
                     </div>
                   )}
                   <div className="flex flex-wrap items-center gap-x-3 mt-1.5 text-xs text-gray-400">
-                    <button
-                      onClick={() => setPreview({ contact_id: lead.contact_id, qr_label: lead.qr_label, contact_name: lead.contact_name })}
-                      className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 px-2 py-0.5 rounded-lg font-medium transition-colors"
-                    >
-                      <QrCode className="w-3 h-3" />
-                      {lead.qr_label || lead.contact_name || lead.contact_id}
-                    </button>
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
                       {new Date(lead.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                     </span>
                   </div>
+                </div>
+                <div className="shrink-0 flex items-center gap-2">
+                  <button
+                    onClick={() => setPreview({ contact_id: lead.contact_id, qr_label: lead.qr_label, contact_name: lead.contact_name })}
+                    title="Preview QR code"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                  >
+                    <QrCode className="w-4 h-4" />
+                  </button>
+                  <Link
+                    href={`/dashboard/edit/${lead.contact_id}`}
+                    title={lead.qr_label || lead.contact_name || "Edit QR card"}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 text-gray-600 dark:text-gray-300 rounded-lg text-xs font-medium transition-colors max-w-[140px] truncate"
+                  >
+                    <ExternalLink className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{lead.qr_label || lead.contact_name || "QR Card"}</span>
+                  </Link>
                 </div>
               </div>
             ))}
