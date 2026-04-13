@@ -344,7 +344,7 @@ export default function CreatePage() {
       )}
 
       {/* ── Two-column body ─────────────────────────────────────────────── */}
-      <div className="flex gap-6 px-6 py-6 items-start">
+      <div className="flex gap-6 pl-6 wide:pl-8 pr-6 wide:pr-8 py-6 items-start">
         {/* ── Left: form ─────────────────────────────────────────────────── */}
         <div className="flex-1 min-w-0 space-y-5">
 
@@ -459,7 +459,8 @@ export default function CreatePage() {
         </div>
 
         {/* ── Right: live preview ─────────────────────────────────────────── */}
-        <div className="hidden lg:flex flex-col self-start sticky top-24 w-[340px] shrink-0 gap-4">
+        <div className="hidden lg:block w-[340px] shrink-0 self-start">
+        <div className="sticky top-[68px] flex flex-col gap-4">
 
           {/* Phone preview card */}
           <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] overflow-hidden">
@@ -518,6 +519,7 @@ export default function CreatePage() {
             </div>
           </div>
 
+        </div>
         </div>
       </div>
     </div>
