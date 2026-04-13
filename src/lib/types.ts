@@ -23,6 +23,7 @@ export interface QRContact {
 
   // Contact
   phone: string;
+  phones: string[];
   email: string;
   website: string;
 

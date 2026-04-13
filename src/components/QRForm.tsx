@@ -20,6 +20,7 @@ const DEFAULTS: CreateQRContact = {
   showLogoInQr: true,
   leadCaptureEnabled: false,
   phone: "",
+  phones: [],
   email: "",
   website: "",
   linkedinUrl: "",
@@ -113,7 +114,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
   // Track which optional fields are manually opened
   const [openFields, setOpenFields] = useState<Set<string>>(() => {
     const open = new Set<string>();
-    const optionals = ["title", "company", "description", "phone", "email", "website"];
+    const optionals = ["title", "company", "description", "email", "website"];
     optionals.forEach((f) => {
       if ((initial as Record<string, string>)?.[f]) open.add(f);
     });
@@ -635,17 +636,51 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         </div>
       </Section>
 
+      {/* Phone Numbers */}
+      <Section title={tr.field_phone} iconKey="contact">
+        <div className="space-y-3">
+          {(form.phones.length === 0 ? [""] : form.phones).map((ph, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <input
+                type="tel"
+                value={ph}
+                onChange={(e) => {
+                  const next = [...(form.phones.length === 0 ? [""] : form.phones)];
+                  next[idx] = e.target.value;
+                  setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; });
+                }}
+                placeholder="+41 123 456 789"
+                className={`${input} flex-1`}
+              />
+              {idx > 0 && (
+                <button
+                  type="button"
+                  onClick={() => { const next = form.phones.filter((_, i) => i !== idx); setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; }); }}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ))}
+          {(form.phones.length === 0 ? 1 : form.phones.length) < 4 && (
+            <button
+              type="button"
+              onClick={() => { const next = [...(form.phones.length === 0 ? [""] : form.phones), ""]; setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; }); }}
+              className="flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors mt-1"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add another number
+            </button>
+          )}
+        </div>
+      </Section>
+
       {/* Contact */}
       <Section
         title={tr.section_contact}
         iconKey="contact"
         actions={
           <>
-            {!isFieldOpen("phone") && (
-              <button type="button" onClick={() => openField("phone")} className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 border border-gray-300 hover:border-blue-300 rounded-full px-3.5 py-1.5 transition-colors bg-white dark:bg-[#1a1d27] dark:border-slate-700">
-                <Plus className="w-3 h-3" /> {tr.field_phone}
-              </button>
-            )}
             {!isFieldOpen("email") && (
               <button type="button" onClick={() => openField("email")} className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 border border-gray-300 hover:border-blue-300 rounded-full px-3.5 py-1.5 transition-colors bg-white dark:bg-[#1a1d27] dark:border-slate-700">
                 <Plus className="w-3 h-3" /> {tr.field_email}
@@ -660,11 +695,6 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         }
       >
         {/* Open fields */}
-        {isFieldOpen("phone") && (
-          <Field label={tr.field_phone}>
-            <input type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+41 123 456 789" className={input} autoFocus />
-          </Field>
-        )}
         {isFieldOpen("email") && (
           <Field label={tr.field_email}>
             <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="max@qr-card.ch" className={input} />

@@ -207,7 +207,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
       `FN:${`${contact.firstName} ${contact.lastName}`.trim()}`,
       contact.title ? `TITLE:${contact.title}` : "",
       contact.company ? `ORG:${contact.company}` : "",
-      contact.phone ? `TEL;TYPE=CELL:${contact.phone}` : "",
+      ...(contact.phones?.length ? contact.phones.filter(Boolean).map((p) => `TEL;TYPE=CELL:${p}`) : contact.phone ? [`TEL;TYPE=CELL:${contact.phone}`] : []),
       contact.email ? `EMAIL:${contact.email}` : "",
       contact.website ? `URL:${contact.website}` : "",
       (contact.street || contact.city) ? `ADR:;;${contact.street} ${contact.streetNr};${contact.city};;${contact.plz};Switzerland` : "",
@@ -304,17 +304,17 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
 
         {/* Action buttons */}
         <div className="px-5 space-y-2.5 pb-4">
-          {contact.phone && (
-            <a href={`tel:${contact.phone}`} onClick={() => track("click_phone")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+          {(contact.phones?.length ? contact.phones.filter(Boolean) : contact.phone ? [contact.phone] : []).map((ph, i) => (
+            <a key={i} href={`tel:${ph}`} onClick={() => track("click_phone")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <Phone className="w-4 h-4" />
               </div>
               <div className="flex-1">
                 <div className={`text-xs font-normal ${th.actionLabelColor}`}>Anrufen</div>
-                <div className="text-sm font-semibold">{formatPhone(contact.phone)}</div>
+                <div className="text-sm font-semibold">{formatPhone(ph)}</div>
               </div>
             </a>
-          )}
+          ))}
           {contact.email && (
             <a href={`mailto:${contact.email}`} onClick={() => track("click_email")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
