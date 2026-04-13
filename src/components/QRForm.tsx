@@ -337,7 +337,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
   }
 
   return (
-    <form id={formId} onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-8 max-w-[68rem]">
 
       {/* Template picker bar */}
       <div className="flex items-center gap-2 p-3 bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm">
@@ -644,28 +644,32 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         <div className="space-y-3">
           {(form.phones.length === 0 ? [{ number: "", label: "" }] : form.phones).map((ph, idx) => (
             <div key={idx} className="flex items-center gap-2">
-              <input
-                type="tel"
-                value={ph.number}
-                onChange={(e) => {
-                  const next = [...(form.phones.length === 0 ? [{ number: "", label: "" }] : form.phones)];
-                  next[idx] = { ...next[idx], number: e.target.value };
-                  setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; });
-                }}
-                placeholder="+41 123 456 789"
-                className={`${input} flex-1 min-w-0`}
-              />
-              <input
-                type="text"
-                value={ph.label}
-                onChange={(e) => {
-                  const next = [...(form.phones.length === 0 ? [{ number: "", label: "" }] : form.phones)];
-                  next[idx] = { ...next[idx], label: e.target.value };
-                  setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; });
-                }}
-                placeholder="Button name (optional)"
-                className={`${input} w-36 shrink-0 text-xs`}
-              />
+              <div className="flex-1 min-w-0">
+                <input
+                  type="tel"
+                  value={ph.number}
+                  onChange={(e) => {
+                    const next = [...(form.phones.length === 0 ? [{ number: "", label: "" }] : form.phones)];
+                    next[idx] = { ...next[idx], number: e.target.value };
+                    setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; });
+                  }}
+                  placeholder="+41 123 456 789"
+                  className={input}
+                />
+              </div>
+              <div className="w-40 shrink-0">
+                <input
+                  type="text"
+                  value={ph.label}
+                  onChange={(e) => {
+                    const next = [...(form.phones.length === 0 ? [{ number: "", label: "" }] : form.phones)];
+                    next[idx] = { ...next[idx], label: e.target.value };
+                    setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; });
+                  }}
+                  placeholder="Button name"
+                  className={`${input} text-xs`}
+                />
+              </div>
               {idx > 0 && (
                 <button
                   type="button"
@@ -695,28 +699,32 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         <div className="space-y-3">
           {(form.emails.length === 0 ? [{ email: "", label: "" }] : form.emails).map((em, idx) => (
             <div key={idx} className="flex items-center gap-2">
-              <input
-                type="email"
-                value={em.email}
-                onChange={(e) => {
-                  const next = [...(form.emails.length === 0 ? [{ email: "", label: "" }] : form.emails)];
-                  next[idx] = { ...next[idx], email: e.target.value };
-                  setForm((prev) => { const n = { ...prev, emails: next }; onFormChange?.(n); return n; });
-                }}
-                placeholder="max@example.com"
-                className={`${input} flex-1 min-w-0`}
-              />
-              <input
-                type="text"
-                value={em.label}
-                onChange={(e) => {
-                  const next = [...(form.emails.length === 0 ? [{ email: "", label: "" }] : form.emails)];
-                  next[idx] = { ...next[idx], label: e.target.value };
-                  setForm((prev) => { const n = { ...prev, emails: next }; onFormChange?.(n); return n; });
-                }}
-                placeholder="Button name (optional)"
-                className={`${input} w-36 shrink-0 text-xs`}
-              />
+              <div className="flex-1 min-w-0">
+                <input
+                  type="email"
+                  value={em.email}
+                  onChange={(e) => {
+                    const next = [...(form.emails.length === 0 ? [{ email: "", label: "" }] : form.emails)];
+                    next[idx] = { ...next[idx], email: e.target.value };
+                    setForm((prev) => { const n = { ...prev, emails: next }; onFormChange?.(n); return n; });
+                  }}
+                  placeholder="max@example.com"
+                  className={input}
+                />
+              </div>
+              <div className="w-40 shrink-0">
+                <input
+                  type="text"
+                  value={em.label}
+                  onChange={(e) => {
+                    const next = [...(form.emails.length === 0 ? [{ email: "", label: "" }] : form.emails)];
+                    next[idx] = { ...next[idx], label: e.target.value };
+                    setForm((prev) => { const n = { ...prev, emails: next }; onFormChange?.(n); return n; });
+                  }}
+                  placeholder="Button name"
+                  className={`${input} text-xs`}
+                />
+              </div>
               {idx > 0 && (
                 <button
                   type="button"
@@ -746,37 +754,41 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         <div className="space-y-3">
           {(form.websites.length === 0 ? [{ url: "", label: "" }] : form.websites).map((ws, idx) => (
             <div key={idx} className="flex items-center gap-2">
-              <input
-                type="text"
-                value={ws.url}
-                onChange={(e) => {
-                  const next = [...(form.websites.length === 0 ? [{ url: "", label: "" }] : form.websites)];
-                  next[idx] = { ...next[idx], url: e.target.value };
-                  setForm((prev) => { const n = { ...prev, websites: next }; onFormChange?.(n); return n; });
-                }}
-                onBlur={(e) => {
-                  if (e.target.value) {
+              <div className="flex-1 min-w-0">
+                <input
+                  type="text"
+                  value={ws.url}
+                  onChange={(e) => {
                     const next = [...(form.websites.length === 0 ? [{ url: "", label: "" }] : form.websites)];
-                    next[idx] = { ...next[idx], url: normalizeUrl(e.target.value.trim()) };
+                    next[idx] = { ...next[idx], url: e.target.value };
                     setForm((prev) => { const n = { ...prev, websites: next }; onFormChange?.(n); return n; });
-                  }
-                }}
-                placeholder="www.example.com"
-                disabled={isLocked("website")}
-                className={`${input} flex-1 min-w-0 ${isLocked("website") ? lockedCls : ""}`}
-              />
-              <input
-                type="text"
-                value={ws.label}
-                onChange={(e) => {
-                  const next = [...(form.websites.length === 0 ? [{ url: "", label: "" }] : form.websites)];
-                  next[idx] = { ...next[idx], label: e.target.value };
-                  setForm((prev) => { const n = { ...prev, websites: next }; onFormChange?.(n); return n; });
-                }}
-                placeholder="Button name (optional)"
-                disabled={isLocked("website")}
-                className={`${input} w-36 shrink-0 text-xs ${isLocked("website") ? lockedCls : ""}`}
-              />
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value) {
+                      const next = [...(form.websites.length === 0 ? [{ url: "", label: "" }] : form.websites)];
+                      next[idx] = { ...next[idx], url: normalizeUrl(e.target.value.trim()) };
+                      setForm((prev) => { const n = { ...prev, websites: next }; onFormChange?.(n); return n; });
+                    }
+                  }}
+                  placeholder="www.example.com"
+                  disabled={isLocked("website")}
+                  className={`${input} ${isLocked("website") ? lockedCls : ""}`}
+                />
+              </div>
+              <div className="w-40 shrink-0">
+                <input
+                  type="text"
+                  value={ws.label}
+                  onChange={(e) => {
+                    const next = [...(form.websites.length === 0 ? [{ url: "", label: "" }] : form.websites)];
+                    next[idx] = { ...next[idx], label: e.target.value };
+                    setForm((prev) => { const n = { ...prev, websites: next }; onFormChange?.(n); return n; });
+                  }}
+                  placeholder="Button name"
+                  disabled={isLocked("website")}
+                  className={`${input} text-xs ${isLocked("website") ? lockedCls : ""}`}
+                />
+              </div>
               {idx > 0 && (
                 <button
                   type="button"

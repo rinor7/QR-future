@@ -287,7 +287,7 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-[#0f1117]">
+    <div className="flex flex-col min-h-screen bg-[#eef1f8] dark:bg-[#0f1117]">
       {/* ── Top navigation bar ─────────────────────────────────────────── */}
       <div className="sticky top-0 z-30 bg-white dark:bg-[#131620] border-b border-slate-200 dark:border-[#1e2130] px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-4">
@@ -344,7 +344,7 @@ export default function CreatePage() {
       )}
 
       {/* ── Two-column body ─────────────────────────────────────────────── */}
-      <div className="flex gap-6 px-6 py-6 items-start max-w-6xl mx-auto w-full">
+      <div className="flex gap-6 px-6 py-6 items-start">
         {/* ── Left: form ─────────────────────────────────────────────────── */}
         <div className="flex-1 min-w-0 space-y-5">
 
