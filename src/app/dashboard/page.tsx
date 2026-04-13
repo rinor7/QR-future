@@ -189,7 +189,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Chart + Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Chart */}
         <div className="lg:col-span-2 bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
