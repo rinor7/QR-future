@@ -2,13 +2,40 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
-import { getContact, updateContact } from "@/lib/store";
+import { getContact, updateContact, getUserProfile } from "@/lib/store";
 import { QRContact, CreateQRContact } from "@/lib/types";
 import QRForm from "@/components/QRForm";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
-import { ExternalLink, Copy, Check, Download } from "lucide-react";
+import { ExternalLink, Copy, Check, Download, FolderOpen, Folder as FolderIcon, ChevronRight, ChevronDown, X } from "lucide-react";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
+import { getAllFolders, buildTree, assignQrToFolder, type FolderWithStats } from "@/lib/folders";
+import { getSupabaseBrowser } from "@/lib/supabase-browser";
+
+function FolderPickerNode({ node, selected, onSelect, depth }: { node: FolderWithStats; selected: string | null; onSelect: (id: string) => void; depth: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasChildren = node.children.length > 0;
+  const isSelected = selected === node.id;
+  return (
+    <div>
+      <div
+        className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-colors ${isSelected ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800" : "hover:bg-gray-50 dark:hover:bg-[#242736] border border-transparent"}`}
+        style={{ paddingLeft: `${depth * 16 + 12}px` }}
+        onClick={() => onSelect(node.id)}
+      >
+        <button type="button" onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }} className={`w-4 h-4 flex items-center justify-center shrink-0 text-gray-400 ${!hasChildren ? "invisible" : ""}`}>
+          {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        </button>
+        {isSelected ? <FolderOpen className="w-4 h-4 shrink-0 text-blue-500" /> : <FolderIcon className="w-4 h-4 shrink-0 text-blue-400" />}
+        <span className={`flex-1 text-sm truncate ${isSelected ? "font-semibold text-blue-700 dark:text-blue-300" : "text-gray-700 dark:text-slate-300"}`}>{node.name}</span>
+        {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
+      </div>
+      {expanded && node.children.map((child) => (
+        <FolderPickerNode key={child.id} node={child} selected={selected} onSelect={onSelect} depth={depth + 1} />
+      ))}
+    </div>
+  );
+}
 
 export default function EditPage() {
   const params = useParams();
@@ -30,6 +57,11 @@ export default function EditPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Folder state
+  const [folderTree, setFolderTree] = useState<FolderWithStats[]>([]);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [folderOpen, setFolderOpen] = useState(false);
+
   useEffect(() => {
     if (!roleLoading && isReader) router.replace("/dashboard/codes");
   }, [isReader, roleLoading, router]);
@@ -45,6 +77,14 @@ export default function EditPage() {
       setPreviewLogoUrl(c.showLogoInQr !== false ? c.logoUrl : undefined);
       setPreviewQRStyle({ qrDotStyle: c.qrDotStyle, qrCornerStyle: c.qrCornerStyle, qrDotColor: c.qrDotColor, qrBgColor: c.qrBgColor, qrGradient: c.qrGradient, qrGradientColor: c.qrGradientColor });
       setLoading(false);
+    });
+    // Load current folder assignment
+    getSupabaseBrowser().from("contacts").select("folder_id").eq("id", id).single()
+      .then(({ data }) => { if (data?.folder_id) setSelectedFolderId(data.folder_id); });
+    // Load folder tree
+    getUserProfile().then((p) => {
+      if (!p) return;
+      getAllFolders(p.ownerId).then((folders) => setFolderTree(buildTree(folders)));
     });
   }, [id, router]);
 
@@ -116,6 +156,12 @@ export default function EditPage() {
     try {
       const updated = await updateContact(id, data);
       if (updated) setContact(updated);
+      // Save folder assignment
+      if (selectedFolderId) {
+        await assignQrToFolder(id, selectedFolderId);
+      } else {
+        await getSupabaseBrowser().from("contacts").update({ folder_id: null }).eq("id", id);
+      }
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (e) {
@@ -159,6 +205,45 @@ export default function EditPage() {
         <h1 className="text-3xl font-bold text-gray-900">{tr.edit_title}</h1>
         <p className="text-gray-500 mt-1">{`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</p>
       </div>
+
+      {/* Folder picker */}
+      {folderTree.length > 0 && (() => {
+        const findFolder = (nodes: FolderWithStats[], fid: string): FolderWithStats | null => {
+          for (const n of nodes) { if (n.id === fid) return n; const f = findFolder(n.children, fid); if (f) return f; }
+          return null;
+        };
+        const selectedFolder = selectedFolderId ? findFolder(folderTree, selectedFolderId) : null;
+        return (
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Folder <span className="text-slate-400 font-normal">(optional)</span></label>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setFolderOpen((v) => !v)}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] rounded-xl text-left hover:border-blue-400 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px] text-blue-500 shrink-0">folder</span>
+                <span className={`flex-1 truncate text-sm ${selectedFolder ? "text-slate-800 dark:text-slate-200 font-medium" : "text-slate-400 dark:text-slate-500"}`}>
+                  {selectedFolder ? selectedFolder.name : "No folder selected"}
+                </span>
+                <span className="material-symbols-outlined text-[18px] text-slate-400">{folderOpen ? "expand_less" : "expand_more"}</span>
+              </button>
+              {folderOpen && (
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] rounded-xl shadow-xl max-h-52 overflow-y-auto">
+                  {folderTree.map((f) => (
+                    <FolderPickerNode key={f.id} node={f} selected={selectedFolderId} onSelect={(fid) => { setSelectedFolderId((prev) => prev === fid ? null : fid); setFolderOpen(false); }} depth={0} />
+                  ))}
+                </div>
+              )}
+            </div>
+            {selectedFolder && (
+              <button type="button" onClick={() => setSelectedFolderId(null)} className="mt-1.5 flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors">
+                <X className="w-3 h-3" /> Clear folder selection
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       <div className="flex gap-8">
         <div className="flex-1">
