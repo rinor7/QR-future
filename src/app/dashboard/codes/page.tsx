@@ -576,14 +576,14 @@ export default function CodesPage() {
                 <h3 className="font-headline text-xs font-extrabold uppercase tracking-widest text-outline">ORDNER</h3>
                 <button className="text-primary text-sm font-semibold hover:underline">View all folders</button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {visibleFolders.map((folder) => {
                   const isDragTarget = dragOverId === folder.id;
                   const qrCount = countInFolder(folder.id);
                   return (
                     <div
                       key={folder.id}
-                      className={`relative rounded-2xl flex flex-col items-center justify-center p-5 pb-4 shadow-sm hover:shadow-md transition-all cursor-pointer group overflow-hidden ${isDragTarget ? "ring-2 ring-white/50" : ""}`}
+                      className={`relative rounded-2xl flex flex-col items-center justify-center p-5 pb-4 shadow-sm hover:shadow-md transition-all cursor-pointer group overflow-hidden shrink-0 w-40 sm:w-44 ${isDragTarget ? "ring-2 ring-white/50" : ""}`}
                       style={{ background: "linear-gradient(145deg, #5b7fff 0%, #3d5cff 60%, #2f4de0 100%)" }}
                       onClick={() => !isDragging && setCurrentFolderId(folder.id)}
                       onDragOver={(e) => { e.preventDefault(); setDragOverId(folder.id); }}
@@ -919,15 +919,15 @@ export default function CodesPage() {
       {/* ── Delete modal ── */}
       {deleteModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-container-lowest rounded-2xl shadow-[0px_20px_40px_rgba(25,28,30,0.12)] max-w-sm w-full p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-error-container/30 rounded-full mx-auto mb-4">
-              <span className="material-symbols-outlined text-error">delete</span>
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-xl max-w-sm w-full p-6">
+            <div className="flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full mx-auto mb-4">
+              <span className="material-symbols-outlined text-red-500">delete</span>
             </div>
-            <h2 className="font-headline text-lg font-bold text-on-surface text-center mb-2">{tr.delete_modal_title}</h2>
-            <p className="text-sm text-outline text-center mb-6">{tr.delete_modal_body}</p>
+            <h2 className="font-headline text-lg font-bold text-slate-900 dark:text-slate-100 text-center mb-2">{tr.delete_modal_title}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">{tr.delete_modal_body}</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteModal(null)} className="flex-1 text-on-surface-variant py-2.5 rounded-xl font-medium text-sm hover:bg-surface-container-low transition-colors border border-outline-variant/30">{tr.delete_modal_cancel}</button>
-              <button onClick={() => handleDelete(deleteModal)} className="flex-1 bg-error hover:opacity-90 text-white py-2.5 rounded-xl font-medium text-sm transition-opacity">{tr.delete_modal_confirm}</button>
+              <button onClick={() => setDeleteModal(null)} className="flex-1 text-slate-600 dark:text-slate-300 py-2.5 rounded-xl font-medium text-sm hover:bg-slate-100 dark:hover:bg-[#242736] transition-colors border border-slate-200 dark:border-[#242736]">{tr.delete_modal_cancel}</button>
+              <button onClick={() => handleDelete(deleteModal)} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl font-medium text-sm transition-colors">{tr.delete_modal_confirm}</button>
             </div>
           </div>
         </div>
