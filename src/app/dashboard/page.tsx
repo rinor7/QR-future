@@ -251,27 +251,27 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5 flex flex-col">
+        <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5">
           <div className="flex justify-between items-center mb-4">
             <h4 className="font-bold text-slate-900 dark:text-slate-100">Recent QR Codes</h4>
             <Link href="/dashboard/codes" className="text-blue-600 text-xs font-semibold hover:underline">View all</Link>
           </div>
           {loading ? (
-            <div className="flex items-center justify-center flex-1 py-10">
+            <div className="flex items-center justify-center py-10">
               <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : recentContacts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center flex-1 py-8 text-center">
+            <div className="flex flex-col items-center justify-center py-8 text-center">
               <span className="material-symbols-outlined text-4xl text-slate-200 dark:text-slate-700 mb-2">qr_code_2</span>
               <p className="text-sm text-slate-400">No QR codes yet</p>
               <Link href="/dashboard/create" className="btn-primary mt-3 text-xs py-2 px-4">Create first</Link>
             </div>
           ) : (
-            <div className="space-y-1 flex-1">
+            <div className="space-y-1">
               {recentContacts.map((contact) => (
                 <Link key={contact.id} href={`/dashboard/edit/${contact.id}`} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors">
-                  <div className="w-20 h-20 bg-slate-900 rounded-xl shrink-0 flex items-center justify-center p-1.5">
-                    <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : "https://placeholder.com"}/qr/${contact.id}`} size={68} />
+                  <div className="w-14 h-14 bg-white dark:bg-white border border-slate-200 rounded-xl shrink-0 flex items-center justify-center p-1">
+                    <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : "https://placeholder.com"}/qr/${contact.id}`} size={48} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</p>
