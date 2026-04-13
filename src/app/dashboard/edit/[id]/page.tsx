@@ -215,6 +215,8 @@ export default function EditPage() {
         const selectedFolder = selectedFolderId ? findFolder(folderTree, selectedFolderId) : null;
         return (
           <div className="mb-6 mr-4 wide:mr-8">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Basic Information</p>
+            <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] border-l-4 border-l-blue-500 p-6">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Destination Folder <span className="text-slate-400 font-normal">(optional)</span></label>
             <div className="relative">
               <button
@@ -243,6 +245,7 @@ export default function EditPage() {
                 <X className="w-3 h-3" /> Clear folder selection
               </button>
             )}
+            </div>{/* end white card */}
           </div>
         );
       })()}
