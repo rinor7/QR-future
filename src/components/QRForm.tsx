@@ -1025,17 +1025,17 @@ function Section({
 }) {
   const ic = SECTION_ICONS[iconKey ?? "default"];
   return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
+    <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-[#242736]">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${ic.bg}`}>
-            <span className={`material-symbols-outlined text-[20px] ${ic.text}`}>{ic.icon}</span>
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${ic.bg}`}>
+            <span className={`material-symbols-outlined text-[18px] ${ic.text}`}>{ic.icon}</span>
           </div>
-          <h3 className="text-base font-bold tracking-tight text-gray-900 dark:text-gray-100 uppercase">{title}</h3>
+          <h3 className="text-sm font-bold tracking-tight text-gray-900 dark:text-gray-100 uppercase">{title}</h3>
         </div>
         {actions && <div className="flex items-center gap-2 flex-wrap">{actions}</div>}
       </div>
-      <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm p-6 space-y-5">
+      <div className="p-6 space-y-5">
         {children}
       </div>
     </div>
