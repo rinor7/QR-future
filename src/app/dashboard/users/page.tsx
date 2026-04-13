@@ -463,57 +463,132 @@ export default function UsersPage() {
       )}
 
       {/* ── Access Policy ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        <div className="space-y-4">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1.5">Access Policy</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              Define the operational boundaries for your team. Each role comes with pre-configured permissions designed for enterprise security standards.
-            </p>
-          </div>
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl border-l-4 border-blue-500 p-4">
-            <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100 mb-1">Security Tip</h4>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              We recommend having at least two administrator accounts for business continuity. Admins cannot delete themselves.
-            </p>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">Role Permissions</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">What each role can do on the platform.</p>
           </div>
         </div>
 
-        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Admin Control */}
-          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-[20px] text-blue-600" style={{ fontVariationSettings: "'FILL' 1" }}>security</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {/* Owner */}
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[16px] text-violet-600" style={{ fontVariationSettings: "'FILL' 1" }}>shield_person</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Owner</h4>
+                <p className="text-[10px] text-slate-400">Account holder</p>
+              </div>
             </div>
-            <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-1">Admin Control</h4>
-            <p className="text-xs text-slate-400 leading-relaxed mb-4">
-              Full authority to billing, QR campaign management, and user administration.
-            </p>
-            <ul className="space-y-2">
-              {["Create/Edit QRs", "View Analytics", "Invite Members"].map((item) => (
-                <li key={item} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  <span className="material-symbols-outlined text-[15px] text-emerald-500" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+            <ul className="space-y-1.5">
+              {[
+                "Create, edit & delete QR codes",
+                "View all analytics",
+                "Manage folders",
+                "Invite & remove members",
+                "Apply company templates",
+                "Manage settings & branding",
+                "Upgrade / manage plan",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                  <span className="material-symbols-outlined text-[13px] text-emerald-500 mt-0.5 shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   {item}
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Member Access */}
-          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
-            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-[20px] text-violet-600" style={{ fontVariationSettings: "'FILL' 1" }}>badge</span>
+          {/* Admin */}
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[16px] text-blue-600" style={{ fontVariationSettings: "'FILL' 1" }}>security</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Admin</h4>
+                <p className="text-[10px] text-slate-400">Team manager</p>
+              </div>
             </div>
-            <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-1">Member Access</h4>
-            <p className="text-xs text-slate-400 leading-relaxed mb-4">
-              Members have access to specific folders, ideal for external partners.
-            </p>
-            <ul className="space-y-2">
-              {["Edit Assigned QRs", "View Assigned Reports", "Invite Colleagues"].map((item) => (
-                <li key={item} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  <span className="material-symbols-outlined text-[15px] text-emerald-500" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                  {item}
+            <ul className="space-y-1.5">
+              {[
+                ["Create, edit & delete QR codes", true],
+                ["View all analytics", true],
+                ["Manage folders", true],
+                ["Invite & remove members", true],
+                ["Apply company templates", true],
+                ["Manage settings & branding", true],
+                ["Upgrade / manage plan", false],
+              ].map(([item, allowed]) => (
+                <li key={item as string} className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                  <span className={`material-symbols-outlined text-[13px] mt-0.5 shrink-0 ${allowed ? "text-emerald-500" : "text-slate-300 dark:text-slate-600"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                    {allowed ? "check_circle" : "cancel"}
+                  </span>
+                  <span className={allowed ? "" : "text-slate-400 dark:text-slate-600"}>{item as string}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Writer */}
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[16px] text-teal-600" style={{ fontVariationSettings: "'FILL' 1" }}>edit_note</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Writer</h4>
+                <p className="text-[10px] text-slate-400">Content editor</p>
+              </div>
+            </div>
+            <ul className="space-y-1.5">
+              {[
+                ["Create & edit QR codes", true],
+                ["View all analytics", true],
+                ["Manage folders", true],
+                ["Apply company templates", true],
+                ["Delete QR codes", false],
+                ["Invite or remove members", false],
+                ["Access settings & branding", false],
+              ].map(([item, allowed]) => (
+                <li key={item as string} className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                  <span className={`material-symbols-outlined text-[13px] mt-0.5 shrink-0 ${allowed ? "text-emerald-500" : "text-slate-300 dark:text-slate-600"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                    {allowed ? "check_circle" : "cancel"}
+                  </span>
+                  <span className={allowed ? "" : "text-slate-400 dark:text-slate-600"}>{item as string}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Reader */}
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[16px] text-slate-500" style={{ fontVariationSettings: "'FILL' 1" }}>visibility</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Reader</h4>
+                <p className="text-[10px] text-slate-400">View only</p>
+              </div>
+            </div>
+            <ul className="space-y-1.5">
+              {[
+                ["View QR codes & analytics", true],
+                ["Create or edit QR codes", false],
+                ["Delete QR codes", false],
+                ["Manage folders", false],
+                ["Invite or remove members", false],
+                ["Apply company templates", false],
+                ["Access settings & branding", false],
+              ].map(([item, allowed]) => (
+                <li key={item as string} className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                  <span className={`material-symbols-outlined text-[13px] mt-0.5 shrink-0 ${allowed ? "text-emerald-500" : "text-slate-300 dark:text-slate-600"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                    {allowed ? "check_circle" : "cancel"}
+                  </span>
+                  <span className={allowed ? "" : "text-slate-400 dark:text-slate-600"}>{item as string}</span>
                 </li>
               ))}
             </ul>
