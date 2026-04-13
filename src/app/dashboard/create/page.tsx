@@ -346,7 +346,7 @@ export default function CreatePage() {
       {/* ── Two-column body ─────────────────────────────────────────────── */}
       <div className="flex gap-6 pl-6 wide:pl-8 pr-6 wide:pr-8 py-6 items-start">
         {/* ── Left: form ─────────────────────────────────────────────────── */}
-        <div className="flex-1 min-w-0 max-w-[68rem] space-y-5">
+        <div className="flex-1 min-w-0 space-y-5">
 
           {/* Basic Information */}
           <div>
