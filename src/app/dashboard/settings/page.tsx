@@ -203,6 +203,7 @@ export default function SettingsPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await supabase.from("profiles").update({
+        organization_name: organizationName || null,
         account_phones: JSON.stringify(acctPhones.filter((p) => p.number)),
         account_emails: JSON.stringify(acctEmails.filter((em) => em.email)),
         account_websites: JSON.stringify(acctWebsites.filter((w) => w.url)),
@@ -348,17 +349,6 @@ export default function SettingsPage() {
                 <input type="email" value={newEmail || email} onChange={(e) => setNewEmail(e.target.value)} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Organization Name</label>
-              <input
-                type="text"
-                value={organizationName}
-                onChange={(e) => (isOwner || userRole === "admin") && setOrganizationName(e.target.value)}
-                readOnly={!isOwner && userRole !== "admin"}
-                placeholder="Your organization"
-                className={`w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all ${!isOwner && userRole !== "admin" ? "opacity-50 cursor-not-allowed" : ""}`}
-              />
-            </div>
             {emailError && <p className="text-xs text-red-500">{emailError}</p>}
             {emailSuccess && <p className="text-xs text-green-600">{tr.settings_email_success}</p>}
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -420,6 +410,133 @@ export default function SettingsPage() {
             </div>
           </form>
         </section>
+
+        {/* Company Information (owner or admin only) */}
+        {(isOwner || userRole === "admin") && (
+          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-green-500/10 p-3 rounded-xl text-green-600">
+                <span className="material-symbols-outlined">contacts</span>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold font-headline">Company Information</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Organization details and contact info — editable by admins, usable in templates</p>
+              </div>
+            </div>
+            <form onSubmit={handleSaveAccountInfo} className="space-y-8">
+
+              {/* Organization Name */}
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">business</span>
+                  Organization Name
+                </h4>
+                <input
+                  type="text"
+                  value={organizationName}
+                  onChange={(e) => setOrganizationName(e.target.value)}
+                  placeholder="Your organization name"
+                  className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all text-sm"
+                />
+              </div>
+
+              {/* Phone Numbers */}
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">phone</span>
+                  Phone Numbers
+                </h4>
+                <p className="text-xs text-slate-400 mb-3">You can add up to 4 phone numbers. Optionally set a display name for each button.</p>
+                <div className="space-y-2">
+                  {acctPhones.map((ph, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <input type="text" value={ph.number} onChange={(e) => { const next = acctPhones.map((x, j) => j === i ? { ...x, number: e.target.value } : x); setAcctPhones(next); }} placeholder="+41 00 000 00 00" className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                      <input type="text" value={ph.label} onChange={(e) => { const next = acctPhones.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctPhones(next); }} placeholder="Button name (optional)" className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                      <button type="button" onClick={() => setAcctPhones(acctPhones.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1"><span className="material-symbols-outlined text-[18px]">close</span></button>
+                    </div>
+                  ))}
+                  {acctPhones.length < 4 && (
+                    <button type="button" onClick={() => setAcctPhones([...acctPhones, { number: "", label: "" }])} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium mt-1">
+                      <span className="material-symbols-outlined text-[16px]">add</span>Add phone number
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Email Addresses */}
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">mail</span>
+                  Email Addresses
+                </h4>
+                <p className="text-xs text-slate-400 mb-3">You can add up to 3 email addresses. Optionally set a display name for each button.</p>
+                <div className="space-y-2">
+                  {acctEmails.map((em, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <input type="email" value={em.email} onChange={(e) => { const next = acctEmails.map((x, j) => j === i ? { ...x, email: e.target.value } : x); setAcctEmails(next); }} placeholder="info@company.com" className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                      <input type="text" value={em.label} onChange={(e) => { const next = acctEmails.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctEmails(next); }} placeholder="Button name (optional)" className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                      <button type="button" onClick={() => setAcctEmails(acctEmails.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1"><span className="material-symbols-outlined text-[18px]">close</span></button>
+                    </div>
+                  ))}
+                  {acctEmails.length < 3 && (
+                    <button type="button" onClick={() => setAcctEmails([...acctEmails, { email: "", label: "" }])} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium mt-1">
+                      <span className="material-symbols-outlined text-[16px]">add</span>Add email address
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Websites */}
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">language</span>
+                  Websites
+                </h4>
+                <p className="text-xs text-slate-400 mb-3">You can add up to 3 websites. Optionally set a display name for each button.</p>
+                <div className="space-y-2">
+                  {acctWebsites.map((ws, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <input type="url" value={ws.url} onChange={(e) => { const next = acctWebsites.map((x, j) => j === i ? { ...x, url: e.target.value } : x); setAcctWebsites(next); }} placeholder="https://www.company.com" className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                      <input type="text" value={ws.label} onChange={(e) => { const next = acctWebsites.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctWebsites(next); }} placeholder="Button name (optional)" className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                      <button type="button" onClick={() => setAcctWebsites(acctWebsites.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1"><span className="material-symbols-outlined text-[18px]">close</span></button>
+                    </div>
+                  ))}
+                  {acctWebsites.length < 3 && (
+                    <button type="button" onClick={() => setAcctWebsites([...acctWebsites, { url: "", label: "" }])} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium mt-1">
+                      <span className="material-symbols-outlined text-[16px]">add</span>Add website
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Address */}
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">location_on</span>
+                  Address
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <input type="text" value={acctStreet} onChange={(e) => setAcctStreet(e.target.value)} placeholder="Street" className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctStreetNr} onChange={(e) => setAcctStreetNr(e.target.value)} placeholder="Nr." className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctPlz} onChange={(e) => setAcctPlz(e.target.value)} placeholder="PLZ / ZIP" className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctCity} onChange={(e) => setAcctCity(e.target.value)} placeholder="City" className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctCountry} onChange={(e) => setAcctCountry(e.target.value)} placeholder="Country" className="sm:col-span-2 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button type="submit" disabled={acctSaving} className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
+                  {acctSaving ? "Saving…" : "Save Company Info"}
+                </button>
+                {acctSaved && (
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
+                    <span className="material-symbols-outlined text-[16px]">check_circle</span>Saved
+                  </span>
+                )}
+              </div>
+            </form>
+          </section>
+        )}
 
         {/* Platform Preferences (12 cols) */}
         <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
@@ -664,19 +781,10 @@ export default function SettingsPage() {
           </section>
         )}
 
-        {/* Account Contact Info (owner or admin only) */}
-        {(isOwner || userRole === "admin") && (
-          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="bg-green-500/10 p-3 rounded-xl text-green-600">
-                <span className="material-symbols-outlined">contacts</span>
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold font-headline">Account Contact Info</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Company-wide contact details you can pull into templates</p>
-              </div>
-            </div>
-            <form onSubmit={handleSaveAccountInfo} className="space-y-8">
+        {/* Account Contact Info — removed, merged into Company Information above */}
+        {false && (
+          <section>
+            <form>
 
               {/* Phone Numbers */}
               <div>
