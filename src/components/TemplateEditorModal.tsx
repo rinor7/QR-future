@@ -196,7 +196,7 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
     const val = orgDefaults?.[accountKey];
     if (val) {
       setValues((prev) => ({ ...prev, [key]: val }));
-      setIncluded((prev) => new Set([...prev, key]));
+      setIncluded((prev) => { const next = new Set(prev); next.add(key); return next; });
     }
   }
 
