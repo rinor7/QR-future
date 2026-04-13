@@ -66,6 +66,18 @@ export default function SettingsPage() {
   const [brandSaved, setBrandSaved] = useState(false);
   const [brandLogoUploading, setBrandLogoUploading] = useState(false);
 
+  // Account contact info
+  const [acctPhones, setAcctPhones] = useState<{ number: string; label: string }[]>([]);
+  const [acctEmails, setAcctEmails] = useState<{ email: string; label: string }[]>([]);
+  const [acctWebsites, setAcctWebsites] = useState<{ url: string; label: string }[]>([]);
+  const [acctStreet, setAcctStreet] = useState("");
+  const [acctStreetNr, setAcctStreetNr] = useState("");
+  const [acctPlz, setAcctPlz] = useState("");
+  const [acctCity, setAcctCity] = useState("");
+  const [acctCountry, setAcctCountry] = useState("");
+  const [acctSaving, setAcctSaving] = useState(false);
+  const [acctSaved, setAcctSaved] = useState(false);
+
 
 
   async function handleSaveWebhook(e: React.FormEvent) {
@@ -116,7 +128,7 @@ export default function SettingsPage() {
         const supabaseInner = getSupabaseBrowser();
         const { data: { user: u } } = await supabaseInner.auth.getUser();
         if (u) {
-          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id, organization_name").eq("user_id", u.id).single();
+          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id, organization_name, account_phones, account_emails, account_websites, account_street, account_street_nr, account_plz, account_city, account_country").eq("user_id", u.id).single();
           if (prof) {
             setHasStripeSubscription(!!prof.stripe_customer_id);
             setLeadCaptureDisabled(!!prof.lead_capture_disabled);
@@ -125,6 +137,16 @@ export default function SettingsPage() {
             setBrandLogoUrl(prof.brand_logo_url ?? "");
             setBrandColor(prof.brand_primary_color ?? "#2563eb");
             setOrganizationName(prof.organization_name ?? "");
+            // Account contact info
+            const parseArr = (raw: string | null) => { try { const a = JSON.parse(raw ?? "[]"); return Array.isArray(a) ? a : []; } catch { return []; } };
+            setAcctPhones(parseArr(prof.account_phones));
+            setAcctEmails(parseArr(prof.account_emails));
+            setAcctWebsites(parseArr(prof.account_websites));
+            setAcctStreet(prof.account_street ?? "");
+            setAcctStreetNr(prof.account_street_nr ?? "");
+            setAcctPlz(prof.account_plz ?? "");
+            setAcctCity(prof.account_city ?? "");
+            setAcctCountry(prof.account_country ?? "");
           }
         }
       }
@@ -172,6 +194,28 @@ export default function SettingsPage() {
       setBrandLogoUrl(publicUrl);
     }
     setBrandLogoUploading(false);
+  }
+
+  async function handleSaveAccountInfo(e: React.FormEvent) {
+    e.preventDefault();
+    setAcctSaving(true);
+    const supabase = getSupabaseBrowser();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("profiles").update({
+        account_phones: JSON.stringify(acctPhones.filter((p) => p.number)),
+        account_emails: JSON.stringify(acctEmails.filter((em) => em.email)),
+        account_websites: JSON.stringify(acctWebsites.filter((w) => w.url)),
+        account_street: acctStreet || null,
+        account_street_nr: acctStreetNr || null,
+        account_plz: acctPlz || null,
+        account_city: acctCity || null,
+        account_country: acctCountry || null,
+      }).eq("user_id", user.id);
+      setAcctSaved(true);
+      setTimeout(() => setAcctSaved(false), 3000);
+    }
+    setAcctSaving(false);
   }
 
   async function handleDeleteAccount() {
@@ -620,6 +664,164 @@ export default function SettingsPage() {
           </section>
         )}
 
+        {/* Account Contact Info (owner or admin only) */}
+        {(isOwner || userRole === "admin") && (
+          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-green-500/10 p-3 rounded-xl text-green-600">
+                <span className="material-symbols-outlined">contacts</span>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold font-headline">Account Contact Info</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Company-wide contact details you can pull into templates</p>
+              </div>
+            </div>
+            <form onSubmit={handleSaveAccountInfo} className="space-y-8">
+
+              {/* Phone Numbers */}
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">phone</span>
+                  Phone Numbers
+                </h4>
+                <p className="text-xs text-slate-400 mb-3">You can add up to 4 phone numbers. Optionally set a display name for each button.</p>
+                <div className="space-y-2">
+                  {acctPhones.map((ph, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        value={ph.number}
+                        onChange={(e) => { const next = acctPhones.map((x, j) => j === i ? { ...x, number: e.target.value } : x); setAcctPhones(next); }}
+                        placeholder="+41 00 000 00 00"
+                        className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="text"
+                        value={ph.label}
+                        onChange={(e) => { const next = acctPhones.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctPhones(next); }}
+                        placeholder="Button name (optional)"
+                        className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button type="button" onClick={() => setAcctPhones(acctPhones.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1">
+                        <span className="material-symbols-outlined text-[18px]">close</span>
+                      </button>
+                    </div>
+                  ))}
+                  {acctPhones.length < 4 && (
+                    <button type="button" onClick={() => setAcctPhones([...acctPhones, { number: "", label: "" }])} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium mt-1">
+                      <span className="material-symbols-outlined text-[16px]">add</span>
+                      Add phone number
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Email Addresses */}
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">mail</span>
+                  Email Addresses
+                </h4>
+                <p className="text-xs text-slate-400 mb-3">You can add up to 3 email addresses. Optionally set a display name for each button.</p>
+                <div className="space-y-2">
+                  {acctEmails.map((em, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <input
+                        type="email"
+                        value={em.email}
+                        onChange={(e) => { const next = acctEmails.map((x, j) => j === i ? { ...x, email: e.target.value } : x); setAcctEmails(next); }}
+                        placeholder="info@company.com"
+                        className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="text"
+                        value={em.label}
+                        onChange={(e) => { const next = acctEmails.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctEmails(next); }}
+                        placeholder="Button name (optional)"
+                        className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button type="button" onClick={() => setAcctEmails(acctEmails.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1">
+                        <span className="material-symbols-outlined text-[18px]">close</span>
+                      </button>
+                    </div>
+                  ))}
+                  {acctEmails.length < 3 && (
+                    <button type="button" onClick={() => setAcctEmails([...acctEmails, { email: "", label: "" }])} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium mt-1">
+                      <span className="material-symbols-outlined text-[16px]">add</span>
+                      Add email address
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Websites */}
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">language</span>
+                  Websites
+                </h4>
+                <p className="text-xs text-slate-400 mb-3">You can add up to 3 websites. Optionally set a display name for each button.</p>
+                <div className="space-y-2">
+                  {acctWebsites.map((ws, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <input
+                        type="url"
+                        value={ws.url}
+                        onChange={(e) => { const next = acctWebsites.map((x, j) => j === i ? { ...x, url: e.target.value } : x); setAcctWebsites(next); }}
+                        placeholder="https://www.company.com"
+                        className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="text"
+                        value={ws.label}
+                        onChange={(e) => { const next = acctWebsites.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctWebsites(next); }}
+                        placeholder="Button name (optional)"
+                        className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button type="button" onClick={() => setAcctWebsites(acctWebsites.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1">
+                        <span className="material-symbols-outlined text-[18px]">close</span>
+                      </button>
+                    </div>
+                  ))}
+                  {acctWebsites.length < 3 && (
+                    <button type="button" onClick={() => setAcctWebsites([...acctWebsites, { url: "", label: "" }])} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium mt-1">
+                      <span className="material-symbols-outlined text-[16px]">add</span>
+                      Add website
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Address */}
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">location_on</span>
+                  Address
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <input type="text" value={acctStreet} onChange={(e) => setAcctStreet(e.target.value)} placeholder="Street" className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctStreetNr} onChange={(e) => setAcctStreetNr(e.target.value)} placeholder="Nr." className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctPlz} onChange={(e) => setAcctPlz(e.target.value)} placeholder="PLZ / ZIP" className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctCity} onChange={(e) => setAcctCity(e.target.value)} placeholder="City" className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctCountry} onChange={(e) => setAcctCountry(e.target.value)} placeholder="Country" className="sm:col-span-2 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button type="submit" disabled={acctSaving} className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
+                  {acctSaving ? "Saving…" : "Save Account Info"}
+                </button>
+                {acctSaved && (
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
+                    <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                    Saved
+                  </span>
+                )}
+              </div>
+            </form>
+          </section>
+        )}
+
         {/* Company Templates (owner or admin only) */}
         {(isOwner || userRole === "admin") && (
           <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
@@ -903,7 +1105,13 @@ export default function SettingsPage() {
           setEditingTemplate(null);
         }}
         editing={editingTemplate}
-        orgDefaults={{ organizationName, brandLogoUrl }}
+        orgDefaults={{
+          organizationName,
+          brandLogoUrl,
+          acctFirstPhone: acctPhones[0]?.number ?? "",
+          acctFirstEmail: acctEmails[0]?.email ?? "",
+          acctFirstWebsite: acctWebsites[0]?.url ?? "",
+        }}
       />
     </div>
   );

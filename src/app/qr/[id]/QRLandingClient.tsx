@@ -207,8 +207,8 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
       `FN:${`${contact.firstName} ${contact.lastName}`.trim()}`,
       contact.title ? `TITLE:${contact.title}` : "",
       contact.company ? `ORG:${contact.company}` : "",
-      ...(contact.phones?.length ? contact.phones.filter(Boolean).map((p) => `TEL;TYPE=CELL:${p}`) : contact.phone ? [`TEL;TYPE=CELL:${contact.phone}`] : []),
-      contact.email ? `EMAIL:${contact.email}` : "",
+      ...(contact.phones?.length ? contact.phones.filter((p) => p.number).map((p) => `TEL;TYPE=CELL:${p.number}`) : contact.phone ? [`TEL;TYPE=CELL:${contact.phone}`] : []),
+      ...(contact.emails?.length ? contact.emails.filter((e) => e.email).map((e) => `EMAIL:${e.email}`) : contact.email ? [`EMAIL:${contact.email}`] : []),
       contact.website ? `URL:${contact.website}` : "",
       (contact.street || contact.city) ? `ADR:;;${contact.street} ${contact.streetNr};${contact.city};;${contact.plz};Switzerland` : "",
       "END:VCARD",
@@ -291,10 +291,10 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
           {contact.description && (
             <p className={`text-sm mt-1 ${th.subtext}`}>{contact.description}</p>
           )}
-          {(contact.street || contact.city) && (
+          {(contact.street || contact.city || contact.country) && (
             <p className={`flex items-center justify-center gap-1 text-xs mt-2 ${th.subtext}`}>
               <MapPin className="w-3 h-3" />
-              {[`${contact.street} ${contact.streetNr}`.trim(), contact.plz, contact.city].filter(Boolean).join(", ")}
+              {[`${contact.street} ${contact.streetNr}`.trim(), contact.plz, contact.city, contact.country ? contact.country.toUpperCase() : ""].filter(Boolean).join(", ")}
             </p>
           )}
         </div>
@@ -304,39 +304,39 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
 
         {/* Action buttons */}
         <div className="px-5 space-y-2.5 pb-4">
-          {(contact.phones?.length ? contact.phones.filter(Boolean) : contact.phone ? [contact.phone] : []).map((ph, i) => (
-            <a key={i} href={`tel:${ph}`} onClick={() => track("click_phone")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+          {(contact.phones?.length ? contact.phones.filter((p) => p.number) : contact.phone ? [{ number: contact.phone, label: "" }] : []).map((ph, i) => (
+            <a key={i} href={`tel:${ph.number}`} onClick={() => track("click_phone")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <Phone className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <div className={`text-xs font-normal ${th.actionLabelColor}`}>Anrufen</div>
-                <div className="text-sm font-semibold">{formatPhone(ph)}</div>
+                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{ph.label || "Anrufen"}</div>
+                <div className="text-sm font-semibold">{formatPhone(ph.number)}</div>
               </div>
             </a>
           ))}
-          {contact.email && (
-            <a href={`mailto:${contact.email}`} onClick={() => track("click_email")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+          {(contact.emails?.length ? contact.emails.filter((e) => e.email) : contact.email ? [{ email: contact.email, label: "" }] : []).map((em, i) => (
+            <a key={i} href={`mailto:${em.email}`} onClick={() => track("click_email")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <Mail className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <div className={`text-xs font-normal ${th.actionLabelColor}`}>E-Mail</div>
-                <div className="text-sm font-semibold truncate">{contact.email}</div>
+                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{em.label || "E-Mail"}</div>
+                <div className="text-sm font-semibold truncate">{em.email}</div>
               </div>
             </a>
-          )}
-          {contact.website && (
-            <a href={contact.website} target="_blank" rel="noopener noreferrer" onClick={() => track("click_website")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+          ))}
+          {(contact.websites?.length ? contact.websites.filter((w) => w.url) : contact.website ? [{ url: contact.website, label: "" }] : []).map((ws, i) => (
+            <a key={i} href={ws.url} target="_blank" rel="noopener noreferrer" onClick={() => track("click_website")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <Globe className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <div className={`text-xs font-normal ${th.actionLabelColor}`}>Webseite</div>
-                <div className="text-sm font-semibold truncate">{contact.website.replace(/^https?:\/\//, "")}</div>
+                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{ws.label || "Webseite"}</div>
+                <div className="text-sm font-semibold truncate">{ws.url.replace(/^https?:\/\//, "")}</div>
               </div>
             </a>
-          )}
+          ))}
           {contact.links && contact.links.map((link, i) => (
             <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" onClick={() => track(link.type === "file" ? "click_pdf" : "click_link")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>

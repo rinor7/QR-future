@@ -34,6 +34,9 @@ export interface QRTemplate {
 interface OrgDefaults {
   organizationName?: string;
   brandLogoUrl?: string;
+  acctFirstPhone?: string;
+  acctFirstEmail?: string;
+  acctFirstWebsite?: string;
 }
 
 interface Props {
@@ -54,7 +57,7 @@ const FIELD_GROUPS = [
     fields: [
       { key: "company", label: "Company Name", type: "text", fromAccount: "organizationName" },
       { key: "logo_url", label: "Logo URL", type: "url", fromAccount: "brandLogoUrl" },
-      { key: "website", label: "Website", type: "url" },
+      { key: "website", label: "Website", type: "url", fromAccount: "acctFirstWebsite" },
       { key: "description", label: "Description", type: "textarea" },
     ],
   },

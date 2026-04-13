@@ -23,9 +23,11 @@ export interface QRContact {
 
   // Contact
   phone: string;
-  phones: string[];
+  phones: { number: string; label: string }[];
   email: string;
+  emails: { email: string; label: string }[];
   website: string;
+  websites: { url: string; label: string }[];
 
   // Social
   linkedinUrl: string;
