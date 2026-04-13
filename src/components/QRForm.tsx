@@ -337,58 +337,54 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
     <form id={formId} onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
 
       {/* Template picker bar */}
-      <div className="flex items-center gap-3 p-3 bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm">
-        <span className="material-symbols-outlined text-[18px] text-purple-500 shrink-0">style</span>
-        <span className="text-sm font-medium text-gray-600 dark:text-slate-300 shrink-0 hidden sm:block">Template:</span>
-        {templates.length === 0 ? (
-          <span className="text-xs text-gray-400 flex-1">No templates yet</span>
-        ) : (
-          <div className="flex flex-wrap gap-2 flex-1">
-            {templates.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => applyTemplate(t)}
-                className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${appliedTemplate?.id === t.id ? "border-purple-400 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300" : "border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-[#242736] hover:border-purple-400 hover:text-purple-700 dark:hover:text-purple-300"}`}
-              >
-                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: t.primary_color }} />
-                {t.name}
-                {(t.locked_fields ?? []).length > 0 && (
-                  <span className="material-symbols-outlined text-[11px] text-orange-400">lock</span>
+      {(() => {
+        const VISIBLE = 3;
+        const visible = templates.slice(0, VISIBLE);
+        const overflow = templates.length - VISIBLE;
+        return (
+          <div className="flex items-center gap-3 p-3 bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm">
+            <span className="material-symbols-outlined text-[18px] text-purple-500 shrink-0">style</span>
+            <span className="text-sm font-medium text-gray-600 dark:text-slate-300 shrink-0 hidden sm:block">Template:</span>
+            {templates.length === 0 ? (
+              <span className="text-xs text-gray-400 flex-1">No templates yet</span>
+            ) : (
+              <div className="flex flex-wrap gap-2 flex-1">
+                {visible.map((t) => {
+                  const isActive = appliedTemplate?.id === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => isActive ? removeTemplate() : applyTemplate(t)}
+                      className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${isActive ? "border-purple-400 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300" : "border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-[#242736] hover:border-purple-400 hover:text-purple-700 dark:hover:text-purple-300"}`}
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: t.primary_color }} />
+                      {t.name}
+                      {(t.locked_fields ?? []).length > 0 && (
+                        <span className="material-symbols-outlined text-[11px] text-orange-400">lock</span>
+                      )}
+                      {isActive && (
+                        <span className="material-symbols-outlined text-[13px] text-purple-500">close</span>
+                      )}
+                    </button>
+                  );
+                })}
+                {overflow > 0 && (
+                  <span className="flex items-center text-xs font-semibold text-gray-400 dark:text-slate-500 px-2">+{overflow} more</span>
                 )}
-              </button>
-            ))}
-          </div>
-        )}
-        <a
-          href="/dashboard/settings"
-          target="_blank"
-          className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-purple-600 transition-colors shrink-0 whitespace-nowrap"
-        >
-          <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-          {templates.length === 0 ? "Create template" : "Manage"}
-        </a>
-      </div>
-
-      {/* Applied template banner */}
-      {appliedTemplate && (
-        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[16px] text-orange-500">lock</span>
-            <span className="text-sm font-semibold text-orange-700 dark:text-orange-300">Template applied: {appliedTemplate.name}</span>
-            {appliedTemplate.locked.size > 0 && (
-              <span className="text-xs text-orange-500">{appliedTemplate.locked.size} field{appliedTemplate.locked.size !== 1 ? "s" : ""} locked</span>
+              </div>
             )}
+            <a
+              href="/dashboard/settings"
+              target="_blank"
+              className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-purple-600 transition-colors shrink-0 whitespace-nowrap"
+            >
+              <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+              {templates.length === 0 ? "Create template" : "Manage"}
+            </a>
           </div>
-          <button
-            type="button"
-            onClick={removeTemplate}
-            className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-800 border border-orange-300 dark:border-orange-700 px-3 py-1 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors shrink-0"
-          >
-            Remove
-          </button>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Basic Information */}
       <Section title="Basic Information" iconKey="basicinfo">
