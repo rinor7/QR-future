@@ -263,9 +263,9 @@ export default function EditPage() {
         </div>
 
         {/* QR Preview */}
-        <div className="w-[360px] shrink-0">
+        <div className="w-[360px] shrink-0 mr-4 wide:mr-8">
           <div className="sticky top-8">
-            <div className="bg-white rounded-l-2xl border border-gray-200 border-r-0 p-6 text-center">
+            <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
                 QR Code
               </h3>
