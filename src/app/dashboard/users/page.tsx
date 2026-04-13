@@ -63,20 +63,24 @@ function FloatingDropdown({ anchor, memberId, memberEmail, memberRole, isOwnerRo
       style={{ position: "fixed", top, right, zIndex: 9999 }}
       className="w-52 bg-white dark:bg-[#1a1d27] rounded-xl border border-slate-200 dark:border-[#242736] shadow-2xl py-1 text-sm"
     >
-      {!isOwnerRow && !isCurrentRow ? (
+      {!isOwnerRow ? (
         <>
-          <p className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Change Role</p>
-          {(["admin", "writer", "reader"] as Role[]).map((r) => (
-            <button
-              key={r}
-              onClick={() => { onRoleChange(memberId, r); onClose(); }}
-              className={`w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-[#242736] flex items-center gap-2 transition-colors ${memberRole === r ? "text-blue-600 font-semibold" : "text-slate-700 dark:text-slate-300"}`}
-            >
-              <span className={`material-symbols-outlined text-[14px] ${memberRole === r ? "opacity-100" : "opacity-0"}`}>check</span>
-              {r.charAt(0).toUpperCase() + r.slice(1)}
-            </button>
-          ))}
-          <div className="border-t border-slate-100 dark:border-[#242736] my-1" />
+          {!isCurrentRow && (
+            <>
+              <p className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Change Role</p>
+              {(["admin", "writer", "reader"] as Role[]).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => { onRoleChange(memberId, r); onClose(); }}
+                  className={`w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-[#242736] flex items-center gap-2 transition-colors ${memberRole === r ? "text-blue-600 font-semibold" : "text-slate-700 dark:text-slate-300"}`}
+                >
+                  <span className={`material-symbols-outlined text-[14px] ${memberRole === r ? "opacity-100" : "opacity-0"}`}>check</span>
+                  {r.charAt(0).toUpperCase() + r.slice(1)}
+                </button>
+              ))}
+              <div className="border-t border-slate-100 dark:border-[#242736] my-1" />
+            </>
+          )}
           <button
             onClick={() => { onResend(memberId, memberEmail); onClose(); }}
             disabled={resendingId === memberId}
@@ -85,13 +89,15 @@ function FloatingDropdown({ anchor, memberId, memberEmail, memberRole, isOwnerRo
             <span className="material-symbols-outlined text-[14px]">mail</span>
             {resendMsg === memberId ? "Sent!" : resendingId === memberId ? "Sending…" : tr.users_resend ?? "Resend Invite"}
           </button>
-          <button
-            onClick={() => { onRemove(memberId); if (removingId === memberId) onClose(); }}
-            className={`w-full text-left px-3 py-2 flex items-center gap-2 transition-colors ${removingId === memberId ? "text-red-600 font-semibold bg-red-50 dark:bg-red-900/20" : "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10"}`}
-          >
-            <span className="material-symbols-outlined text-[14px]">person_remove</span>
-            {removingId === memberId ? "Confirm remove" : tr.users_remove ?? "Remove"}
-          </button>
+          {!isCurrentRow && (
+            <button
+              onClick={() => { onRemove(memberId); if (removingId === memberId) onClose(); }}
+              className={`w-full text-left px-3 py-2 flex items-center gap-2 transition-colors ${removingId === memberId ? "text-red-600 font-semibold bg-red-50 dark:bg-red-900/20" : "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10"}`}
+            >
+              <span className="material-symbols-outlined text-[14px]">person_remove</span>
+              {removingId === memberId ? "Confirm remove" : tr.users_remove ?? "Remove"}
+            </button>
+          )}
         </>
       ) : (
         <p className="px-3 py-2 text-xs text-slate-400 italic">No actions available</p>
@@ -374,13 +380,25 @@ export default function UsersPage() {
 
                       {/* Actions */}
                       <td className="px-6 py-4">
-                        <div className="flex justify-end">
-                          <button
-                            onClick={(e) => toggleMenu(m.userId, e)}
-                            className={`p-1.5 rounded-lg transition-colors ${openMenuId === m.userId ? "bg-slate-100 dark:bg-[#242736] text-slate-700 dark:text-slate-200" : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#242736]"}`}
-                          >
-                            <span className="material-symbols-outlined text-[18px]">more_vert</span>
-                          </button>
+                        <div className="flex items-center justify-end gap-2">
+                          {isPending && (
+                            <button
+                              onClick={() => handleResend(m.userId, m.email)}
+                              disabled={resendingId === m.userId}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 disabled:opacity-50 transition-colors whitespace-nowrap"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">mail</span>
+                              {resendMsg === m.userId ? "Sent!" : resendingId === m.userId ? "Sending…" : "Resend invite"}
+                            </button>
+                          )}
+                          {!isOwnerRow && (
+                            <button
+                              onClick={(e) => toggleMenu(m.userId, e)}
+                              className={`p-1.5 rounded-lg transition-colors ${openMenuId === m.userId ? "bg-slate-100 dark:bg-[#242736] text-slate-700 dark:text-slate-200" : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#242736]"}`}
+                            >
+                              <span className="material-symbols-outlined text-[18px]">more_vert</span>
+                            </button>
+                          )}
                         </div>
                       </td>
 
