@@ -150,7 +150,7 @@ export default function SettingsPage() {
         const supabaseInner = getSupabaseBrowser();
         const { data: { user: u } } = await supabaseInner.auth.getUser();
         if (u) {
-          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id, organization_name, account_phone, account_email, account_website, account_street, account_street_nr, account_plz, account_city, account_country, account_socials").eq("user_id", u.id).single();
+          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id, organization_name, account_phone, account_email, account_website, account_phones, account_emails, account_websites, account_street, account_street_nr, account_plz, account_city, account_country, account_socials").eq("user_id", u.id).single();
           if (prof) {
             setHasStripeSubscription(!!prof.stripe_customer_id);
             setLeadCaptureDisabled(!!prof.lead_capture_disabled);
@@ -159,10 +159,14 @@ export default function SettingsPage() {
             setBrandLogoUrl(prof.brand_logo_url ?? "");
             setBrandColor(prof.brand_primary_color ?? "#2563eb");
             setOrganizationName(prof.organization_name ?? "");
-            // Account contact info (single values)
-            setAcctPhone(prof.account_phone ?? "");
-            setAcctEmail(prof.account_email ?? "");
-            setAcctWebsite(prof.account_website ?? "");
+            // Account contact info (single values, with fallback from old array columns)
+            const parseFirst = (raw: string | null | undefined, key: string): string => {
+              if (!raw) return "";
+              try { const a = JSON.parse(raw); return Array.isArray(a) && a.length > 0 ? (a[0][key] ?? "") : ""; } catch { return ""; }
+            };
+            setAcctPhone(prof.account_phone || parseFirst(prof.account_phones, "number"));
+            setAcctEmail(prof.account_email || parseFirst(prof.account_emails, "email"));
+            setAcctWebsite(prof.account_website || parseFirst(prof.account_websites, "url"));
             setAcctStreet(prof.account_street ?? "");
             setAcctStreetNr(prof.account_street_nr ?? "");
             setAcctPlz(prof.account_plz ?? "");
