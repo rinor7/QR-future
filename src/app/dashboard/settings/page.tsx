@@ -160,9 +160,13 @@ export default function SettingsPage() {
             setBrandColor(prof.brand_primary_color ?? "#2563eb");
             setOrganizationName(prof.organization_name ?? "");
             // Account contact info (single values, with fallback from old array columns)
-            const parseFirst = (raw: string | null | undefined, key: string): string => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const parseFirst = (raw: any, key: string): string => {
               if (!raw) return "";
-              try { const a = JSON.parse(raw); return Array.isArray(a) && a.length > 0 ? (a[0][key] ?? "") : ""; } catch { return ""; }
+              try {
+                const a = typeof raw === "string" ? JSON.parse(raw) : raw;
+                return Array.isArray(a) && a.length > 0 ? String(a[0]?.[key] ?? "") : "";
+              } catch { return ""; }
             };
             setAcctPhone(prof.account_phone || parseFirst(prof.account_phones, "number"));
             setAcctEmail(prof.account_email || parseFirst(prof.account_emails, "email"));
