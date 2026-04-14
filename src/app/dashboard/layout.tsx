@@ -13,6 +13,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const saved = localStorage.getItem("qr-dark-mode") === "true";
     setDarkMode(saved);
+    if (saved) document.documentElement.classList.add("dark");
+    return () => {
+      document.documentElement.classList.remove("dark");
+    };
   }, []);
 
   function toggleDark() {

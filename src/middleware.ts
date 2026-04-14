@@ -64,7 +64,8 @@ export async function middleware(request: NextRequest) {
     const loginTs = request.cookies.get("qr_login_ts")?.value;
     const now = Math.floor(Date.now() / 1000);
     const EIGHT_HOURS = 28800;
-    if (loginTs && now - parseInt(loginTs, 10) > EIGHT_HOURS) {
+    // Sign out if cookie is missing (expired) OR if timestamp is too old
+    if (!loginTs || now - parseInt(loginTs, 10) > EIGHT_HOURS) {
       return NextResponse.redirect(new URL("/api/auth/signout?expired=1", request.url));
     }
     // Refresh the cookie on every request so it resets on activity
@@ -73,9 +74,16 @@ export async function middleware(request: NextRequest) {
     return res;
   }
 
-  // Already logged in — skip login page
+  // Already logged in — only skip login page if session is still fresh
   if (user && request.nextUrl.pathname === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const loginTs = request.cookies.get("qr_login_ts")?.value;
+    const now = Math.floor(Date.now() / 1000);
+    const EIGHT_HOURS = 28800;
+    if (loginTs && now - parseInt(loginTs, 10) <= EIGHT_HOURS) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+    // Cookie missing or expired — sign out the stale Supabase session first
+    return NextResponse.redirect(new URL("/api/auth/signout", request.url));
   }
 
   return response;

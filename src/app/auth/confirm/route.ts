@@ -26,7 +26,13 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      const redirectRes = NextResponse.redirect(`${origin}${next}`);
+      redirectRes.cookies.set("qr_login_ts", String(Math.floor(Date.now() / 1000)), {
+        path: "/",
+        maxAge: 28800,
+        sameSite: "lax",
+      });
+      return redirectRes;
     }
   }
 

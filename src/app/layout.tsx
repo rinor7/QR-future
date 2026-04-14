@@ -33,7 +33,7 @@ export default function RootLayout({
     <html lang="de" className={`${inter.variable} ${manrope.variable}`}>
       <head>
         {/* Apply dark mode class before paint to prevent flash */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{if(localStorage.getItem('qr-dark-mode')==='true'){document.documentElement.classList.add('dark')}}catch(e){}})()` }} />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{if(location.pathname.startsWith('/dashboard')&&localStorage.getItem('qr-dark-mode')==='true'){document.documentElement.classList.add('dark')}}catch(e){}})()` }} />
       </head>
       <body>{children}</body>
     </html>
