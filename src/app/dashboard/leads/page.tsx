@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { UserPlus, Mail, MessageSquare, Calendar, Search, Download, X, ExternalLink, Pencil, BarChart2, QrCode } from "lucide-react";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
+import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import { getUserProfile } from "@/lib/store";
 
 type Lead = {
   id: string;
@@ -15,6 +17,7 @@ type Lead = {
   contact_id: string;
   qr_label: string | null;
   contact_name: string | null;
+  created_by: string | null;
 };
 
 type PreviewCard = {
@@ -97,22 +100,49 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [preview, setPreview] = useState<PreviewCard | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [filterByUser, setFilterByUser] = useState("all");
+  const [teamMembers, setTeamMembers] = useState<{ email: string; name: string }[]>([]);
+  const [memberMap, setMemberMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetch("/api/leads")
       .then((r) => r.json())
       .then((data) => { setLeads(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(() => setLoading(false));
+
+    getUserProfile().then(async (profile) => {
+      if (!profile) return;
+      const isAdminOrOwner = profile.role === "admin" || profile.userId === profile.ownerId;
+      setIsAdmin(isAdminOrOwner);
+      if (isAdminOrOwner) {
+        const { data: members } = await getSupabaseBrowser()
+          .from("profiles")
+          .select("email, first_name, last_name")
+          .eq("owner_id", profile.ownerId);
+        if (members) {
+          const map: Record<string, string> = {};
+          const list = members.map((m: { email: string; first_name: string | null; last_name: string | null }) => {
+            const name = [m.first_name, m.last_name].filter(Boolean).join(" ") || m.email;
+            map[m.email] = name;
+            return { email: m.email, name };
+          });
+          setMemberMap(map);
+          setTeamMembers(list);
+        }
+      }
+    });
   }, []);
 
   const filtered = leads.filter((l) => {
     const q = search.toLowerCase();
-    return (
+    const matchesSearch =
       l.name.toLowerCase().includes(q) ||
       l.email.toLowerCase().includes(q) ||
       (l.qr_label ?? "").toLowerCase().includes(q) ||
-      (l.contact_name ?? "").toLowerCase().includes(q)
-    );
+      (l.contact_name ?? "").toLowerCase().includes(q);
+    const matchesUser = filterByUser === "all" || l.created_by === filterByUser;
+    return matchesSearch && matchesUser;
   });
 
   function exportCSV() {
@@ -156,16 +186,30 @@ export default function LeadsPage() {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-5">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search by name, email or QR card…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      {/* Search + filters */}
+      <div className="flex flex-wrap gap-3 mb-5">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by name, email or QR card…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        {isAdmin && teamMembers.length > 1 && (
+          <select
+            value={filterByUser}
+            onChange={(e) => setFilterByUser(e.target.value)}
+            className="bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Members</option>
+            {teamMembers.map((m) => (
+              <option key={m.email} value={m.email}>{m.name}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {loading ? (
@@ -214,6 +258,12 @@ export default function LeadsPage() {
                       <Calendar className="w-3 h-3" />
                       {new Date(lead.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                     </span>
+                    {isAdmin && lead.created_by && (
+                      <span className="flex items-center gap-1">
+                        <UserPlus className="w-3 h-3" />
+                        {memberMap[lead.created_by] || lead.created_by}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="shrink-0 flex items-center gap-2">

@@ -156,6 +156,10 @@ export default function CodesPage() {
   // View mode: grid or list
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  // Member filter (admin/owner only)
+  const [filterByUser, setFilterByUser] = useState("all");
+  const [teamMembers, setTeamMembers] = useState<{ email: string; name: string }[]>([]);
+  const [memberMap, setMemberMap] = useState<Record<string, string>>({});
   const [togglingFolder, setTogglingFolder] = useState<string | null>(null);
   // Pause confirmation modal: { id, currentlyActive, isFolder, folderNode }
   const [pauseModal, setPauseModal] = useState<{ id: string; currentlyActive: boolean; isFolder: boolean; folderNode?: FolderWithStats } | null>(null);
@@ -178,6 +182,25 @@ export default function CodesPage() {
         getAllFolders(profile.ownerId).then((folders) => {
           setFolderTree(buildTree(folders));
         }).catch(() => {});
+        // Load team members for admin/owner filter
+        if (profile.role === "admin" || profile.userId === profile.ownerId) {
+          getSupabaseBrowser()
+            .from("profiles")
+            .select("email, first_name, last_name")
+            .eq("owner_id", profile.ownerId)
+            .then(({ data: members }) => {
+              if (members) {
+                const map: Record<string, string> = {};
+                const list = members.map((m: { email: string; first_name: string | null; last_name: string | null }) => {
+                  const name = [m.first_name, m.last_name].filter(Boolean).join(" ") || m.email;
+                  map[m.email] = name;
+                  return { email: m.email, name };
+                });
+                setMemberMap(map);
+                setTeamMembers(list);
+              }
+            });
+        }
         getSupabaseBrowser()
           .from("contacts")
           .select("id, folder_id")
@@ -294,7 +317,8 @@ export default function CodesPage() {
         statusFilter === "all" ||
         (statusFilter === "active" && c.isActive !== false) ||
         (statusFilter === "paused" && c.isActive === false);
-      if (!matchesSearch || !matchesStatus) return false;
+      const matchesUser = filterByUser === "all" || c.createdBy === filterByUser;
+      if (!matchesSearch || !matchesStatus || !matchesUser) return false;
       if (search.trim()) return true;
       if (currentFolderId) return contactFolders[c.id] === currentFolderId;
       // Root level: show only QR codes not in any folder (or in a "Root" folder we're hiding)
@@ -447,7 +471,7 @@ export default function CodesPage() {
   }
 
   // Reset to page 1 whenever the view changes
-  useEffect(() => { setPage(1); }, [currentFolderId, search, statusFilter, sortBy]);
+  useEffect(() => { setPage(1); }, [currentFolderId, search, statusFilter, sortBy, filterByUser]);
 
   const limit = PLAN_LIMITS[plan];
   const limitReached = limit !== -1 && contacts.length >= limit;
@@ -535,6 +559,18 @@ export default function CodesPage() {
           <option value="oldest">{tr.sort_oldest}</option>
           <option value="name">{tr.sort_name}</option>
         </select>
+        {isAdmin && teamMembers.length > 1 && (
+          <select
+            value={filterByUser}
+            onChange={(e) => setFilterByUser(e.target.value)}
+            className="bg-gray-100 dark:bg-[#242736] text-slate-700 dark:text-slate-300 border-none rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Members</option>
+            {teamMembers.map((m) => (
+              <option key={m.email} value={m.email}>{m.name}</option>
+            ))}
+          </select>
+        )}
         {canCreateFolder && (
           <button onClick={() => { setCreatingFolder(true); setFolderNameError(null); setNewFolderName(""); }} className="flex items-center gap-2 bg-gray-100 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm font-semibold text-blue-600 hover:bg-gray-200 dark:hover:bg-[#2a2e3e] transition-colors">
             <span className="material-symbols-outlined text-base">create_new_folder</span>
@@ -714,6 +750,12 @@ export default function CodesPage() {
                                   <button onClick={() => setPickerContactId(contact.id)} className="text-sm font-semibold text-primary hover:underline">{folderName ?? "None"}</button>
                                 </div>
                               )}
+                              {isAdmin && contact.createdBy && (
+                                <div>
+                                  <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Created by</span>
+                                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{memberMap[contact.createdBy] || contact.createdBy}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="flex items-center gap-1 mt-5 pt-4 border-t border-slate-100 dark:border-[#242736]">
@@ -783,6 +825,12 @@ export default function CodesPage() {
                             <span className="material-symbols-outlined text-xs">trending_up</span>
                             {scanCounts[contact.id] ?? 0}
                           </span>
+                          {isAdmin && contact.createdBy && (
+                            <span className="hidden lg:flex items-center gap-1">
+                              <span className="material-symbols-outlined text-xs">person</span>
+                              {memberMap[contact.createdBy] || contact.createdBy}
+                            </span>
+                          )}
                         </div>
                         {/* Actions */}
                         <div className="flex items-center gap-1 shrink-0">

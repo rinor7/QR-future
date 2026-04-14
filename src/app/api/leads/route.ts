@@ -34,14 +34,14 @@ export async function GET() {
   // Get all contacts for this org
   const { data: contacts } = await supabase
     .from("contacts")
-    .select("id, name, qr_label")
+    .select("id, name, qr_label, created_by")
     .eq("user_id", ownerId);
 
   const contactIds = (contacts ?? []).map((c) => c.id);
   if (contactIds.length === 0) return NextResponse.json([]);
 
-  const contactMap: Record<string, { name: string; qr_label: string }> = {};
-  (contacts ?? []).forEach((c) => { contactMap[c.id] = { name: c.name, qr_label: c.qr_label }; });
+  const contactMap: Record<string, { name: string; qr_label: string; created_by: string }> = {};
+  (contacts ?? []).forEach((c) => { contactMap[c.id] = { name: c.name, qr_label: c.qr_label, created_by: c.created_by ?? "" }; });
 
   const { data: leads } = await supabase
     .from("qr_leads")
@@ -53,6 +53,7 @@ export async function GET() {
     ...l,
     qr_label: contactMap[l.contact_id]?.qr_label || null,
     contact_name: contactMap[l.contact_id]?.name || null,
+    created_by: contactMap[l.contact_id]?.created_by || null,
   }));
 
   return NextResponse.json(result);
