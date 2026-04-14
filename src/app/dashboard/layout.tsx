@@ -74,13 +74,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Sidebar */}
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        {/* Activity Panel */}
-        <ActivityPanel
-          open={activityOpen}
-          onClose={() => setActivityOpen(false)}
-          onUnreadChange={setActivityCount}
-        />
-
         {/* Main column: header + content */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top header bar (desktop only) */}
@@ -97,6 +90,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </main>
         </div>
       </div>
+
+      {/* Activity Panel — fixed overlay, outside the flex layout */}
+      <ActivityPanel
+        open={activityOpen}
+        onClose={() => setActivityOpen(false)}
+        onUnreadChange={setActivityCount}
+      />
     </LanguageProvider>
   );
 }

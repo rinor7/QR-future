@@ -186,10 +186,9 @@ export default function ActivityPanel({
         className={`
           fixed top-0 right-0 h-screen w-80 z-50 flex flex-col
           bg-white dark:bg-[#1a1d27] border-l border-slate-200 dark:border-[#242736]
-          shadow-[-4px_0_24px_rgba(0,0,0,0.06)]
+          shadow-[-4px_0_24px_rgba(0,0,0,0.08)]
           transition-transform duration-300 ease-in-out
-          wide:sticky wide:top-0 wide:translate-x-0 wide:z-auto wide:shadow-none
-          ${open ? "translate-x-0" : "translate-x-full wide:translate-x-full"}
+          ${open ? "translate-x-0" : "translate-x-full"}
         `}
       >
         {/* Header */}
