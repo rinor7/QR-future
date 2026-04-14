@@ -8,6 +8,7 @@ import { getUserProfile } from "@/lib/store";
 import { Plan, PLAN_LABELS, PLAN_LIMITS } from "@/lib/types";
 import { useLang } from "@/lib/language";
 import TemplateEditorModal, { QRTemplate } from "@/components/TemplateEditorModal";
+import QRCode from "react-qr-code";
 
 export default function SettingsPage() {
   const { tr, lang, toggleLang } = useLang();
@@ -77,6 +78,19 @@ export default function SettingsPage() {
   const [acctCountry, setAcctCountry] = useState("");
   const [acctSaving, setAcctSaving] = useState(false);
   const [acctSaved, setAcctSaved] = useState(false);
+
+  // 2FA / MFA state
+  const [mfaEnrolled, setMfaEnrolled] = useState(false);
+  const [mfaFactorId, setMfaFactorId] = useState("");
+  const [mfaEnrolling, setMfaEnrolling] = useState(false);
+  const [mfaUri, setMfaUri] = useState("");
+  const [mfaSecret, setMfaSecret] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaVerifying, setMfaVerifying] = useState(false);
+  const [mfaError, setMfaError] = useState<string | null>(null);
+  const [mfaDisabling, setMfaDisabling] = useState(false);
+  const [mfaMembersAllowed, setMfaMembersAllowed] = useState(true);
+  const [mfaMembersSaving, setMfaMembersSaving] = useState(false);
 
 
 
@@ -148,6 +162,18 @@ export default function SettingsPage() {
             setAcctCity(prof.account_city ?? "");
             setAcctCountry(prof.account_country ?? "");
           }
+          // Load MFA enrollment status
+          const { data: mfaFactors } = await supabaseInner.auth.mfa.listFactors();
+          const verifiedFactor = mfaFactors?.totp?.find((f: { status: string }) => f.status === "verified");
+          setMfaEnrolled(!!verifiedFactor);
+          if (verifiedFactor) setMfaFactorId(verifiedFactor.id);
+          // Load owner's mfa_members_allowed (works for both owner and member)
+          const { data: ownerMfaProfile } = await supabaseInner
+            .from("profiles")
+            .select("mfa_members_allowed")
+            .eq("user_id", p.ownerId)
+            .single();
+          setMfaMembersAllowed(ownerMfaProfile?.mfa_members_allowed ?? true);
         }
       }
     });
@@ -314,6 +340,52 @@ export default function SettingsPage() {
     setPwLoading(false);
   }
 
+  async function handleStartMfa() {
+    setMfaError(null);
+    const supabase = getSupabaseBrowser();
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp" });
+    if (error || !data) { setMfaError(error?.message ?? "Failed to start 2FA setup"); return; }
+    setMfaFactorId(data.id);
+    setMfaUri(data.totp.uri);
+    setMfaSecret(data.totp.secret);
+    setMfaEnrolling(true);
+  }
+
+  async function handleVerifyMfa() {
+    setMfaError(null);
+    setMfaVerifying(true);
+    const supabase = getSupabaseBrowser();
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: mfaFactorId, code: mfaCode });
+    if (error) { setMfaError("Invalid code. Please try again."); setMfaVerifying(false); return; }
+    setMfaEnrolled(true);
+    setMfaEnrolling(false);
+    setMfaUri(""); setMfaSecret(""); setMfaCode(""); setMfaVerifying(false);
+  }
+
+  function handleCancelMfa() {
+    setMfaEnrolling(false);
+    setMfaUri(""); setMfaSecret(""); setMfaCode(""); setMfaError(null);
+  }
+
+  async function handleDisableMfa() {
+    setMfaVerifying(true);
+    const supabase = getSupabaseBrowser();
+    const { error } = await supabase.auth.mfa.unenroll({ factorId: mfaFactorId });
+    if (error) { setMfaError(error.message); setMfaVerifying(false); return; }
+    setMfaEnrolled(false); setMfaDisabling(false); setMfaFactorId(""); setMfaVerifying(false);
+  }
+
+  async function handleToggleMfaMembers(val: boolean) {
+    setMfaMembersSaving(true);
+    const supabase = getSupabaseBrowser();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("profiles").update({ mfa_members_allowed: val }).eq("user_id", user.id);
+      setMfaMembersAllowed(val);
+    }
+    setMfaMembersSaving(false);
+  }
+
   return (
     <div className="pt-8 pb-12 px-4 sm:px-10 max-w-6xl mx-auto">
       {/* Header */}
@@ -399,15 +471,94 @@ export default function SettingsPage() {
             <button type="submit" disabled={pwLoading} className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-60">
               {pwLoading ? tr.settings_pw_saving : "Change Password"}
             </button>
-            <div className="pt-2 border-t border-slate-200 dark:border-slate-700/50">
-              <div className="flex items-center justify-between">
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-700/50 space-y-3">
+              <div className="flex items-start justify-between gap-2">
                 <div>
                   <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">Two-Factor Auth</span>
                   <p className="text-xs text-slate-400 mt-0.5">Extra login security via authenticator app</p>
                 </div>
-                <span className="text-xs font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">Coming soon</span>
+                {!mfaEnrolled && !mfaEnrolling && (isOwner || mfaMembersAllowed) && (
+                  <button type="button" onClick={handleStartMfa} className="shrink-0 text-xs font-semibold bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors">
+                    Enable
+                  </button>
+                )}
+                {!mfaEnrolled && !mfaEnrolling && !isOwner && !mfaMembersAllowed && (
+                  <span className="shrink-0 text-xs text-slate-400 italic">Disabled by admin</span>
+                )}
+                {mfaEnrolled && !mfaDisabling && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="flex items-center gap-1 text-xs font-semibold text-green-600">
+                      <span className="material-symbols-outlined text-[14px]">check_circle</span>Active
+                    </span>
+                    <button type="button" onClick={() => setMfaDisabling(true)} className="text-xs text-slate-400 hover:text-red-500 transition-colors font-medium">Disable</button>
+                  </div>
+                )}
               </div>
+              {/* QR enrollment step */}
+              {mfaEnrolling && (
+                <div className="space-y-3 bg-slate-50 dark:bg-[#242736] rounded-xl p-4">
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Scan with your authenticator app (Google Authenticator, Authy, etc.)</p>
+                  <div className="flex justify-center bg-white p-3 rounded-xl">
+                    <QRCode value={mfaUri} size={160} />
+                  </div>
+                  <details className="text-xs text-slate-400">
+                    <summary className="cursor-pointer hover:text-slate-600 select-none">Can&apos;t scan? Enter the key manually</summary>
+                    <p className="mt-2 font-mono break-all text-xs bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-lg">{mfaSecret}</p>
+                  </details>
+                  <input
+                    type="text"
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="Enter 6-digit code"
+                    className="w-full bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-center font-mono tracking-widest focus:ring-2 focus:ring-blue-500"
+                    maxLength={6}
+                  />
+                  {mfaError && <p className="text-xs text-red-500">{mfaError}</p>}
+                  <div className="flex gap-2">
+                    <button type="button" onClick={handleVerifyMfa} disabled={mfaCode.length !== 6 || mfaVerifying} className="flex-1 bg-blue-600 text-white text-sm py-2 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                      {mfaVerifying ? "Verifying..." : "Verify & Enable"}
+                    </button>
+                    <button type="button" onClick={handleCancelMfa} className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition-colors">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+              {/* Disable confirmation */}
+              {mfaDisabling && (
+                <div className="space-y-3 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-xl p-4">
+                  <p className="text-xs font-semibold text-red-700 dark:text-red-400">This will remove 2FA from your account. You can re-enable it anytime.</p>
+                  {mfaError && <p className="text-xs text-red-500">{mfaError}</p>}
+                  <div className="flex gap-2">
+                    <button type="button" onClick={handleDisableMfa} disabled={mfaVerifying} className="flex-1 bg-red-600 text-white text-sm py-2 rounded-xl font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors">
+                      {mfaVerifying ? "Disabling..." : "Yes, disable 2FA"}
+                    </button>
+                    <button type="button" onClick={() => { setMfaDisabling(false); setMfaError(null); }} className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition-colors">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
+            {/* Owner toggle: allow/disallow members from using 2FA */}
+            {isOwner && (
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-700/50">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">Team 2FA</span>
+                    <p className="text-xs text-slate-400 mt-0.5">Allow team members to enable two-factor authentication</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleMfaMembers(!mfaMembersAllowed)}
+                    disabled={mfaMembersSaving}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-60 ${mfaMembersAllowed ? "bg-blue-600" : "bg-slate-200 dark:bg-slate-700"}`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200 ${mfaMembersAllowed ? "translate-x-5" : "translate-x-0"}`} />
+                  </button>
+                </div>
+              </div>
+            )}
           </form>
         </section>
 

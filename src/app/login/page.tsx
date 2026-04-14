@@ -25,6 +25,12 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [mfaStep, setMfaStep] = useState(false);
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaFactorId, setMfaFactorId] = useState("");
+  const [mfaChallengeId, setMfaChallengeId] = useState("");
+  const [mfaError, setMfaError] = useState<string | null>(null);
+  const [mfaLoading, setMfaLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,7 +43,41 @@ function LoginForm() {
       setLoading(false);
       return;
     }
-    document.cookie = `qr_login_ts=${Math.floor(Date.now() / 1000)}; path=/; max-age=7200; SameSite=Lax`;
+    // Check if MFA is required
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.nextLevel === "aal2" && aal.nextLevel !== aal.currentLevel) {
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const totpFactor = factors?.totp?.[0];
+      if (totpFactor) {
+        const { data: challenge } = await supabase.auth.mfa.challenge({ factorId: totpFactor.id });
+        setMfaFactorId(totpFactor.id);
+        setMfaChallengeId(challenge?.id ?? "");
+        setMfaStep(true);
+        setLoading(false);
+        return;
+      }
+    }
+    document.cookie = `qr_login_ts=${Math.floor(Date.now() / 1000)}; path=/; max-age=28800; SameSite=Lax`;
+    router.push("/dashboard");
+    router.refresh();
+  }
+
+  async function handleMfaVerify(e: React.FormEvent) {
+    e.preventDefault();
+    setMfaError(null);
+    setMfaLoading(true);
+    const supabase = getSupabaseBrowser();
+    const { error } = await supabase.auth.mfa.verify({
+      factorId: mfaFactorId,
+      challengeId: mfaChallengeId,
+      code: mfaCode,
+    });
+    if (error) {
+      setMfaError("Invalid code. Please check your authenticator app and try again.");
+      setMfaLoading(false);
+      return;
+    }
+    document.cookie = `qr_login_ts=${Math.floor(Date.now() / 1000)}; path=/; max-age=28800; SameSite=Lax`;
     router.push("/dashboard");
     router.refresh();
   }
@@ -126,77 +166,122 @@ function LoginForm() {
           )}
 
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-5">
-            {/* Google OAuth */}
-            <button
-              type="button"
-              onClick={() => handleOAuth("google")}
-              className="w-full flex items-center justify-center gap-3 border border-gray-200 hover:bg-gray-50 text-gray-700 py-2.5 rounded-xl font-medium text-sm transition-colors"
-            >
-              <GoogleIcon />
-              Mit Google anmelden
-            </button>
-
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-xs text-gray-400 font-medium">oder per E-Mail</span>
-              <div className="flex-1 h-px bg-gray-200" />
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">E-Mail</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@beispiel.at"
-                  required
-                  autoFocus
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
-                />
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-sm font-medium text-gray-700">Passwort</label>
-                  <Link href="/forgot-password" className="text-xs text-blue-600 hover:underline" tabIndex={-1}>
-                    Passwort vergessen?
-                  </Link>
+            {mfaStep ? (
+              /* ── MFA step ── */
+              <form onSubmit={handleMfaVerify} className="space-y-5">
+                <div className="text-center space-y-1">
+                  <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900">Two-Factor Authentication</h2>
+                  <p className="text-sm text-gray-500">Open your authenticator app and enter the 6-digit code.</p>
                 </div>
                 <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+                  type="text"
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="000000"
+                  autoFocus
+                  maxLength={6}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-2xl text-center font-mono tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-300"
                 />
-              </div>
-              {error && (
-                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
-                  {error}
-                </p>
-              )}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl font-medium transition-colors"
-              >
-                {loading && (
-                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                  </svg>
+                {mfaError && (
+                  <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">{mfaError}</p>
                 )}
-                {loading ? "Anmelden..." : "Anmelden"}
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={mfaCode.length !== 6 || mfaLoading}
+                  className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl font-medium transition-colors"
+                >
+                  {mfaLoading && (
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                  )}
+                  {mfaLoading ? "Verifying..." : "Verify"}
+                </button>
+                <button type="button" onClick={() => setMfaStep(false)} className="w-full text-sm text-gray-400 hover:text-gray-600 transition-colors">
+                  Back to login
+                </button>
+              </form>
+            ) : (
+              /* ── Normal login ── */
+              <>
+                <button
+                  type="button"
+                  onClick={() => handleOAuth("google")}
+                  className="w-full flex items-center justify-center gap-3 border border-gray-200 hover:bg-gray-50 text-gray-700 py-2.5 rounded-xl font-medium text-sm transition-colors"
+                >
+                  <GoogleIcon />
+                  Mit Google anmelden
+                </button>
 
-            <p className="text-center text-sm text-gray-500">
-              Noch kein Konto?{" "}
-              <Link href="/register" className="text-blue-600 hover:underline font-medium">
-                Registrieren
-              </Link>
-            </p>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-xs text-gray-400 font-medium">oder per E-Mail</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">E-Mail</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@beispiel.at"
+                      required
+                      autoFocus
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-sm font-medium text-gray-700">Passwort</label>
+                      <Link href="/forgot-password" className="text-xs text-blue-600 hover:underline" tabIndex={-1}>
+                        Passwort vergessen?
+                      </Link>
+                    </div>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+                    />
+                  </div>
+                  {error && (
+                    <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+                      {error}
+                    </p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl font-medium transition-colors"
+                  >
+                    {loading && (
+                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                      </svg>
+                    )}
+                    {loading ? "Anmelden..." : "Anmelden"}
+                  </button>
+                </form>
+
+                <p className="text-center text-sm text-gray-500">
+                  Noch kein Konto?{" "}
+                  <Link href="/register" className="text-blue-600 hover:underline font-medium">
+                    Registrieren
+                  </Link>
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
