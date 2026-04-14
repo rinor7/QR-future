@@ -243,14 +243,18 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
   }
 
   function fetchPhonesFromAccount() {
+    console.log("[DEBUG TPL] fetchPhones orgDefaults:", orgDefaults);
     const phone = orgDefaults?.acctPhone;
     if (phone) {
       setTplPhones([{ number: phone, label: "" }]);
       setIncluded((prev) => { const next = new Set(prev); next.add("phones"); return next; });
+    } else {
+      console.log("[DEBUG TPL] phone is empty, toggling checkbox only");
     }
   }
 
   function fetchEmailsFromAccount() {
+    console.log("[DEBUG TPL] fetchEmails orgDefaults:", orgDefaults);
     const email = orgDefaults?.acctEmail;
     if (email) {
       setTplEmails([{ email, label: "" }]);
@@ -259,6 +263,7 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
   }
 
   function fetchWebsitesFromAccount() {
+    console.log("[DEBUG TPL] fetchWebsites orgDefaults:", orgDefaults);
     const website = orgDefaults?.acctWebsite;
     if (website) {
       setTplWebsites([{ url: website, label: "" }]);
