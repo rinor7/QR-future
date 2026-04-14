@@ -67,10 +67,10 @@ export default function SettingsPage() {
   const [brandSaved, setBrandSaved] = useState(false);
   const [brandLogoUploading, setBrandLogoUploading] = useState(false);
 
-  // Account contact info
-  const [acctPhones, setAcctPhones] = useState<{ number: string; label: string }[]>([]);
-  const [acctEmails, setAcctEmails] = useState<{ email: string; label: string }[]>([]);
-  const [acctWebsites, setAcctWebsites] = useState<{ url: string; label: string }[]>([]);
+  // Account contact info (single values)
+  const [acctPhone, setAcctPhone] = useState("");
+  const [acctEmail, setAcctEmail] = useState("");
+  const [acctWebsite, setAcctWebsite] = useState("");
   const [acctStreet, setAcctStreet] = useState("");
   const [acctStreetNr, setAcctStreetNr] = useState("");
   const [acctPlz, setAcctPlz] = useState("");
@@ -78,6 +78,14 @@ export default function SettingsPage() {
   const [acctCountry, setAcctCountry] = useState("");
   const [acctSaving, setAcctSaving] = useState(false);
   const [acctSaved, setAcctSaved] = useState(false);
+
+  // Social media links (company-level)
+  const [acctLinkedin, setAcctLinkedin] = useState("");
+  const [acctInstagram, setAcctInstagram] = useState("");
+  const [acctFacebook, setAcctFacebook] = useState("");
+  const [acctTiktok, setAcctTiktok] = useState("");
+  const [acctSnapchat, setAcctSnapchat] = useState("");
+  const [acctX, setAcctX] = useState("");
 
   // 2FA / MFA state
   const [mfaEnrolled, setMfaEnrolled] = useState(false);
@@ -142,7 +150,7 @@ export default function SettingsPage() {
         const supabaseInner = getSupabaseBrowser();
         const { data: { user: u } } = await supabaseInner.auth.getUser();
         if (u) {
-          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id, organization_name, account_phones, account_emails, account_websites, account_street, account_street_nr, account_plz, account_city, account_country").eq("user_id", u.id).single();
+          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id, organization_name, account_phone, account_email, account_website, account_street, account_street_nr, account_plz, account_city, account_country, account_socials").eq("user_id", u.id).single();
           if (prof) {
             setHasStripeSubscription(!!prof.stripe_customer_id);
             setLeadCaptureDisabled(!!prof.lead_capture_disabled);
@@ -151,16 +159,23 @@ export default function SettingsPage() {
             setBrandLogoUrl(prof.brand_logo_url ?? "");
             setBrandColor(prof.brand_primary_color ?? "#2563eb");
             setOrganizationName(prof.organization_name ?? "");
-            // Account contact info
-            const parseArr = (raw: string | null) => { try { const a = JSON.parse(raw ?? "[]"); return Array.isArray(a) ? a : []; } catch { return []; } };
-            setAcctPhones(parseArr(prof.account_phones));
-            setAcctEmails(parseArr(prof.account_emails));
-            setAcctWebsites(parseArr(prof.account_websites));
+            // Account contact info (single values)
+            setAcctPhone(prof.account_phone ?? "");
+            setAcctEmail(prof.account_email ?? "");
+            setAcctWebsite(prof.account_website ?? "");
             setAcctStreet(prof.account_street ?? "");
             setAcctStreetNr(prof.account_street_nr ?? "");
             setAcctPlz(prof.account_plz ?? "");
             setAcctCity(prof.account_city ?? "");
             setAcctCountry(prof.account_country ?? "");
+            // Social media links
+            const socials = (() => { try { return JSON.parse(prof.account_socials ?? "{}"); } catch { return {}; } })();
+            setAcctLinkedin(socials.linkedin ?? "");
+            setAcctInstagram(socials.instagram ?? "");
+            setAcctFacebook(socials.facebook ?? "");
+            setAcctTiktok(socials.tiktok ?? "");
+            setAcctSnapchat(socials.snapchat ?? "");
+            setAcctX(socials.x ?? "");
           }
           // Load MFA enrollment status
           const { data: mfaFactors } = await supabaseInner.auth.mfa.listFactors();
@@ -228,16 +243,24 @@ export default function SettingsPage() {
     const supabase = getSupabaseBrowser();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
+      const socials: Record<string, string> = {};
+      if (acctLinkedin) socials.linkedin = acctLinkedin;
+      if (acctInstagram) socials.instagram = acctInstagram;
+      if (acctFacebook) socials.facebook = acctFacebook;
+      if (acctTiktok) socials.tiktok = acctTiktok;
+      if (acctSnapchat) socials.snapchat = acctSnapchat;
+      if (acctX) socials.x = acctX;
       await supabase.from("profiles").update({
         organization_name: organizationName || null,
-        account_phones: JSON.stringify(acctPhones.filter((p) => p.number)),
-        account_emails: JSON.stringify(acctEmails.filter((em) => em.email)),
-        account_websites: JSON.stringify(acctWebsites.filter((w) => w.url)),
+        account_phone: acctPhone || null,
+        account_email: acctEmail || null,
+        account_website: acctWebsite || null,
         account_street: acctStreet || null,
         account_street_nr: acctStreetNr || null,
         account_plz: acctPlz || null,
         account_city: acctCity || null,
         account_country: acctCountry || null,
+        account_socials: Object.keys(socials).length > 0 ? JSON.stringify(socials) : null,
       }).eq("user_id", user.id);
       setAcctSaved(true);
       setTimeout(() => setAcctSaved(false), 3000);
@@ -591,72 +614,59 @@ export default function SettingsPage() {
                 />
               </div>
 
-              {/* Phone Numbers */}
+              {/* Contact Info */}
               <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">phone</span>
-                  Phone Numbers
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">contact_phone</span>
+                  Contact Info
                 </h4>
-                <p className="text-xs text-slate-400 mb-3">You can add up to 4 phone numbers. Optionally set a display name for each button.</p>
-                <div className="space-y-2">
-                  {acctPhones.map((ph, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <input type="text" value={ph.number} onChange={(e) => { const next = acctPhones.map((x, j) => j === i ? { ...x, number: e.target.value } : x); setAcctPhones(next); }} placeholder="+41 00 000 00 00" className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                      <input type="text" value={ph.label} onChange={(e) => { const next = acctPhones.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctPhones(next); }} placeholder="Button name (optional)" className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                      <button type="button" onClick={() => setAcctPhones(acctPhones.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1"><span className="material-symbols-outlined text-[18px]">close</span></button>
-                    </div>
-                  ))}
-                  {acctPhones.length < 4 && (
-                    <button type="button" onClick={() => setAcctPhones([...acctPhones, { number: "", label: "" }])} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium mt-1">
-                      <span className="material-symbols-outlined text-[16px]">add</span>Add phone number
-                    </button>
-                  )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Phone</label>
+                    <input type="text" value={acctPhone} onChange={(e) => setAcctPhone(e.target.value)} placeholder="+41 00 000 00 00" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Email</label>
+                    <input type="email" value={acctEmail} onChange={(e) => setAcctEmail(e.target.value)} placeholder="info@company.com" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Website</label>
+                    <input type="text" value={acctWebsite} onChange={(e) => setAcctWebsite(e.target.value)} placeholder="www.company.com" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  </div>
                 </div>
               </div>
 
-              {/* Email Addresses */}
+              {/* Social Media Links */}
               <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">mail</span>
-                  Email Addresses
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">share</span>
+                  Social Media
                 </h4>
-                <p className="text-xs text-slate-400 mb-3">You can add up to 3 email addresses. Optionally set a display name for each button.</p>
-                <div className="space-y-2">
-                  {acctEmails.map((em, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <input type="email" value={em.email} onChange={(e) => { const next = acctEmails.map((x, j) => j === i ? { ...x, email: e.target.value } : x); setAcctEmails(next); }} placeholder="info@company.com" className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                      <input type="text" value={em.label} onChange={(e) => { const next = acctEmails.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctEmails(next); }} placeholder="Button name (optional)" className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                      <button type="button" onClick={() => setAcctEmails(acctEmails.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1"><span className="material-symbols-outlined text-[18px]">close</span></button>
-                    </div>
-                  ))}
-                  {acctEmails.length < 3 && (
-                    <button type="button" onClick={() => setAcctEmails([...acctEmails, { email: "", label: "" }])} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium mt-1">
-                      <span className="material-symbols-outlined text-[16px]">add</span>Add email address
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Websites */}
-              <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">language</span>
-                  Websites
-                </h4>
-                <p className="text-xs text-slate-400 mb-3">You can add up to 3 websites. Optionally set a display name for each button.</p>
-                <div className="space-y-2">
-                  {acctWebsites.map((ws, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <input type="text" value={ws.url} onChange={(e) => { const next = acctWebsites.map((x, j) => j === i ? { ...x, url: e.target.value } : x); setAcctWebsites(next); }} placeholder="www.company.com" className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                      <input type="text" value={ws.label} onChange={(e) => { const next = acctWebsites.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctWebsites(next); }} placeholder="Button name (optional)" className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                      <button type="button" onClick={() => setAcctWebsites(acctWebsites.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1"><span className="material-symbols-outlined text-[18px]">close</span></button>
-                    </div>
-                  ))}
-                  {acctWebsites.length < 3 && (
-                    <button type="button" onClick={() => setAcctWebsites([...acctWebsites, { url: "", label: "" }])} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium mt-1">
-                      <span className="material-symbols-outlined text-[16px]">add</span>Add website
-                    </button>
-                  )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">LinkedIn</label>
+                    <input type="text" value={acctLinkedin} onChange={(e) => setAcctLinkedin(e.target.value)} placeholder="linkedin.com/company/..." className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Instagram</label>
+                    <input type="text" value={acctInstagram} onChange={(e) => setAcctInstagram(e.target.value)} placeholder="instagram.com/..." className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Facebook</label>
+                    <input type="text" value={acctFacebook} onChange={(e) => setAcctFacebook(e.target.value)} placeholder="facebook.com/..." className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">TikTok</label>
+                    <input type="text" value={acctTiktok} onChange={(e) => setAcctTiktok(e.target.value)} placeholder="tiktok.com/@..." className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Snapchat</label>
+                    <input type="text" value={acctSnapchat} onChange={(e) => setAcctSnapchat(e.target.value)} placeholder="snapchat.com/add/..." className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">X / Twitter</label>
+                    <input type="text" value={acctX} onChange={(e) => setAcctX(e.target.value)} placeholder="x.com/..." className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  </div>
                 </div>
               </div>
 
@@ -929,155 +939,6 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
-          </section>
-        )}
-
-        {/* Account Contact Info — removed, merged into Company Information above */}
-        {false && (
-          <section>
-            <form>
-
-              {/* Phone Numbers */}
-              <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">phone</span>
-                  Phone Numbers
-                </h4>
-                <p className="text-xs text-slate-400 mb-3">You can add up to 4 phone numbers. Optionally set a display name for each button.</p>
-                <div className="space-y-2">
-                  {acctPhones.map((ph, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <input
-                        type="text"
-                        value={ph.number}
-                        onChange={(e) => { const next = acctPhones.map((x, j) => j === i ? { ...x, number: e.target.value } : x); setAcctPhones(next); }}
-                        placeholder="+41 00 000 00 00"
-                        className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={ph.label}
-                        onChange={(e) => { const next = acctPhones.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctPhones(next); }}
-                        placeholder="Button name (optional)"
-                        className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
-                      />
-                      <button type="button" onClick={() => setAcctPhones(acctPhones.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1">
-                        <span className="material-symbols-outlined text-[18px]">close</span>
-                      </button>
-                    </div>
-                  ))}
-                  {acctPhones.length < 4 && (
-                    <button type="button" onClick={() => setAcctPhones([...acctPhones, { number: "", label: "" }])} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium mt-1">
-                      <span className="material-symbols-outlined text-[16px]">add</span>
-                      Add phone number
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Email Addresses */}
-              <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">mail</span>
-                  Email Addresses
-                </h4>
-                <p className="text-xs text-slate-400 mb-3">You can add up to 3 email addresses. Optionally set a display name for each button.</p>
-                <div className="space-y-2">
-                  {acctEmails.map((em, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <input
-                        type="email"
-                        value={em.email}
-                        onChange={(e) => { const next = acctEmails.map((x, j) => j === i ? { ...x, email: e.target.value } : x); setAcctEmails(next); }}
-                        placeholder="info@company.com"
-                        className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={em.label}
-                        onChange={(e) => { const next = acctEmails.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctEmails(next); }}
-                        placeholder="Button name (optional)"
-                        className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
-                      />
-                      <button type="button" onClick={() => setAcctEmails(acctEmails.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1">
-                        <span className="material-symbols-outlined text-[18px]">close</span>
-                      </button>
-                    </div>
-                  ))}
-                  {acctEmails.length < 3 && (
-                    <button type="button" onClick={() => setAcctEmails([...acctEmails, { email: "", label: "" }])} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium mt-1">
-                      <span className="material-symbols-outlined text-[16px]">add</span>
-                      Add email address
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Websites */}
-              <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">language</span>
-                  Websites
-                </h4>
-                <p className="text-xs text-slate-400 mb-3">You can add up to 3 websites. Optionally set a display name for each button.</p>
-                <div className="space-y-2">
-                  {acctWebsites.map((ws, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <input
-                        type="text"
-                        value={ws.url}
-                        onChange={(e) => { const next = acctWebsites.map((x, j) => j === i ? { ...x, url: e.target.value } : x); setAcctWebsites(next); }}
-                        placeholder="www.company.com"
-                        className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={ws.label}
-                        onChange={(e) => { const next = acctWebsites.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctWebsites(next); }}
-                        placeholder="Button name (optional)"
-                        className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
-                      />
-                      <button type="button" onClick={() => setAcctWebsites(acctWebsites.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1">
-                        <span className="material-symbols-outlined text-[18px]">close</span>
-                      </button>
-                    </div>
-                  ))}
-                  {acctWebsites.length < 3 && (
-                    <button type="button" onClick={() => setAcctWebsites([...acctWebsites, { url: "", label: "" }])} className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium mt-1">
-                      <span className="material-symbols-outlined text-[16px]">add</span>
-                      Add website
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Address */}
-              <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">location_on</span>
-                  Address
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <input type="text" value={acctStreet} onChange={(e) => setAcctStreet(e.target.value)} placeholder="Street" className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  <input type="text" value={acctStreetNr} onChange={(e) => setAcctStreetNr(e.target.value)} placeholder="Nr." className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  <input type="text" value={acctPlz} onChange={(e) => setAcctPlz(e.target.value)} placeholder="PLZ / ZIP" className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  <input type="text" value={acctCity} onChange={(e) => setAcctCity(e.target.value)} placeholder="City" className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  <input type="text" value={acctCountry} onChange={(e) => setAcctCountry(e.target.value)} placeholder="Country" className="sm:col-span-2 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 pt-2">
-                <button type="submit" disabled={acctSaving} className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
-                  {acctSaving ? "Saving…" : "Save Account Info"}
-                </button>
-                {acctSaved && (
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
-                    <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                    Saved
-                  </span>
-                )}
-              </div>
-            </form>
           </section>
         )}
 
@@ -1367,9 +1228,15 @@ export default function SettingsPage() {
         orgDefaults={{
           organizationName,
           brandLogoUrl,
-          acctPhones: acctPhones.filter((p) => p.number),
-          acctEmails: acctEmails.filter((e) => e.email),
-          acctWebsites: acctWebsites.filter((w) => w.url),
+          acctPhone,
+          acctEmail,
+          acctWebsite,
+          acctLinkedin,
+          acctInstagram,
+          acctFacebook,
+          acctTiktok,
+          acctSnapchat,
+          acctX,
         }}
       />
     </div>

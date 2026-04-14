@@ -34,12 +34,18 @@ export interface QRTemplate {
   locked_fields: string[];
 }
 
-interface OrgDefaults {
+export interface OrgDefaults {
   organizationName?: string;
   brandLogoUrl?: string;
-  acctPhones?: { number: string; label: string }[];
-  acctEmails?: { email: string; label: string }[];
-  acctWebsites?: { url: string; label: string }[];
+  acctPhone?: string;
+  acctEmail?: string;
+  acctWebsite?: string;
+  acctLinkedin?: string;
+  acctInstagram?: string;
+  acctFacebook?: string;
+  acctTiktok?: string;
+  acctSnapchat?: string;
+  acctX?: string;
 }
 
 interface Props {
@@ -68,12 +74,12 @@ const FIELD_GROUPS = [
     label: "Social Links",
     icon: "link",
     fields: [
-      { key: "linkedin_url", label: "LinkedIn", type: "url" },
-      { key: "instagram_url", label: "Instagram", type: "url" },
-      { key: "facebook_url", label: "Facebook", type: "url" },
-      { key: "tiktok_url", label: "TikTok", type: "url" },
-      { key: "snapchat_url", label: "Snapchat", type: "url" },
-      { key: "x_url", label: "X / Twitter", type: "url" },
+      { key: "linkedin_url", label: "LinkedIn", type: "url", fromAccount: "acctLinkedin" as const },
+      { key: "instagram_url", label: "Instagram", type: "url", fromAccount: "acctInstagram" as const },
+      { key: "facebook_url", label: "Facebook", type: "url", fromAccount: "acctFacebook" as const },
+      { key: "tiktok_url", label: "TikTok", type: "url", fromAccount: "acctTiktok" as const },
+      { key: "snapchat_url", label: "Snapchat", type: "url", fromAccount: "acctSnapchat" as const },
+      { key: "x_url", label: "X / Twitter", type: "url", fromAccount: "acctX" as const },
       { key: "other_social_url", label: "Other Social", type: "url" },
     ],
   },
@@ -172,7 +178,6 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
       FIELD_GROUPS.forEach((g) => {
         if (g.fields.some((f) => editing.locked_fields.includes(f.key))) groups.add(g.key);
       });
-      // Also open company_info if phones/emails/websites are locked
       if (["phones", "emails", "websites"].some((k) => editing.locked_fields.includes(k))) {
         groups.add("company_info");
       }
@@ -229,42 +234,34 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
     setValues((prev) => ({ ...prev, [key]: val }));
   }
 
-  function fetchFromAccount(key: string, accountKey: string) {
-    if (accountKey === "organizationName") {
-      const val = orgDefaults?.organizationName;
-      if (val) {
-        setValues((prev) => ({ ...prev, [key]: val }));
-        setIncluded((prev) => { const next = new Set(prev); next.add(key); return next; });
-      }
-    } else if (accountKey === "brandLogoUrl") {
-      const val = orgDefaults?.brandLogoUrl;
-      if (val) {
-        setValues((prev) => ({ ...prev, [key]: val }));
-        setIncluded((prev) => { const next = new Set(prev); next.add(key); return next; });
-      }
+  function fetchFromAccount(key: string, accountKey: keyof OrgDefaults) {
+    const val = orgDefaults?.[accountKey];
+    if (val) {
+      setValues((prev) => ({ ...prev, [key]: val }));
+      setIncluded((prev) => { const next = new Set(prev); next.add(key); return next; });
     }
   }
 
   function fetchPhonesFromAccount() {
-    const phones = orgDefaults?.acctPhones?.filter((p) => p.number) ?? [];
-    if (phones.length > 0) {
-      setTplPhones(phones.map((p) => ({ ...p })));
+    const phone = orgDefaults?.acctPhone;
+    if (phone) {
+      setTplPhones([{ number: phone, label: "" }]);
       setIncluded((prev) => { const next = new Set(prev); next.add("phones"); return next; });
     }
   }
 
   function fetchEmailsFromAccount() {
-    const emails = orgDefaults?.acctEmails?.filter((e) => e.email) ?? [];
-    if (emails.length > 0) {
-      setTplEmails(emails.map((e) => ({ ...e })));
+    const email = orgDefaults?.acctEmail;
+    if (email) {
+      setTplEmails([{ email, label: "" }]);
       setIncluded((prev) => { const next = new Set(prev); next.add("emails"); return next; });
     }
   }
 
   function fetchWebsitesFromAccount() {
-    const websites = orgDefaults?.acctWebsites?.filter((w) => w.url) ?? [];
-    if (websites.length > 0) {
-      setTplWebsites(websites.map((w) => ({ ...w })));
+    const website = orgDefaults?.acctWebsite;
+    if (website) {
+      setTplWebsites([{ url: website, label: "" }]);
       setIncluded((prev) => { const next = new Set(prev); next.add("websites"); return next; });
     }
   }
@@ -316,7 +313,6 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
 
   const inputCls = "w-full bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-[#2a2e3e] rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
-  // Count locked fields including array fields
   const totalLocked = included.size;
 
   return (
@@ -381,10 +377,8 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                     {group.fields.map((field) => {
                       const isChecked = included.has(field.key);
                       const val = values[field.key];
-                      const fromAccountKey = "fromAccount" in field ? field.fromAccount : null;
-                      const hasAccountValue = fromAccountKey
-                        ? (fromAccountKey === "organizationName" ? !!orgDefaults?.organizationName : fromAccountKey === "brandLogoUrl" ? !!orgDefaults?.brandLogoUrl : false)
-                        : false;
+                      const fromAccountKey = "fromAccount" in field ? field.fromAccount as keyof OrgDefaults : null;
+                      const hasAccountValue = fromAccountKey ? !!orgDefaults?.[fromAccountKey] : false;
 
                       return (
                         <div key={field.key} className="px-4 py-3 bg-white dark:bg-[#1a1d27]">
@@ -466,9 +460,9 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                               Phone Numbers
                               {included.has("phones") && <span className="ml-2 text-[10px] font-bold text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-full">🔒 Locked</span>}
                             </label>
-                            {(orgDefaults?.acctPhones?.length ?? 0) > 0 && (
+                            {orgDefaults?.acctPhone && (
                               <button type="button" onClick={fetchPhonesFromAccount} className="text-xs text-blue-600 hover:underline shrink-0">
-                                ← from account ({orgDefaults!.acctPhones!.length})
+                                ← from account
                               </button>
                             )}
                           </div>
@@ -519,9 +513,9 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                               Email Addresses
                               {included.has("emails") && <span className="ml-2 text-[10px] font-bold text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-full">🔒 Locked</span>}
                             </label>
-                            {(orgDefaults?.acctEmails?.length ?? 0) > 0 && (
+                            {orgDefaults?.acctEmail && (
                               <button type="button" onClick={fetchEmailsFromAccount} className="text-xs text-blue-600 hover:underline shrink-0">
-                                ← from account ({orgDefaults!.acctEmails!.length})
+                                ← from account
                               </button>
                             )}
                           </div>
@@ -572,9 +566,9 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                               Websites
                               {included.has("websites") && <span className="ml-2 text-[10px] font-bold text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-full">🔒 Locked</span>}
                             </label>
-                            {(orgDefaults?.acctWebsites?.length ?? 0) > 0 && (
+                            {orgDefaults?.acctWebsite && (
                               <button type="button" onClick={fetchWebsitesFromAccount} className="text-xs text-blue-600 hover:underline shrink-0">
-                                ← from account ({orgDefaults!.acctWebsites!.length})
+                                ← from account
                               </button>
                             )}
                           </div>
