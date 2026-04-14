@@ -4,11 +4,14 @@ import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
+import ActivityPanel from "@/components/ActivityPanel";
 import { LanguageProvider } from "@/lib/language";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [activityCount, setActivityCount] = useState(0);
 
   useEffect(() => {
     const saved = localStorage.getItem("qr-dark-mode") === "true";
@@ -39,6 +42,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Menu className="w-5 h-5" />
           </button>
           <span className="flex-1 font-bold text-slate-900 dark:text-slate-100" id="mobile-brand-name">QR Orchestrator</span>
+          {/* Activity toggle (mobile) */}
+          <button
+            onClick={() => setActivityOpen((v) => !v)}
+            className="relative w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[20px]">notifications</span>
+            {activityCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-[#eef1f8] dark:border-[#0f1117]" />
+            )}
+          </button>
           <button
             onClick={toggleDark}
             title={darkMode ? "Switch to Light mode" : "Switch to Dark mode"}
@@ -61,11 +74,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Sidebar */}
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
+        {/* Activity Panel */}
+        <ActivityPanel
+          open={activityOpen}
+          onClose={() => setActivityOpen(false)}
+          onUnreadChange={setActivityCount}
+        />
+
         {/* Main column: header + content */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top header bar (desktop only) */}
           <div className="hidden wide:block">
-            <TopHeader />
+            <TopHeader
+              onActivityToggle={() => setActivityOpen((v) => !v)}
+              activityCount={activityCount}
+            />
           </div>
 
           {/* Page content */}

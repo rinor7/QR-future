@@ -7,7 +7,13 @@ import { getUserProfile } from "@/lib/store";
 import type { Plan } from "@/lib/types";
 import { useLang } from "@/lib/language";
 
-export default function TopHeader() {
+export default function TopHeader({
+  onActivityToggle,
+  activityCount = 0,
+}: {
+  onActivityToggle?: () => void;
+  activityCount?: number;
+}) {
   const router = useRouter();
   const { lang, toggleLang } = useLang();
   const [userEmail, setUserEmail] = useState("");
@@ -102,6 +108,20 @@ export default function TopHeader() {
             {darkMode ? "light_mode" : "dark_mode"}
           </span>
         </button>
+
+        {/* Activity feed toggle */}
+        {onActivityToggle && (
+          <button
+            onClick={onActivityToggle}
+            title="Activity feed"
+            className="relative w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[20px]">notifications</span>
+            {activityCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-[#eef1f8] dark:border-[#0f1117]" />
+            )}
+          </button>
+        )}
 
         <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-700" />
 
