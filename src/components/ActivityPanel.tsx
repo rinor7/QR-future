@@ -57,7 +57,6 @@ function timeAgo(ts: string): string {
 
 function ActivityRow({ item, isNew }: { item: ActivityItem; isNew: boolean }) {
   const isScan = item.type === "scan";
-  const isInteraction = item.type === "interaction";
   const isLead = item.type === "lead";
 
   const iconBg = isScan
