@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
   const {
     name, primary_color, theme, bg_image_url, show_logo_in_qr, lead_capture_enabled,
     company, logo_url, website, description,
+    phones, emails, websites,
     linkedin_url, instagram_url, facebook_url, tiktok_url, snapchat_url, x_url, other_social_url,
     qr_dot_style, qr_corner_style, qr_dot_color, qr_bg_color, qr_gradient, qr_gradient_color,
     locked_fields,
@@ -73,6 +74,9 @@ export async function POST(req: NextRequest) {
     logo_url: logo_url ?? null,
     website: website ?? null,
     description: description ?? null,
+    phones: phones ?? null,
+    emails: emails ?? null,
+    websites: websites ?? null,
     linkedin_url: linkedin_url ?? null,
     instagram_url: instagram_url ?? null,
     facebook_url: facebook_url ?? null,

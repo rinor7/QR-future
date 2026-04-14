@@ -15,6 +15,9 @@ export interface QRTemplate {
   logo_url: string | null;
   website: string | null;
   description: string | null;
+  phones: string | null;
+  emails: string | null;
+  websites: string | null;
   linkedin_url: string | null;
   instagram_url: string | null;
   facebook_url: string | null;
@@ -34,9 +37,9 @@ export interface QRTemplate {
 interface OrgDefaults {
   organizationName?: string;
   brandLogoUrl?: string;
-  acctFirstPhone?: string;
-  acctFirstEmail?: string;
-  acctFirstWebsite?: string;
+  acctPhones?: { number: string; label: string }[];
+  acctEmails?: { email: string; label: string }[];
+  acctWebsites?: { url: string; label: string }[];
 }
 
 interface Props {
@@ -55,9 +58,8 @@ const FIELD_GROUPS = [
     label: "Company Info",
     icon: "business",
     fields: [
-      { key: "company", label: "Company Name", type: "text", fromAccount: "organizationName" },
-      { key: "logo_url", label: "Logo URL", type: "url", fromAccount: "brandLogoUrl" },
-      { key: "website", label: "Website", type: "url", fromAccount: "acctFirstWebsite" },
+      { key: "company", label: "Company Name", type: "text", fromAccount: "organizationName" as const },
+      { key: "logo_url", label: "Logo URL", type: "url", fromAccount: "brandLogoUrl" as const },
       { key: "description", label: "Description", type: "textarea" },
     ],
   },
@@ -114,6 +116,11 @@ const FIELD_DEFAULTS: Record<string, string | boolean> = {
   qr_gradient_color: "#2563eb",
 };
 
+function parseJsonArray<T>(val: string | null | undefined): T[] {
+  if (!val) return [];
+  try { return JSON.parse(val); } catch { return []; }
+}
+
 function templateToValues(t: QRTemplate): FieldValues {
   return {
     company: t.company ?? "",
@@ -147,22 +154,37 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
   const [saving, setSaving] = useState(false);
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set(["company_info"]));
 
+  // Multi-value arrays for phones, emails, websites
+  const [tplPhones, setTplPhones] = useState<{ number: string; label: string }[]>([]);
+  const [tplEmails, setTplEmails] = useState<{ email: string; label: string }[]>([]);
+  const [tplWebsites, setTplWebsites] = useState<{ url: string; label: string }[]>([]);
+
   useEffect(() => {
     if (!open) return;
     if (editing) {
       setName(editing.name);
       setIncluded(new Set(editing.locked_fields));
       setValues(templateToValues(editing));
+      setTplPhones(parseJsonArray(editing.phones));
+      setTplEmails(parseJsonArray(editing.emails));
+      setTplWebsites(parseJsonArray(editing.websites));
       const groups = new Set<string>();
       FIELD_GROUPS.forEach((g) => {
         if (g.fields.some((f) => editing.locked_fields.includes(f.key))) groups.add(g.key);
       });
+      // Also open company_info if phones/emails/websites are locked
+      if (["phones", "emails", "websites"].some((k) => editing.locked_fields.includes(k))) {
+        groups.add("company_info");
+      }
       if (groups.size === 0) groups.add("company_info");
       setOpenGroups(groups);
     } else {
       setName("");
       setIncluded(new Set());
       setValues({});
+      setTplPhones([]);
+      setTplEmails([]);
+      setTplWebsites([]);
       setOpenGroups(new Set(["company_info"]));
     }
   }, [open, editing]);
@@ -191,15 +213,59 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
     });
   }
 
+  function toggleArrayField(key: string) {
+    setIncluded((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }
+
   function setVal(key: string, val: string | boolean) {
     setValues((prev) => ({ ...prev, [key]: val }));
   }
 
-  function fetchFromAccount(key: string, accountKey: keyof OrgDefaults) {
-    const val = orgDefaults?.[accountKey];
-    if (val) {
-      setValues((prev) => ({ ...prev, [key]: val }));
-      setIncluded((prev) => { const next = new Set(prev); next.add(key); return next; });
+  function fetchFromAccount(key: string, accountKey: string) {
+    if (accountKey === "organizationName") {
+      const val = orgDefaults?.organizationName;
+      if (val) {
+        setValues((prev) => ({ ...prev, [key]: val }));
+        setIncluded((prev) => { const next = new Set(prev); next.add(key); return next; });
+      }
+    } else if (accountKey === "brandLogoUrl") {
+      const val = orgDefaults?.brandLogoUrl;
+      if (val) {
+        setValues((prev) => ({ ...prev, [key]: val }));
+        setIncluded((prev) => { const next = new Set(prev); next.add(key); return next; });
+      }
+    }
+  }
+
+  function fetchPhonesFromAccount() {
+    const phones = orgDefaults?.acctPhones?.filter((p) => p.number) ?? [];
+    if (phones.length > 0) {
+      setTplPhones(phones.map((p) => ({ ...p })));
+      setIncluded((prev) => { const next = new Set(prev); next.add("phones"); return next; });
+    }
+  }
+
+  function fetchEmailsFromAccount() {
+    const emails = orgDefaults?.acctEmails?.filter((e) => e.email) ?? [];
+    if (emails.length > 0) {
+      setTplEmails(emails.map((e) => ({ ...e })));
+      setIncluded((prev) => { const next = new Set(prev); next.add("emails"); return next; });
+    }
+  }
+
+  function fetchWebsitesFromAccount() {
+    const websites = orgDefaults?.acctWebsites?.filter((w) => w.url) ?? [];
+    if (websites.length > 0) {
+      setTplWebsites(websites.map((w) => ({ ...w })));
+      setIncluded((prev) => { const next = new Set(prev); next.add("websites"); return next; });
     }
   }
 
@@ -218,6 +284,9 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
       logo_url: (values.logo_url as string) || null,
       website: (values.website as string) || null,
       description: (values.description as string) || null,
+      phones: included.has("phones") && tplPhones.length > 0 ? JSON.stringify(tplPhones.filter((p) => p.number)) : null,
+      emails: included.has("emails") && tplEmails.length > 0 ? JSON.stringify(tplEmails.filter((e) => e.email)) : null,
+      websites: included.has("websites") && tplWebsites.length > 0 ? JSON.stringify(tplWebsites.filter((w) => w.url)) : null,
       linkedin_url: (values.linkedin_url as string) || null,
       instagram_url: (values.instagram_url as string) || null,
       facebook_url: (values.facebook_url as string) || null,
@@ -246,6 +315,9 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
   if (!open) return null;
 
   const inputCls = "w-full bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-[#2a2e3e] rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
+
+  // Count locked fields including array fields
+  const totalLocked = included.size;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -280,7 +352,12 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
 
           {/* Field groups */}
           {FIELD_GROUPS.map((group) => {
-            const activeCount = group.fields.filter((f) => included.has(f.key)).length;
+            let activeCount = group.fields.filter((f) => included.has(f.key)).length;
+            if (group.key === "company_info") {
+              if (included.has("phones")) activeCount++;
+              if (included.has("emails")) activeCount++;
+              if (included.has("websites")) activeCount++;
+            }
             const isOpen = openGroups.has(group.key);
             return (
               <div key={group.key} className="border border-slate-100 dark:border-[#242736] rounded-xl overflow-hidden">
@@ -304,8 +381,10 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                     {group.fields.map((field) => {
                       const isChecked = included.has(field.key);
                       const val = values[field.key];
-                      const fromAccountKey = "fromAccount" in field ? field.fromAccount as keyof OrgDefaults : null;
-                      const hasAccountValue = fromAccountKey ? !!orgDefaults?.[fromAccountKey] : false;
+                      const fromAccountKey = "fromAccount" in field ? field.fromAccount : null;
+                      const hasAccountValue = fromAccountKey
+                        ? (fromAccountKey === "organizationName" ? !!orgDefaults?.organizationName : fromAccountKey === "brandLogoUrl" ? !!orgDefaults?.brandLogoUrl : false)
+                        : false;
 
                       return (
                         <div key={field.key} className="px-4 py-3 bg-white dark:bg-[#1a1d27]">
@@ -338,7 +417,7 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                                 <input type="text" value={(val as string) || ""} onChange={(e) => setVal(field.key, e.target.value)} placeholder={field.label} className={inputCls} />
                               )}
                               {field.type === "url" && (
-                                <input type="url" value={(val as string) || ""} onChange={(e) => setVal(field.key, e.target.value)} placeholder="https://" className={inputCls} />
+                                <input type="text" value={(val as string) || ""} onChange={(e) => setVal(field.key, e.target.value)} placeholder="https://" className={inputCls} />
                               )}
                               {field.type === "textarea" && (
                                 <textarea value={(val as string) || ""} onChange={(e) => setVal(field.key, e.target.value)} placeholder={field.label} rows={2} className={`${inputCls} resize-none`} />
@@ -369,6 +448,170 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                         </div>
                       );
                     })}
+
+                    {/* Phone / Email / Website array fields — only in Company Info group */}
+                    {group.key === "company_info" && (
+                      <>
+                        {/* Phones */}
+                        <div className="px-4 py-3 bg-white dark:bg-[#1a1d27]">
+                          <div className="flex items-center gap-3 mb-2">
+                            <input
+                              type="checkbox"
+                              id="field-phones"
+                              checked={included.has("phones")}
+                              onChange={() => toggleArrayField("phones")}
+                              className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
+                            />
+                            <label htmlFor="field-phones" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer flex-1">
+                              Phone Numbers
+                              {included.has("phones") && <span className="ml-2 text-[10px] font-bold text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-full">🔒 Locked</span>}
+                            </label>
+                            {(orgDefaults?.acctPhones?.length ?? 0) > 0 && (
+                              <button type="button" onClick={fetchPhonesFromAccount} className="text-xs text-blue-600 hover:underline shrink-0">
+                                ← from account ({orgDefaults!.acctPhones!.length})
+                              </button>
+                            )}
+                          </div>
+                          {included.has("phones") && (
+                            <div className="ml-7 space-y-2">
+                              {tplPhones.map((ph, i) => (
+                                <div key={i} className="flex items-center gap-2">
+                                  <span className="material-symbols-outlined text-[16px] text-slate-400">call</span>
+                                  <input
+                                    type="text"
+                                    value={ph.number}
+                                    onChange={(e) => { const next = [...tplPhones]; next[i] = { ...next[i], number: e.target.value }; setTplPhones(next); }}
+                                    placeholder="+41 79 123 45 67"
+                                    className={`flex-1 ${inputCls}`}
+                                  />
+                                  <input
+                                    type="text"
+                                    value={ph.label}
+                                    onChange={(e) => { const next = [...tplPhones]; next[i] = { ...next[i], label: e.target.value }; setTplPhones(next); }}
+                                    placeholder="Label"
+                                    className={`w-28 ${inputCls}`}
+                                  />
+                                  <button type="button" onClick={() => setTplPhones(tplPhones.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1">
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                              {tplPhones.length < 4 && (
+                                <button type="button" onClick={() => setTplPhones([...tplPhones, { number: "", label: "" }])} className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium">
+                                  <span className="material-symbols-outlined text-[14px]">add</span>Add phone
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Emails */}
+                        <div className="px-4 py-3 bg-white dark:bg-[#1a1d27]">
+                          <div className="flex items-center gap-3 mb-2">
+                            <input
+                              type="checkbox"
+                              id="field-emails"
+                              checked={included.has("emails")}
+                              onChange={() => toggleArrayField("emails")}
+                              className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
+                            />
+                            <label htmlFor="field-emails" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer flex-1">
+                              Email Addresses
+                              {included.has("emails") && <span className="ml-2 text-[10px] font-bold text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-full">🔒 Locked</span>}
+                            </label>
+                            {(orgDefaults?.acctEmails?.length ?? 0) > 0 && (
+                              <button type="button" onClick={fetchEmailsFromAccount} className="text-xs text-blue-600 hover:underline shrink-0">
+                                ← from account ({orgDefaults!.acctEmails!.length})
+                              </button>
+                            )}
+                          </div>
+                          {included.has("emails") && (
+                            <div className="ml-7 space-y-2">
+                              {tplEmails.map((em, i) => (
+                                <div key={i} className="flex items-center gap-2">
+                                  <span className="material-symbols-outlined text-[16px] text-slate-400">mail</span>
+                                  <input
+                                    type="email"
+                                    value={em.email}
+                                    onChange={(e) => { const next = [...tplEmails]; next[i] = { ...next[i], email: e.target.value }; setTplEmails(next); }}
+                                    placeholder="info@company.com"
+                                    className={`flex-1 ${inputCls}`}
+                                  />
+                                  <input
+                                    type="text"
+                                    value={em.label}
+                                    onChange={(e) => { const next = [...tplEmails]; next[i] = { ...next[i], label: e.target.value }; setTplEmails(next); }}
+                                    placeholder="Label"
+                                    className={`w-28 ${inputCls}`}
+                                  />
+                                  <button type="button" onClick={() => setTplEmails(tplEmails.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1">
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                              {tplEmails.length < 3 && (
+                                <button type="button" onClick={() => setTplEmails([...tplEmails, { email: "", label: "" }])} className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium">
+                                  <span className="material-symbols-outlined text-[14px]">add</span>Add email
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Websites */}
+                        <div className="px-4 py-3 bg-white dark:bg-[#1a1d27]">
+                          <div className="flex items-center gap-3 mb-2">
+                            <input
+                              type="checkbox"
+                              id="field-websites"
+                              checked={included.has("websites")}
+                              onChange={() => toggleArrayField("websites")}
+                              className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
+                            />
+                            <label htmlFor="field-websites" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer flex-1">
+                              Websites
+                              {included.has("websites") && <span className="ml-2 text-[10px] font-bold text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-full">🔒 Locked</span>}
+                            </label>
+                            {(orgDefaults?.acctWebsites?.length ?? 0) > 0 && (
+                              <button type="button" onClick={fetchWebsitesFromAccount} className="text-xs text-blue-600 hover:underline shrink-0">
+                                ← from account ({orgDefaults!.acctWebsites!.length})
+                              </button>
+                            )}
+                          </div>
+                          {included.has("websites") && (
+                            <div className="ml-7 space-y-2">
+                              {tplWebsites.map((ws, i) => (
+                                <div key={i} className="flex items-center gap-2">
+                                  <span className="material-symbols-outlined text-[16px] text-slate-400">language</span>
+                                  <input
+                                    type="text"
+                                    value={ws.url}
+                                    onChange={(e) => { const next = [...tplWebsites]; next[i] = { ...next[i], url: e.target.value }; setTplWebsites(next); }}
+                                    placeholder="www.company.com"
+                                    className={`flex-1 ${inputCls}`}
+                                  />
+                                  <input
+                                    type="text"
+                                    value={ws.label}
+                                    onChange={(e) => { const next = [...tplWebsites]; next[i] = { ...next[i], label: e.target.value }; setTplWebsites(next); }}
+                                    placeholder="Label"
+                                    className={`w-28 ${inputCls}`}
+                                  />
+                                  <button type="button" onClick={() => setTplWebsites(tplWebsites.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1">
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                              {tplWebsites.length < 3 && (
+                                <button type="button" onClick={() => setTplWebsites([...tplWebsites, { url: "", label: "" }])} className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium">
+                                  <span className="material-symbols-outlined text-[14px]">add</span>Add website
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -379,7 +622,7 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 dark:border-[#242736] flex items-center justify-between shrink-0">
           <p className="text-xs text-slate-400">
-            {included.size === 0 ? "No fields selected — template won't lock anything" : `${included.size} field${included.size !== 1 ? "s" : ""} will be locked when applied`}
+            {totalLocked === 0 ? "No fields selected — template won't lock anything" : `${totalLocked} field${totalLocked !== 1 ? "s" : ""} will be locked when applied`}
           </p>
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#242736] rounded-xl hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors">

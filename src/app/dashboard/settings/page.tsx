@@ -647,7 +647,7 @@ export default function SettingsPage() {
                 <div className="space-y-2">
                   {acctWebsites.map((ws, i) => (
                     <div key={i} className="flex gap-2 items-center">
-                      <input type="url" value={ws.url} onChange={(e) => { const next = acctWebsites.map((x, j) => j === i ? { ...x, url: e.target.value } : x); setAcctWebsites(next); }} placeholder="https://www.company.com" className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                      <input type="text" value={ws.url} onChange={(e) => { const next = acctWebsites.map((x, j) => j === i ? { ...x, url: e.target.value } : x); setAcctWebsites(next); }} placeholder="www.company.com" className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
                       <input type="text" value={ws.label} onChange={(e) => { const next = acctWebsites.map((x, j) => j === i ? { ...x, label: e.target.value } : x); setAcctWebsites(next); }} placeholder="Button name (optional)" className="w-40 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
                       <button type="button" onClick={() => setAcctWebsites(acctWebsites.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1"><span className="material-symbols-outlined text-[18px]">close</span></button>
                     </div>
@@ -1024,10 +1024,10 @@ export default function SettingsPage() {
                   {acctWebsites.map((ws, i) => (
                     <div key={i} className="flex gap-2 items-center">
                       <input
-                        type="url"
+                        type="text"
                         value={ws.url}
                         onChange={(e) => { const next = acctWebsites.map((x, j) => j === i ? { ...x, url: e.target.value } : x); setAcctWebsites(next); }}
-                        placeholder="https://www.company.com"
+                        placeholder="www.company.com"
                         className="flex-1 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
                       />
                       <input
@@ -1367,9 +1367,9 @@ export default function SettingsPage() {
         orgDefaults={{
           organizationName,
           brandLogoUrl,
-          acctFirstPhone: acctPhones[0]?.number ?? "",
-          acctFirstEmail: acctEmails[0]?.email ?? "",
-          acctFirstWebsite: acctWebsites[0]?.url ?? "",
+          acctPhones: acctPhones.filter((p) => p.number),
+          acctEmails: acctEmails.filter((e) => e.email),
+          acctWebsites: acctWebsites.filter((w) => w.url),
         }}
       />
     </div>
