@@ -682,7 +682,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                   className={`${input} text-xs`}
                 />
               </div>
-              {idx > 0 && (
+              {idx > 0 ? (
                 <button
                   type="button"
                   onClick={() => { const next = form.phones.filter((_, i) => i !== idx); setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; }); }}
@@ -690,6 +690,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 >
                   <X className="w-4 h-4" />
                 </button>
+              ) : (
+                <div className="w-8 h-8 shrink-0" aria-hidden="true" />
               )}
             </div>
           ))}
@@ -737,7 +739,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                   className={`${input} text-xs`}
                 />
               </div>
-              {idx > 0 && (
+              {idx > 0 ? (
                 <button
                   type="button"
                   onClick={() => { const next = form.emails.filter((_, i) => i !== idx); setForm((prev) => { const n = { ...prev, emails: next }; onFormChange?.(n); return n; }); }}
@@ -745,6 +747,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 >
                   <X className="w-4 h-4" />
                 </button>
+              ) : (
+                <div className="w-8 h-8 shrink-0" aria-hidden="true" />
               )}
             </div>
           ))}
@@ -801,7 +805,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                   className={`${input} text-xs ${isLocked("website") ? lockedCls : ""}`}
                 />
               </div>
-              {idx > 0 && (
+              {idx > 0 ? (
                 <button
                   type="button"
                   onClick={() => { const next = form.websites.filter((_, i) => i !== idx); setForm((prev) => { const n = { ...prev, websites: next }; onFormChange?.(n); return n; }); }}
@@ -809,6 +813,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 >
                   <X className="w-4 h-4" />
                 </button>
+              ) : (
+                <div className="w-8 h-8 shrink-0" aria-hidden="true" />
               )}
             </div>
           ))}
