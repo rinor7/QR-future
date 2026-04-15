@@ -470,20 +470,24 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                             <div className="ml-7 space-y-2">
                               {tplPhones.map((ph, i) => (
                                 <div key={i} className="flex items-center gap-2">
-                                  <input
-                                    type="text"
-                                    value={ph.number}
-                                    onChange={(e) => { const next = [...tplPhones]; next[i] = { ...next[i], number: e.target.value }; setTplPhones(next); }}
-                                    placeholder="+41 79 123 45 67"
-                                    className={`${inputCls} flex-1 min-w-0`}
-                                  />
-                                  <input
-                                    type="text"
-                                    value={ph.label}
-                                    onChange={(e) => { const next = [...tplPhones]; next[i] = { ...next[i], label: e.target.value }; setTplPhones(next); }}
-                                    placeholder="Label"
-                                    className={`${inputCls} w-28 shrink-0`}
-                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <input
+                                      type="text"
+                                      value={ph.number}
+                                      onChange={(e) => { const next = [...tplPhones]; next[i] = { ...next[i], number: e.target.value }; setTplPhones(next); }}
+                                      placeholder="+41 79 123 45 67"
+                                      className={inputCls}
+                                    />
+                                  </div>
+                                  <div className="w-28 shrink-0">
+                                    <input
+                                      type="text"
+                                      value={ph.label}
+                                      onChange={(e) => { const next = [...tplPhones]; next[i] = { ...next[i], label: e.target.value }; setTplPhones(next); }}
+                                      placeholder="Label"
+                                      className={inputCls}
+                                    />
+                                  </div>
                                   <button type="button" onClick={() => setTplPhones(tplPhones.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1 shrink-0">
                                     <X className="w-3.5 h-3.5" />
                                   </button>
@@ -522,20 +526,24 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                             <div className="ml-7 space-y-2">
                               {tplEmails.map((em, i) => (
                                 <div key={i} className="flex items-center gap-2">
-                                  <input
-                                    type="email"
-                                    value={em.email}
-                                    onChange={(e) => { const next = [...tplEmails]; next[i] = { ...next[i], email: e.target.value }; setTplEmails(next); }}
-                                    placeholder="info@company.com"
-                                    className={`${inputCls} flex-1 min-w-0`}
-                                  />
-                                  <input
-                                    type="text"
-                                    value={em.label}
-                                    onChange={(e) => { const next = [...tplEmails]; next[i] = { ...next[i], label: e.target.value }; setTplEmails(next); }}
-                                    placeholder="Label"
-                                    className={`${inputCls} w-28 shrink-0`}
-                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <input
+                                      type="email"
+                                      value={em.email}
+                                      onChange={(e) => { const next = [...tplEmails]; next[i] = { ...next[i], email: e.target.value }; setTplEmails(next); }}
+                                      placeholder="info@company.com"
+                                      className={inputCls}
+                                    />
+                                  </div>
+                                  <div className="w-28 shrink-0">
+                                    <input
+                                      type="text"
+                                      value={em.label}
+                                      onChange={(e) => { const next = [...tplEmails]; next[i] = { ...next[i], label: e.target.value }; setTplEmails(next); }}
+                                      placeholder="Label"
+                                      className={inputCls}
+                                    />
+                                  </div>
                                   <button type="button" onClick={() => setTplEmails(tplEmails.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1 shrink-0">
                                     <X className="w-3.5 h-3.5" />
                                   </button>
@@ -574,20 +582,24 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                             <div className="ml-7 space-y-2">
                               {tplWebsites.map((ws, i) => (
                                 <div key={i} className="flex items-center gap-2">
-                                  <input
-                                    type="text"
-                                    value={ws.url}
-                                    onChange={(e) => { const next = [...tplWebsites]; next[i] = { ...next[i], url: e.target.value }; setTplWebsites(next); }}
-                                    placeholder="www.company.com"
-                                    className={`${inputCls} flex-1 min-w-0`}
-                                  />
-                                  <input
-                                    type="text"
-                                    value={ws.label}
-                                    onChange={(e) => { const next = [...tplWebsites]; next[i] = { ...next[i], label: e.target.value }; setTplWebsites(next); }}
-                                    placeholder="Label"
-                                    className={`${inputCls} w-28 shrink-0`}
-                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <input
+                                      type="text"
+                                      value={ws.url}
+                                      onChange={(e) => { const next = [...tplWebsites]; next[i] = { ...next[i], url: e.target.value }; setTplWebsites(next); }}
+                                      placeholder="www.company.com"
+                                      className={inputCls}
+                                    />
+                                  </div>
+                                  <div className="w-28 shrink-0">
+                                    <input
+                                      type="text"
+                                      value={ws.label}
+                                      onChange={(e) => { const next = [...tplWebsites]; next[i] = { ...next[i], label: e.target.value }; setTplWebsites(next); }}
+                                      placeholder="Label"
+                                      className={inputCls}
+                                    />
+                                  </div>
                                   <button type="button" onClick={() => setTplWebsites(tplWebsites.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1 shrink-0">
                                     <X className="w-3.5 h-3.5" />
                                   </button>
