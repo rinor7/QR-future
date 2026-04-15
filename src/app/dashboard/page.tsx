@@ -276,6 +276,9 @@ export default function DashboardPage() {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</p>
                     <p className="text-xs text-slate-400 truncate">{contact.company || contact.title || ""}</p>
+                    {contact.createdBy && (
+                      <p className="text-[11px] text-slate-400 truncate mt-0.5">By {contact.createdBy}</p>
+                    )}
                   </div>
                   <span className={`w-2 h-2 rounded-full shrink-0 ${contact.isActive !== false ? "bg-green-500" : "bg-amber-400"}`} />
                 </Link>

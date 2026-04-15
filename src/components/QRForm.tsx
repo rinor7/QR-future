@@ -791,20 +791,24 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                   className={`${input} ${isLocked("website") ? lockedCls : ""}`}
                 />
               </div>
-              <div className="w-40 shrink-0">
-                <input
-                  type="text"
-                  value={ws.label}
-                  onChange={(e) => {
-                    const next = [...(form.websites.length === 0 ? [{ url: "", label: "" }] : form.websites)];
-                    next[idx] = { ...next[idx], label: e.target.value };
-                    setForm((prev) => { const n = { ...prev, websites: next }; onFormChange?.(n); return n; });
-                  }}
-                  placeholder="Button name"
-                  disabled={isLocked("website")}
-                  className={`${input} text-xs ${isLocked("website") ? lockedCls : ""}`}
-                />
-              </div>
+              {ws.url ? (
+                <div className="w-40 shrink-0">
+                  <input
+                    type="text"
+                    value={ws.label}
+                    onChange={(e) => {
+                      const next = [...(form.websites.length === 0 ? [{ url: "", label: "" }] : form.websites)];
+                      next[idx] = { ...next[idx], label: e.target.value };
+                      setForm((prev) => { const n = { ...prev, websites: next }; onFormChange?.(n); return n; });
+                    }}
+                    placeholder="Button name"
+                    disabled={isLocked("website")}
+                    className={`${input} text-xs ${isLocked("website") ? lockedCls : ""}`}
+                  />
+                </div>
+              ) : (
+                <div className="w-40 shrink-0" aria-hidden="true" />
+              )}
               {idx > 0 ? (
                 <button
                   type="button"

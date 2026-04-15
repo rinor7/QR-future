@@ -86,7 +86,7 @@ function ActivityRow({ item, isNew }: { item: ActivityItem; isNew: boolean }) {
 
   return (
     <Link
-      href={`/dashboard/edit/${item.qr_id}`}
+      href={`/dashboard/analytics/${item.qr_id}`}
       className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-[#1e2130] transition-colors group"
     >
       {/* Icon */}
