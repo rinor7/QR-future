@@ -352,45 +352,67 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
     <form id={formId} onSubmit={handleSubmit} className="space-y-8 min-w-0">
 
       {/* Template picker bar */}
-      <div className="flex items-center gap-2 p-3 bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm">
-        <span className="material-symbols-outlined text-[18px] text-purple-500 shrink-0">style</span>
-        <span className="text-sm font-medium text-gray-600 dark:text-slate-300 shrink-0 hidden sm:block">Template:</span>
-        {templates.length === 0 ? (
-          <span className="text-xs text-gray-400 flex-1">No templates yet</span>
-        ) : (
-          <div className="flex-1 overflow-x-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-            <div className="flex gap-2 w-max">
-              {templates.map((t) => {
-                const isActive = appliedTemplate?.id === t.id;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => isActive ? removeTemplate() : applyTemplate(t)}
-                    className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors whitespace-nowrap ${isActive ? "border-purple-400 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300" : "border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-[#242736] hover:border-purple-400 hover:text-purple-700 dark:hover:text-purple-300"}`}
-                  >
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: t.primary_color }} />
-                    {t.name}
-                    {(t.locked_fields ?? []).length > 0 && (
-                      <span className="material-symbols-outlined text-[11px] text-orange-400">lock</span>
-                    )}
-                    {isActive && (
-                      <span className="material-symbols-outlined text-[13px] text-purple-500">close</span>
-                    )}
-                  </button>
-                );
-              })}
+      <div className="p-5 bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-[#1a1d27] rounded-2xl border border-purple-100 dark:border-purple-900/30 shadow-sm min-w-0">
+        <div className="flex items-start gap-4 mb-4">
+          <div className="w-11 h-11 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[22px] text-purple-600">style</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Start from a Template</h3>
+              {appliedTemplate && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  Applied
+                </span>
+              )}
             </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {appliedTemplate
+                ? `"${appliedTemplate.name}" is pre-filling this card. Click it again to remove.`
+                : templates.length === 0
+                ? "No templates yet — create one to pre-fill and lock fields for your team."
+                : "Click a template below to pre-fill fields. Locked fields can't be edited after applying."}
+            </p>
+          </div>
+          <a
+            href="/dashboard/settings"
+            target="_blank"
+            className="flex items-center gap-1 text-xs font-semibold text-purple-600 hover:text-purple-800 transition-colors shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg border border-purple-200 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+          >
+            <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+            {templates.length === 0 ? "Create" : "Manage"}
+          </a>
+        </div>
+
+        {templates.length > 0 && (
+          <div className="flex flex-wrap gap-2 min-w-0">
+            {templates.map((t) => {
+              const isActive = appliedTemplate?.id === t.id;
+              const lockedCount = (t.locked_fields ?? []).length;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => isActive ? removeTemplate() : applyTemplate(t)}
+                  className={`group flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-xl border-2 transition-all ${isActive ? "border-purple-500 bg-white dark:bg-purple-900/20 text-purple-700 dark:text-purple-200 shadow-sm" : "border-gray-200 dark:border-slate-700 bg-white dark:bg-[#242736] text-gray-700 dark:text-slate-300 hover:border-purple-300 hover:shadow-sm"}`}
+                >
+                  <span className="w-3 h-3 rounded-full shrink-0 border border-white shadow-sm" style={{ backgroundColor: t.primary_color }} />
+                  <span className="truncate max-w-[140px]">{t.name}</span>
+                  {lockedCount > 0 && (
+                    <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? "bg-purple-100 text-purple-700 dark:bg-purple-900/40" : "bg-orange-50 text-orange-600 dark:bg-orange-900/20"}`}>
+                      <span className="material-symbols-outlined text-[10px]">lock</span>
+                      {lockedCount}
+                    </span>
+                  )}
+                  {isActive && (
+                    <span className="material-symbols-outlined text-[16px] text-purple-500 ml-0.5">close</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
-        <a
-          href="/dashboard/settings"
-          target="_blank"
-          className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-purple-600 transition-colors shrink-0 whitespace-nowrap ml-1"
-        >
-          <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-          {templates.length === 0 ? "Create" : "Manage"}
-        </a>
       </div>
 
       {/* Basic Information */}
@@ -938,16 +960,18 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                   { key: "xUrl", label: "X / Twitter", prefix: "x.com/", fullPrefix: "https://x.com/" },
                   { key: "otherSocialUrl", label: tr.field_other_social, prefix: null, fullPrefix: null },
                 ] as { key: keyof CreateQRContact; label: string; prefix: string | null; fullPrefix: string | null }[]).map((s) => {
-                  const hasValue = !!(form[s.key] as string);
+                  const value = (form[s.key] as string) || "";
+                  const hasValue = !!value;
                   const isActive = activeSocial === s.key;
                   const fieldLocked = isLocked(SOCIAL_DB_KEY[s.key]);
+                  const handleText = s.fullPrefix && value.startsWith(s.fullPrefix) ? value.slice(s.fullPrefix.length) : value.replace(/^https?:\/\//, "");
                   return (
                     <button
                       key={s.key}
                       type="button"
                       onClick={() => !fieldLocked && setActiveSocial(isActive ? null : s.key)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
-                        fieldLocked ? "opacity-60 cursor-not-allowed bg-orange-50 border-orange-200 text-orange-600"
+                        fieldLocked ? (hasValue ? "cursor-not-allowed bg-orange-50 border-orange-300 text-orange-700" : "opacity-60 cursor-not-allowed bg-orange-50 border-orange-200 text-orange-600")
                         : hasValue ? "bg-blue-50 border-blue-200 text-blue-700"
                         : isActive ? "bg-gray-100 border-gray-300 text-gray-700"
                         : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
@@ -958,7 +982,12 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                         : hasValue
                         ? <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
                         : <Plus className="w-3.5 h-3.5 shrink-0" />}
-                      {s.label}
+                      <span>{s.label}</span>
+                      {fieldLocked && hasValue && (
+                        <span className="text-xs font-normal text-orange-600/80 border-l border-orange-200 pl-1.5 ml-0.5 max-w-[140px] truncate">
+                          {handleText}
+                        </span>
+                      )}
                     </button>
                   );
                 })}

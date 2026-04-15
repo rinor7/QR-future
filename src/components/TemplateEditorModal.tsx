@@ -58,6 +58,15 @@ interface Props {
 
 type FieldValues = Record<string, string | boolean>;
 
+const SOCIAL_PREFIXES: Record<string, { prefix: string; fullPrefix: string }> = {
+  linkedin_url: { prefix: "linkedin.com/in/", fullPrefix: "https://linkedin.com/in/" },
+  instagram_url: { prefix: "instagram.com/", fullPrefix: "https://instagram.com/" },
+  facebook_url: { prefix: "facebook.com/", fullPrefix: "https://facebook.com/" },
+  tiktok_url: { prefix: "tiktok.com/@", fullPrefix: "https://tiktok.com/@" },
+  snapchat_url: { prefix: "snapchat.com/add/", fullPrefix: "https://snapchat.com/add/" },
+  x_url: { prefix: "x.com/", fullPrefix: "https://x.com/" },
+};
+
 const FIELD_GROUPS = [
   {
     key: "company_info",
@@ -410,9 +419,29 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                               {field.type === "text" && (
                                 <input type="text" value={(val as string) || ""} onChange={(e) => setVal(field.key, e.target.value)} placeholder={field.label} className={inputCls} />
                               )}
-                              {field.type === "url" && (
-                                <input type="text" value={(val as string) || ""} onChange={(e) => setVal(field.key, e.target.value)} placeholder="https://" className={inputCls} />
-                              )}
+                              {field.type === "url" && (() => {
+                                const p = SOCIAL_PREFIXES[field.key];
+                                if (!p) {
+                                  return <input type="text" value={(val as string) || ""} onChange={(e) => setVal(field.key, e.target.value)} placeholder="https://example.com" className={inputCls} />;
+                                }
+                                const full = (val as string) || "";
+                                const suffix = full.startsWith(p.fullPrefix) ? full.slice(p.fullPrefix.length) : full.replace(/^https?:\/\//, "");
+                                return (
+                                  <div className="w-full flex items-stretch border border-slate-200 dark:border-[#2a2e3e] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all bg-white dark:bg-[#242736]">
+                                    <span className="flex items-center text-xs text-slate-400 bg-slate-50 dark:bg-[#1a1d27] px-3 border-r border-slate-200 dark:border-[#2a2e3e] whitespace-nowrap shrink-0 select-none">
+                                      {p.prefix}
+                                    </span>
+                                    <input
+                                      type="text"
+                                      value={suffix}
+                                      onChange={(e) => setVal(field.key, e.target.value ? p.fullPrefix + e.target.value.trim() : "")}
+                                      placeholder="username"
+                                      size={1}
+                                      className="flex-1 min-w-0 px-3 py-2.5 text-sm focus:outline-none bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
+                                    />
+                                  </div>
+                                );
+                              })()}
                               {field.type === "textarea" && (
                                 <textarea value={(val as string) || ""} onChange={(e) => setVal(field.key, e.target.value)} placeholder={field.label} rows={2} className={`${inputCls} resize-none`} />
                               )}

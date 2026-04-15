@@ -56,6 +56,7 @@ export default function SettingsPage() {
   // Templates
   const [templates, setTemplates] = useState<QRTemplate[]>([]);
   const [showTemplateEditor, setShowTemplateEditor] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState<QRTemplate | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<QRTemplate | null>(null);
 
   // Branding / White label
@@ -1017,10 +1018,7 @@ export default function SettingsPage() {
                         <span className="material-symbols-outlined text-[16px]">edit</span>
                       </button>
                       <button
-                        onClick={async () => {
-                          await fetch(`/api/templates/${t.id}`, { method: "DELETE" });
-                          setTemplates((prev) => prev.filter((x) => x.id !== t.id));
-                        }}
+                        onClick={() => setTemplateToDelete(t)}
                         className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
                       >
                         <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -1214,6 +1212,42 @@ export default function SettingsPage() {
               <button
                 onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(""); setDeleteError(null); }}
                 disabled={deleteLoading}
+                className="px-5 py-3 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete template confirmation modal */}
+      {templateToDelete && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#1a1d27] rounded-3xl shadow-2xl w-full max-w-md p-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-red-600 text-[22px]">delete</span>
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Delete template?</h3>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+              Are you sure you want to delete <span className="font-semibold text-slate-900 dark:text-slate-100">&ldquo;{templateToDelete.name}&rdquo;</span>? Existing QR codes will keep their values but new ones will no longer be pre-filled from this template.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  const id = templateToDelete.id;
+                  setTemplateToDelete(null);
+                  await fetch(`/api/templates/${id}`, { method: "DELETE" });
+                  setTemplates((prev) => prev.filter((x) => x.id !== id));
+                }}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-sm transition-colors"
+              >
+                Yes, delete
+              </button>
+              <button
+                onClick={() => setTemplateToDelete(null)}
                 className="px-5 py-3 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 Cancel
