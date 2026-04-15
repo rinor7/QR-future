@@ -139,6 +139,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
     id: string; name: string; primary_color: string; theme: string;
     bg_image_url: string | null; show_logo_in_qr: boolean; lead_capture_enabled: boolean;
     company: string | null; logo_url: string | null; website: string | null; description: string | null;
+    phones: string | null; emails: string | null; websites: string | null;
     linkedin_url: string | null; instagram_url: string | null; facebook_url: string | null;
     tiktok_url: string | null; snapchat_url: string | null; x_url: string | null; other_social_url: string | null;
     qr_dot_style: string | null; qr_corner_style: string | null; qr_dot_color: string | null;
@@ -171,6 +172,14 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         return next;
       });
     }
+    const parseArr = <T,>(s: string | null): T[] => {
+      if (!s) return [];
+      try { const v = typeof s === "string" ? JSON.parse(s) : s; return Array.isArray(v) ? v : []; } catch { return []; }
+    };
+    const tplPhones = parseArr<{ number: string; label: string }>(t.phones);
+    const tplEmails = parseArr<{ email: string; label: string }>(t.emails);
+    const tplWebsites = parseArr<{ url: string; label: string }>(t.websites);
+
     setForm((prev) => {
       const next: CreateQRContact = {
         ...prev,
@@ -183,6 +192,9 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         ...(t.logo_url && { logoUrl: t.logo_url }),
         ...(t.website && { website: t.website }),
         ...(t.description && { description: t.description }),
+        ...(tplPhones.length > 0 && { phones: tplPhones }),
+        ...(tplEmails.length > 0 && { emails: tplEmails }),
+        ...(tplWebsites.length > 0 && { websites: tplWebsites }),
         ...(t.linkedin_url && { linkedinUrl: t.linkedin_url }),
         ...(t.instagram_url && { instagramUrl: t.instagram_url }),
         ...(t.facebook_url && { facebookUrl: t.facebook_url }),

@@ -477,6 +477,13 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                                     placeholder="+41 79 123 45 67"
                                     className={`${inputCls} flex-1 min-w-0`}
                                   />
+                                  <input
+                                    type="text"
+                                    value={ph.label}
+                                    onChange={(e) => { const next = [...tplPhones]; next[i] = { ...next[i], label: e.target.value }; setTplPhones(next); }}
+                                    placeholder="Label"
+                                    className={`${inputCls} w-28 shrink-0`}
+                                  />
                                   <button type="button" onClick={() => setTplPhones(tplPhones.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1 shrink-0">
                                     <X className="w-3.5 h-3.5" />
                                   </button>
@@ -522,6 +529,13 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                                     placeholder="info@company.com"
                                     className={`${inputCls} flex-1 min-w-0`}
                                   />
+                                  <input
+                                    type="text"
+                                    value={em.label}
+                                    onChange={(e) => { const next = [...tplEmails]; next[i] = { ...next[i], label: e.target.value }; setTplEmails(next); }}
+                                    placeholder="Label"
+                                    className={`${inputCls} w-28 shrink-0`}
+                                  />
                                   <button type="button" onClick={() => setTplEmails(tplEmails.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1 shrink-0">
                                     <X className="w-3.5 h-3.5" />
                                   </button>
@@ -566,6 +580,13 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                                     onChange={(e) => { const next = [...tplWebsites]; next[i] = { ...next[i], url: e.target.value }; setTplWebsites(next); }}
                                     placeholder="www.company.com"
                                     className={`${inputCls} flex-1 min-w-0`}
+                                  />
+                                  <input
+                                    type="text"
+                                    value={ws.label}
+                                    onChange={(e) => { const next = [...tplWebsites]; next[i] = { ...next[i], label: e.target.value }; setTplWebsites(next); }}
+                                    placeholder="Label"
+                                    className={`${inputCls} w-28 shrink-0`}
                                   />
                                   <button type="button" onClick={() => setTplWebsites(tplWebsites.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1 shrink-0">
                                     <X className="w-3.5 h-3.5" />
