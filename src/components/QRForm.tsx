@@ -1296,7 +1296,7 @@ function PrefixInput({
   }
 
   return (
-    <div className="flex items-stretch border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
+    <div className="w-full flex items-stretch border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
       <span className="flex items-center text-xs text-gray-400 bg-gray-50 px-3 border-r border-gray-200 whitespace-nowrap shrink-0 select-none">
         {prefix}
       </span>
@@ -1305,7 +1305,8 @@ function PrefixInput({
         value={getSuffix(value)}
         onChange={(e) => onChange(e.target.value ? fullPrefix + e.target.value.trim() : "")}
         placeholder={placeholder}
-        className="flex-1 px-3 py-2.5 text-sm focus:outline-none bg-white placeholder:text-gray-400"
+        size={1}
+        className="flex-1 min-w-0 px-3 py-2.5 text-sm focus:outline-none bg-white placeholder:text-gray-400"
       />
     </div>
   );
