@@ -486,10 +486,16 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{tr.upload_bg}</p>
             {form.bgImageUrl ? (
-              <div className="relative h-32 rounded-xl overflow-hidden border border-gray-200">
+              <div
+                onDragOver={(e) => { e.preventDefault(); setBgDragging(true); }}
+                onDragLeave={() => setBgDragging(false)}
+                onDrop={handleBgDrop}
+                className={`relative h-32 rounded-xl overflow-hidden border ${bgDragging ? "border-blue-400 ring-2 ring-blue-200" : "border-gray-200"}`}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={form.bgImageUrl} alt="BG" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                 <button type="button" onClick={() => set("bgImageUrl", "")} className="absolute top-2 right-2 bg-white/90 hover:bg-white text-red-500 text-xs px-2 py-1 rounded-lg transition-colors shadow-sm font-medium">{tr.upload_remove}</button>
+                {bgDragging && <div className="absolute inset-0 bg-blue-500/10 flex items-center justify-center text-xs font-semibold text-blue-700">Drop to replace</div>}
               </div>
             ) : (
               <label
@@ -515,7 +521,12 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           <div className={isLocked("logo_url") ? "pointer-events-none opacity-60 relative" : ""}>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{tr.field_logo}</p>
             {form.logoUrl ? (
-              <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-[#242736] rounded-xl border border-gray-200 dark:border-slate-700">
+              <div
+                onDragOver={(e) => { e.preventDefault(); setLogoDragging(true); }}
+                onDragLeave={() => setLogoDragging(false)}
+                onDrop={handleLogoDrop}
+                className={`relative flex items-center gap-4 p-4 rounded-xl border ${logoDragging ? "border-blue-400 ring-2 ring-blue-200 bg-blue-50 dark:bg-blue-900/20" : "border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-[#242736]"}`}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={form.logoUrl} alt="Logo" className="w-16 h-16 object-contain rounded-xl border border-gray-200 bg-white" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                 <div className="flex-1 min-w-0">
@@ -523,6 +534,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                   <p className="text-xs text-gray-400 mt-0.5">PNG, SVG or JPG (max 2MB)</p>
                 </div>
                 <button type="button" onClick={() => set("logoUrl", "")} className="text-xs text-red-500 hover:text-red-700 font-medium px-3 py-1.5 rounded-lg border border-red-200 hover:border-red-300 transition-colors">{tr.upload_remove}</button>
+                {logoDragging && <div className="absolute inset-0 rounded-xl bg-blue-500/10 flex items-center justify-center text-xs font-semibold text-blue-700 pointer-events-none">Drop to replace</div>}
               </div>
             ) : (
               <label
@@ -628,7 +640,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       </Section>
 
       {/* QR Code Design */}
-      <Section title="QR Code Design" iconKey="qrdesign">
+      <Section title="QR Code Design" iconKey="qrdesign" collapsible defaultOpen={false}>
         <div className={["qr_dot_style","qr_corner_style","qr_dot_color","qr_bg_color","qr_gradient","qr_gradient_color"].some(f => isLocked(f)) ? "pointer-events-none opacity-60" : ""}>
         <QRStylePicker
           value={{
@@ -898,7 +910,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       </Section>
 
       {/* Social */}
-      <Section title={tr.section_social} iconKey="social">
+      <Section title={tr.section_social} iconKey="social" collapsible defaultOpen={false}>
         {(() => {
           const SOCIAL_DB_KEY: Record<string, string> = {
             linkedinUrl: "linkedin_url", instagramUrl: "instagram_url", facebookUrl: "facebook_url",
@@ -1104,7 +1116,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       </Section>
 
       {/* Notes */}
-      <Section title={tr.section_notes} iconKey="notes">
+      <Section title={tr.section_notes} iconKey="notes" collapsible defaultOpen={false}>
         <Field label={tr.field_notes}>
           <textarea
             value={form.notes}
@@ -1178,27 +1190,49 @@ function Section({
   iconKey,
   actions,
   children,
+  collapsible = false,
+  defaultOpen = true,
 }: {
   title: string;
   iconKey?: keyof typeof SECTION_ICONS;
   actions?: React.ReactNode;
   children: React.ReactNode;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 }) {
   const ic = SECTION_ICONS[iconKey ?? "default"];
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-[#242736]">
+      <div
+        className={`flex items-center justify-between px-6 py-4 ${open ? "border-b border-gray-100 dark:border-[#242736]" : ""} ${collapsible ? "cursor-pointer select-none" : ""}`}
+        onClick={collapsible ? () => setOpen((v) => !v) : undefined}
+      >
         <div className="flex items-center gap-3">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${ic.bg}`}>
             <span className={`material-symbols-outlined text-[18px] ${ic.text}`}>{ic.icon}</span>
           </div>
           <h3 className="text-sm font-bold tracking-tight text-gray-900 dark:text-gray-100 uppercase">{title}</h3>
         </div>
-        {actions && <div className="flex items-center gap-2 flex-wrap">{actions}</div>}
+        <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+          {actions}
+          {collapsible && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors"
+              aria-label={open ? "Collapse" : "Expand"}
+            >
+              <span className="material-symbols-outlined text-[20px]">{open ? "expand_less" : "expand_more"}</span>
+            </button>
+          )}
+        </div>
       </div>
-      <div className="p-6 space-y-5">
-        {children}
-      </div>
+      {open && (
+        <div className="p-6 space-y-5">
+          {children}
+        </div>
+      )}
     </div>
   );
 }

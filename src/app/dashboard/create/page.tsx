@@ -116,34 +116,40 @@ function PhonePreview({ form }: { form: Partial<CreateQRContact> }) {
 
             {/* Action buttons */}
             <div className="px-3 space-y-1.5 pb-3">
-              {(form.phone || form.email || form.website) ? (
-                <>
-                  {form.phone && (
-                    <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: btnBg }}>
-                      <Phone className="w-3 h-3 shrink-0" style={{ color: btnText }} />
-                      <span className="text-xs truncate" style={{ color: btnText }}>{form.phone}</span>
-                    </div>
-                  )}
-                  {form.email && (
-                    <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: btnBg }}>
-                      <Mail className="w-3 h-3 shrink-0" style={{ color: btnText }} />
-                      <span className="text-xs truncate" style={{ color: btnText }}>{form.email}</span>
-                    </div>
-                  )}
-                  {form.website && (
-                    <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: btnBg }}>
-                      <Globe className="w-3 h-3 shrink-0" style={{ color: btnText }} />
-                      <span className="text-xs truncate" style={{ color: btnText }}>{form.website.replace(/^https?:\/\//, "")}</span>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <div className="h-6 rounded-lg opacity-20" style={{ backgroundColor: color }} />
-                  <div className="h-6 rounded-lg opacity-10" style={{ backgroundColor: color }} />
-                  <div className="h-6 rounded-lg opacity-10" style={{ backgroundColor: color }} />
-                </>
-              )}
+              {(() => {
+                const phones = (form.phones ?? []).filter((p) => p.number);
+                const emails = (form.emails ?? []).filter((e) => e.email);
+                const websites = (form.websites ?? []).filter((w) => w.url);
+                const hasAny = phones.length + emails.length + websites.length > 0;
+                return hasAny ? (
+                  <>
+                    {phones.map((ph, i) => (
+                      <div key={`p${i}`} className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: btnBg }}>
+                        <Phone className="w-3 h-3 shrink-0" style={{ color: btnText }} />
+                        <span className="text-xs truncate" style={{ color: btnText }}>{ph.number}</span>
+                      </div>
+                    ))}
+                    {emails.map((em, i) => (
+                      <div key={`e${i}`} className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: btnBg }}>
+                        <Mail className="w-3 h-3 shrink-0" style={{ color: btnText }} />
+                        <span className="text-xs truncate" style={{ color: btnText }}>{em.email}</span>
+                      </div>
+                    ))}
+                    {websites.map((ws, i) => (
+                      <div key={`w${i}`} className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: btnBg }}>
+                        <Globe className="w-3 h-3 shrink-0" style={{ color: btnText }} />
+                        <span className="text-xs truncate" style={{ color: btnText }}>{ws.url.replace(/^https?:\/\//, "")}</span>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <div className="h-6 rounded-lg opacity-20" style={{ backgroundColor: color }} />
+                    <div className="h-6 rounded-lg opacity-10" style={{ backgroundColor: color }} />
+                    <div className="h-6 rounded-lg opacity-10" style={{ backgroundColor: color }} />
+                  </>
+                );
+              })()}
 
               {(form.city || form.street) && (
                 <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: btnBg }}>
