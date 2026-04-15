@@ -697,7 +697,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       {/* Phone Numbers */}
       <Section title={tr.field_phone} iconKey="contact">
         <p className="text-xs text-gray-400 dark:text-slate-500 -mt-2 mb-1">You can add up to 4 phone numbers. Optionally set a display name for each button (e.g. &quot;Mobile&quot;, &quot;Office&quot;).</p>
-        <div className="space-y-3">
+        <div className={`space-y-3 ${isLocked("phone") ? "pointer-events-none opacity-60" : ""}`}>
           {(form.phones.length === 0 ? [{ number: "", label: "" }] : form.phones).map((ph, idx) => (
             <div key={idx} className="flex items-center gap-2">
               <div className="flex-1 min-w-0">
@@ -710,7 +710,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                     setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; });
                   }}
                   placeholder="+41 123 456 789"
-                  className={input}
+                  disabled={isLocked("phone")}
+                  className={`${input} ${isLocked("phone") ? lockedCls : ""}`}
                 />
               </div>
               <div className="w-40 shrink-0">
@@ -723,7 +724,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                     setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; });
                   }}
                   placeholder="Button name"
-                  className={`${input} text-xs`}
+                  disabled={isLocked("phone")}
+                  className={`${input} text-xs ${isLocked("phone") ? lockedCls : ""}`}
                 />
               </div>
               {idx > 0 ? (
@@ -739,7 +741,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
               )}
             </div>
           ))}
-          {(form.phones.length === 0 ? 1 : form.phones.length) < 4 && (
+          {(form.phones.length === 0 ? 1 : form.phones.length) < 4 && !isLocked("phone") && (
             <button
               type="button"
               onClick={() => { const next = [...(form.phones.length === 0 ? [{ number: "", label: "" }] : form.phones), { number: "", label: "" }]; setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; }); }}
@@ -754,7 +756,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       {/* Email Addresses */}
       <Section title={tr.field_email} iconKey="contact">
         <p className="text-xs text-gray-400 dark:text-slate-500 -mt-2 mb-1">You can add up to 3 email addresses. Optionally set a display name (e.g. &quot;Work&quot;, &quot;Personal&quot;).</p>
-        <div className="space-y-3">
+        <div className={`space-y-3 ${isLocked("email") ? "pointer-events-none opacity-60" : ""}`}>
           {(form.emails.length === 0 ? [{ email: "", label: "" }] : form.emails).map((em, idx) => (
             <div key={idx} className="flex items-center gap-2">
               <div className="flex-1 min-w-0">
@@ -767,7 +769,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                     setForm((prev) => { const n = { ...prev, emails: next }; onFormChange?.(n); return n; });
                   }}
                   placeholder="max@example.com"
-                  className={input}
+                  disabled={isLocked("email")}
+                  className={`${input} ${isLocked("email") ? lockedCls : ""}`}
                 />
               </div>
               <div className="w-40 shrink-0">
@@ -780,7 +783,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                     setForm((prev) => { const n = { ...prev, emails: next }; onFormChange?.(n); return n; });
                   }}
                   placeholder="Button name"
-                  className={`${input} text-xs`}
+                  disabled={isLocked("email")}
+                  className={`${input} text-xs ${isLocked("email") ? lockedCls : ""}`}
                 />
               </div>
               {idx > 0 ? (
@@ -796,7 +800,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
               )}
             </div>
           ))}
-          {(form.emails.length === 0 ? 1 : form.emails.length) < 3 && (
+          {(form.emails.length === 0 ? 1 : form.emails.length) < 3 && !isLocked("email") && (
             <button
               type="button"
               onClick={() => { const next = [...(form.emails.length === 0 ? [{ email: "", label: "" }] : form.emails), { email: "", label: "" }]; setForm((prev) => { const n = { ...prev, emails: next }; onFormChange?.(n); return n; }); }}
@@ -811,7 +815,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       {/* Websites */}
       <Section title={tr.field_website} iconKey="contact">
         <p className="text-xs text-gray-400 dark:text-slate-500 -mt-2 mb-1">You can add up to 3 websites. Optionally set a display name (e.g. &quot;Portfolio&quot;, &quot;LinkedIn&quot;).</p>
-        <div className="space-y-3">
+        <div className={`space-y-3 ${isLocked("website") ? "pointer-events-none opacity-60" : ""}`}>
           {(form.websites.length === 0 ? [{ url: "", label: "" }] : form.websites).map((ws, idx) => (
             <div key={idx} className="flex items-center gap-2">
               <div className="flex-1 min-w-0">
@@ -866,7 +870,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
               )}
             </div>
           ))}
-          {(form.websites.length === 0 ? 1 : form.websites.length) < 3 && (
+          {(form.websites.length === 0 ? 1 : form.websites.length) < 3 && !isLocked("website") && (
             <button
               type="button"
               onClick={() => { const next = [...(form.websites.length === 0 ? [{ url: "", label: "" }] : form.websites), { url: "", label: "" }]; setForm((prev) => { const n = { ...prev, websites: next }; onFormChange?.(n); return n; }); }}
