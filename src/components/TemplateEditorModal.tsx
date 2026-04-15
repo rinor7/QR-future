@@ -225,6 +225,9 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
         next.delete(key);
       } else {
         next.add(key);
+        if (key === "phones" && tplPhones.length === 0) setTplPhones([{ number: "", label: "" }]);
+        if (key === "emails" && tplEmails.length === 0) setTplEmails([{ email: "", label: "" }]);
+        if (key === "websites" && tplWebsites.length === 0) setTplWebsites([{ url: "", label: "" }]);
       }
       return next;
     });
@@ -243,32 +246,24 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
   }
 
   function fetchPhonesFromAccount() {
-    console.log("[DEBUG TPL] fetchPhones orgDefaults:", orgDefaults);
     const phone = orgDefaults?.acctPhone;
-    if (phone) {
-      setTplPhones([{ number: phone, label: "" }]);
-      setIncluded((prev) => { const next = new Set(prev); next.add("phones"); return next; });
-    } else {
-      console.log("[DEBUG TPL] phone is empty, toggling checkbox only");
-    }
+    if (!phone) return;
+    setTplPhones([{ number: phone, label: "" }]);
+    setIncluded((prev) => { const next = new Set(prev); next.add("phones"); return next; });
   }
 
   function fetchEmailsFromAccount() {
-    console.log("[DEBUG TPL] fetchEmails orgDefaults:", orgDefaults);
     const email = orgDefaults?.acctEmail;
-    if (email) {
-      setTplEmails([{ email, label: "" }]);
-      setIncluded((prev) => { const next = new Set(prev); next.add("emails"); return next; });
-    }
+    if (!email) return;
+    setTplEmails([{ email, label: "" }]);
+    setIncluded((prev) => { const next = new Set(prev); next.add("emails"); return next; });
   }
 
   function fetchWebsitesFromAccount() {
-    console.log("[DEBUG TPL] fetchWebsites orgDefaults:", orgDefaults);
     const website = orgDefaults?.acctWebsite;
-    if (website) {
-      setTplWebsites([{ url: website, label: "" }]);
-      setIncluded((prev) => { const next = new Set(prev); next.add("websites"); return next; });
-    }
+    if (!website) return;
+    setTplWebsites([{ url: website, label: "" }]);
+    setIncluded((prev) => { const next = new Set(prev); next.add("websites"); return next; });
   }
 
   async function handleSave() {
@@ -475,22 +470,14 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                             <div className="ml-7 space-y-2">
                               {tplPhones.map((ph, i) => (
                                 <div key={i} className="flex items-center gap-2">
-                                  <span className="material-symbols-outlined text-[16px] text-slate-400">call</span>
                                   <input
                                     type="text"
                                     value={ph.number}
                                     onChange={(e) => { const next = [...tplPhones]; next[i] = { ...next[i], number: e.target.value }; setTplPhones(next); }}
                                     placeholder="+41 79 123 45 67"
-                                    className={`flex-1 ${inputCls}`}
+                                    className={`${inputCls} flex-1 min-w-0`}
                                   />
-                                  <input
-                                    type="text"
-                                    value={ph.label}
-                                    onChange={(e) => { const next = [...tplPhones]; next[i] = { ...next[i], label: e.target.value }; setTplPhones(next); }}
-                                    placeholder="Label"
-                                    className={`w-28 ${inputCls}`}
-                                  />
-                                  <button type="button" onClick={() => setTplPhones(tplPhones.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1">
+                                  <button type="button" onClick={() => setTplPhones(tplPhones.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1 shrink-0">
                                     <X className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
@@ -528,22 +515,14 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                             <div className="ml-7 space-y-2">
                               {tplEmails.map((em, i) => (
                                 <div key={i} className="flex items-center gap-2">
-                                  <span className="material-symbols-outlined text-[16px] text-slate-400">mail</span>
                                   <input
                                     type="email"
                                     value={em.email}
                                     onChange={(e) => { const next = [...tplEmails]; next[i] = { ...next[i], email: e.target.value }; setTplEmails(next); }}
                                     placeholder="info@company.com"
-                                    className={`flex-1 ${inputCls}`}
+                                    className={`${inputCls} flex-1 min-w-0`}
                                   />
-                                  <input
-                                    type="text"
-                                    value={em.label}
-                                    onChange={(e) => { const next = [...tplEmails]; next[i] = { ...next[i], label: e.target.value }; setTplEmails(next); }}
-                                    placeholder="Label"
-                                    className={`w-28 ${inputCls}`}
-                                  />
-                                  <button type="button" onClick={() => setTplEmails(tplEmails.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1">
+                                  <button type="button" onClick={() => setTplEmails(tplEmails.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1 shrink-0">
                                     <X className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
@@ -581,22 +560,14 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                             <div className="ml-7 space-y-2">
                               {tplWebsites.map((ws, i) => (
                                 <div key={i} className="flex items-center gap-2">
-                                  <span className="material-symbols-outlined text-[16px] text-slate-400">language</span>
                                   <input
                                     type="text"
                                     value={ws.url}
                                     onChange={(e) => { const next = [...tplWebsites]; next[i] = { ...next[i], url: e.target.value }; setTplWebsites(next); }}
                                     placeholder="www.company.com"
-                                    className={`flex-1 ${inputCls}`}
+                                    className={`${inputCls} flex-1 min-w-0`}
                                   />
-                                  <input
-                                    type="text"
-                                    value={ws.label}
-                                    onChange={(e) => { const next = [...tplWebsites]; next[i] = { ...next[i], label: e.target.value }; setTplWebsites(next); }}
-                                    placeholder="Label"
-                                    className={`w-28 ${inputCls}`}
-                                  />
-                                  <button type="button" onClick={() => setTplWebsites(tplWebsites.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1">
+                                  <button type="button" onClick={() => setTplWebsites(tplWebsites.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 transition-colors p-1 shrink-0">
                                     <X className="w-3.5 h-3.5" />
                                   </button>
                                 </div>

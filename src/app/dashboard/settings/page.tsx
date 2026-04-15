@@ -171,7 +171,6 @@ export default function SettingsPage() {
             const phoneVal = prof.account_phone || parseFirst(prof.account_phones, "number");
             const emailVal = prof.account_email || parseFirst(prof.account_emails, "email");
             const websiteVal = prof.account_website || parseFirst(prof.account_websites, "url");
-            console.log("[DEBUG] profile contact data:", { account_phone: prof.account_phone, account_phones: prof.account_phones, account_email: prof.account_email, account_emails: prof.account_emails, account_website: prof.account_website, account_websites: prof.account_websites, phoneVal, emailVal, websiteVal });
             setAcctPhone(phoneVal);
             setAcctEmail(emailVal);
             setAcctWebsite(websiteVal);
