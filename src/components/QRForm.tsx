@@ -541,16 +541,15 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 onDragOver={(e) => { e.preventDefault(); setLogoDragging(true); }}
                 onDragLeave={() => setLogoDragging(false)}
                 onDrop={handleLogoDrop}
-                className={`flex items-center gap-4 p-4 cursor-pointer border rounded-xl transition-colors ${logoDragging ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20" : "border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-[#242736] hover:bg-gray-100 dark:hover:bg-[#2a2d3e]"} ${logoUploading ? "opacity-50 pointer-events-none" : ""}`}
+                className={`flex flex-col items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl px-4 py-8 text-sm transition-colors ${
+                  logoDragging ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-gray-50 hover:bg-gray-100 dark:bg-[#242736] dark:border-slate-600"
+                } ${logoUploading ? "opacity-50 pointer-events-none" : ""}`}
               >
-                <div className="w-14 h-14 bg-gray-200 dark:bg-slate-600 rounded-xl flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-[24px] text-gray-400">image</span>
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-1">
+                  <Upload className="w-5 h-5 text-blue-600" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-slate-200">Brand Identity</p>
-                  <p className="text-xs text-gray-400 mt-0.5">PNG, SVG or JPG (max 2MB)</p>
-                </div>
-                <span className="text-sm font-medium text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2 hover:bg-white dark:hover:bg-[#1a1d27] transition-colors shrink-0">{logoUploading ? "..." : "Upload"}</span>
+                <span className="text-blue-600 font-medium text-sm">{logoUploading ? tr.upload_uploading : "Upload Logo"}</span>
+                <span className="text-gray-400 text-xs text-center">PNG, SVG or JPG (max 2MB)</span>
                 <input type="file" accept="image/*" className="sr-only" onChange={handleLogoUpload} />
               </label>
             )}
@@ -582,16 +581,27 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           </div>
 
           {/* Lead Capture toggle */}
-          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#242736] rounded-xl border border-gray-200 dark:border-slate-700">
-            <div>
-              <p className="text-sm font-medium text-gray-700">Lead Capture</p>
-              <p className="text-xs text-gray-400 mt-0.5">Show a &ldquo;Leave contact&rdquo; button on this profile</p>
+          <div
+            onClick={isLocked("lead_capture_enabled") ? undefined : () => setForm((prev) => { const next = { ...prev, leadCaptureEnabled: !prev.leadCaptureEnabled }; onFormChange?.(next); return next; })}
+            className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
+              form.leadCaptureEnabled
+                ? "bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-500 shadow-sm"
+                : "bg-white dark:bg-[#242736] border-gray-200 dark:border-slate-700 hover:border-blue-300"
+            } ${isLocked("lead_capture_enabled") ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+          >
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${form.leadCaptureEnabled ? "bg-blue-600 text-white" : "bg-blue-100 dark:bg-blue-900/40 text-blue-600"}`}>
+                <span className="material-symbols-outlined text-[20px]">contact_mail</span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Lead Capture</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Show a &ldquo;Leave contact&rdquo; button on this profile</p>
+              </div>
             </div>
             <div
-              onClick={isLocked("lead_capture_enabled") ? undefined : () => setForm((prev) => { const next = { ...prev, leadCaptureEnabled: !prev.leadCaptureEnabled }; onFormChange?.(next); return next; })}
-              className={`relative w-10 h-6 rounded-full transition-colors shrink-0 ml-3 ${form.leadCaptureEnabled ? "bg-blue-600" : "bg-gray-200"} ${isLocked("lead_capture_enabled") ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+              className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ml-3 ${form.leadCaptureEnabled ? "bg-blue-600" : "bg-gray-300 dark:bg-slate-600"}`}
             >
-              <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.leadCaptureEnabled ? "translate-x-4" : "translate-x-0.5"}`} />
+              <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.leadCaptureEnabled ? "translate-x-[22px]" : "translate-x-0.5"}`} />
             </div>
           </div>
 
