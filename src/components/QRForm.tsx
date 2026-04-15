@@ -349,7 +349,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
   }
 
   return (
-    <form id={formId} onSubmit={handleSubmit} className="space-y-8">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-8 min-w-0">
 
       {/* Template picker bar */}
       <div className="flex items-center gap-2 p-3 bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm">
@@ -928,7 +928,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           };
           return (
             <>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 min-w-0 max-w-full">
                 {([
                   { key: "linkedinUrl", label: "LinkedIn", prefix: "linkedin.com/in/", fullPrefix: "https://linkedin.com/in/" },
                   { key: "instagramUrl", label: "Instagram", prefix: "instagram.com/", fullPrefix: "https://instagram.com/" },
@@ -1213,7 +1213,7 @@ function Section({
   const ic = SECTION_ICONS[iconKey ?? "default"];
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm overflow-hidden min-w-0">
       <div
         className={`flex items-center justify-between px-6 py-4 ${open ? "border-b border-gray-100 dark:border-[#242736]" : ""} ${collapsible ? "cursor-pointer select-none" : ""}`}
         onClick={collapsible ? () => setOpen((v) => !v) : undefined}
