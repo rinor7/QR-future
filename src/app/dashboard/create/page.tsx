@@ -278,7 +278,7 @@ export default function CreatePage() {
         const planLabel = PLAN_LABELS[plan as keyof typeof PLAN_LABELS] ?? plan;
         setError(`${tr.plan_limit_reached} ${planLabel} — ${limit} QR Codes. ${tr.plan_upgrade_hint}`);
       } else {
-        setError(tr.create_error);
+        setError(msg ? `${tr.create_error} (${msg})` : tr.create_error);
         console.error(e);
       }
     } finally {
