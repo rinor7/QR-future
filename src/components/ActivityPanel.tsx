@@ -88,6 +88,27 @@ function describeScan(item: ActivityItem): string {
 }
 
 function ActivityRow({ item, isNew }: { item: DisplayItem; isNew: boolean }) {
+  // Notifications get their own prominent rendering
+  if (item.type === "notification") {
+    return (
+      <div className="flex items-start gap-3 px-4 py-4 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 dark:border-amber-500">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-amber-100 dark:bg-amber-800/40 text-amber-700 dark:text-amber-300">
+          <span className="material-symbols-outlined text-[18px]">person_off</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-bold text-amber-900 dark:text-amber-100 truncate">{item.message ?? item.qr_label}</p>
+            {isNew && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />}
+          </div>
+          <p className="text-xs text-amber-700 dark:text-amber-300/80 truncate mt-0.5">
+            Their QR cards stay with the organisation.
+          </p>
+        </div>
+        <span className="text-[10px] text-amber-600 dark:text-amber-400/70 shrink-0 mt-1">{timeAgo(item.ts)}</span>
+      </div>
+    );
+  }
+
   const isScan = item.type === "scan";
   const isLead = item.type === "lead";
 

@@ -9,6 +9,7 @@ export interface QRContact {
   createdAt: string;
   updatedAt: string;
   createdBy: string;
+  originalCreatorDeleted?: boolean;
 
   // Internal label (shown in dashboard)
   qrLabel: string;
@@ -66,7 +67,7 @@ export interface QRContact {
   qrGradientColor: string;
 }
 
-export type CreateQRContact = Omit<QRContact, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>;
+export type CreateQRContact = Omit<QRContact, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'originalCreatorDeleted'>;
 
 // Plans
 export type Plan = 'free' | 'star' | 'premium' | 'platinum';

@@ -754,6 +754,12 @@ export default function CodesPage() {
                                 <div>
                                   <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Created by</span>
                                   <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{memberMap[contact.createdBy] || contact.createdBy}</span>
+                                  {contact.originalCreatorDeleted && (
+                                    <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 rounded-full" title="This user deleted their account">
+                                      <span className="material-symbols-outlined text-[10px]">person_off</span>
+                                      departed
+                                    </span>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -829,6 +835,12 @@ export default function CodesPage() {
                             <span className="hidden lg:flex items-center gap-1">
                               <span className="material-symbols-outlined text-xs">person</span>
                               {memberMap[contact.createdBy] || contact.createdBy}
+                              {contact.originalCreatorDeleted && (
+                                <span className="ml-1 inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-700 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 rounded-full" title="This user deleted their account">
+                                  <span className="material-symbols-outlined text-[9px]">person_off</span>
+                                  departed
+                                </span>
+                              )}
                             </span>
                           )}
                         </div>

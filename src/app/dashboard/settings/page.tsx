@@ -1160,7 +1160,7 @@ export default function SettingsPage() {
             <p className="text-sm text-red-800 dark:text-red-200/70 mt-1">
               {isOwner
                 ? "Permanently deletes your account, all QR codes, scans, NFC cards, folders and sub-users. Irreversible."
-                : "Permanently removes your account from this organisation. Your admin's data is not affected."}
+                : "Permanently removes your login. Any QR cards you created stay with the organisation under the admin."}
             </p>
           </div>
           <button
@@ -1185,7 +1185,7 @@ export default function SettingsPage() {
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
               {isOwner
                 ? "This will permanently delete your entire organisation including all QR codes, scan analytics, NFC cards, folders, and all sub-user accounts."
-                : "This will permanently remove your account from this organisation."}
+                : "This removes your login from this organisation. The admin will still see the QR cards you created — they'll be marked as created by a departed user. The admin will be notified."}
             </p>
             <p className="text-sm font-semibold text-red-600 mb-5">This cannot be undone.</p>
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">

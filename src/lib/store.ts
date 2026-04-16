@@ -13,6 +13,7 @@ function toContact(row: Record<string, unknown>): QRContact {
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     createdBy: (row.created_by as string) ?? "",
+    originalCreatorDeleted: (row.original_creator_deleted as boolean) ?? false,
     qrLabel: (row.qr_label as string) ?? "",
     firstName: (() => { const n = (row.name as string) ?? ""; const i = n.lastIndexOf(" "); return i === -1 ? n : n.slice(0, i); })(),
     lastName: (() => { const n = (row.name as string) ?? ""; const i = n.lastIndexOf(" "); return i === -1 ? "" : n.slice(i + 1); })(),

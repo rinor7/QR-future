@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 
 export interface ActivityItem {
   id: string;
-  type: "scan" | "interaction" | "lead";
+  type: "scan" | "interaction" | "lead" | "notification";
   qr_id: string;
   qr_label: string;
   event_type?: string;
@@ -13,6 +13,8 @@ export interface ActivityItem {
   country?: string;
   city?: string;
   lead_name?: string;
+  notification_kind?: string;
+  message?: string;
   ts: string;
 }
 
@@ -59,8 +61,8 @@ export async function GET() {
     labelMap[c.id] = c.qr_label || c.name || c.id;
   });
 
-  // Fetch recent scans, interactions, leads in parallel
-  const [scansRes, interactionsRes, leadsRes] = await Promise.all([
+  // Fetch recent scans, interactions, leads, notifications in parallel
+  const [scansRes, interactionsRes, leadsRes, notificationsRes] = await Promise.all([
     supabase
       .from("qr_scans")
       .select("id, contact_id, device_type, country, city, scanned_at")
@@ -79,6 +81,12 @@ export async function GET() {
       .in("contact_id", contactIds)
       .order("created_at", { ascending: false })
       .limit(30),
+    supabase
+      .from("org_notifications")
+      .select("id, type, message, created_at")
+      .eq("owner_id", ownerId)
+      .order("created_at", { ascending: false })
+      .limit(20),
   ]);
 
   const items: ActivityItem[] = [];
@@ -115,6 +123,18 @@ export async function GET() {
       qr_label: labelMap[l.contact_id] ?? l.contact_id,
       lead_name: l.name ?? undefined,
       ts: l.created_at,
+    });
+  });
+
+  (notificationsRes.data ?? []).forEach((n, i) => {
+    items.push({
+      id: `notification-${n.id ?? i}`,
+      type: "notification",
+      qr_id: "",
+      qr_label: n.message ?? "",
+      notification_kind: n.type ?? undefined,
+      message: n.message ?? undefined,
+      ts: n.created_at,
     });
   });
 
