@@ -1,8 +1,31 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { ActivityItem } from "@/app/api/activity/route";
+
+type DisplayItem = ActivityItem & { count?: number };
+
+// Collapse consecutive scans of the same card within 10 minutes into one row.
+function groupItems(items: ActivityItem[]): DisplayItem[] {
+  const out: DisplayItem[] = [];
+  const WINDOW_MS = 10 * 60 * 1000;
+  for (const it of items) {
+    const last = out[out.length - 1];
+    if (
+      last &&
+      last.type === "scan" &&
+      it.type === "scan" &&
+      last.qr_id === it.qr_id &&
+      new Date(last.ts).getTime() - new Date(it.ts).getTime() < WINDOW_MS
+    ) {
+      last.count = (last.count ?? 1) + 1;
+      continue;
+    }
+    out.push({ ...it });
+  }
+  return out;
+}
 
 const EVENT_LABELS: Record<string, string> = {
   click_phone:            "Phone tapped",
@@ -55,7 +78,16 @@ function timeAgo(ts: string): string {
   return `${d}d ago`;
 }
 
-function ActivityRow({ item, isNew }: { item: ActivityItem; isNew: boolean }) {
+function describeScan(item: ActivityItem): string {
+  const loc = [item.city, item.country].filter(Boolean).join(", ");
+  const device = item.device_type ? item.device_type.charAt(0).toUpperCase() + item.device_type.slice(1) : "";
+  if (device && loc) return `Scanned on ${device} from ${loc}`;
+  if (loc) return `Scanned from ${loc}`;
+  if (device) return `Scanned on ${device}`;
+  return "Scanned";
+}
+
+function ActivityRow({ item, isNew }: { item: DisplayItem; isNew: boolean }) {
   const isScan = item.type === "scan";
   const isLead = item.type === "lead";
 
@@ -71,18 +103,11 @@ function ActivityRow({ item, isNew }: { item: ActivityItem; isNew: boolean }) {
     ? "contact_mail"
     : EVENT_ICONS[item.event_type ?? ""] ?? "touch_app";
 
-  const headline = isScan
-    ? "New scan"
+  const detail = isScan
+    ? (item.count && item.count > 1 ? `${item.count} scans · ${describeScan(item)}` : describeScan(item))
     : isLead
-    ? `Lead: ${item.lead_name ?? "Anonymous"}`
+    ? `New lead${item.lead_name ? ` from ${item.lead_name}` : ""}`
     : (EVENT_LABELS[item.event_type ?? ""] ?? item.event_type ?? "Interaction");
-
-  const meta: string[] = [];
-  if (isScan) {
-    if (item.device_type) meta.push(item.device_type);
-    if (item.city) meta.push(item.city);
-    else if (item.country) meta.push(item.country);
-  }
 
   return (
     <Link
@@ -94,16 +119,13 @@ function ActivityRow({ item, isNew }: { item: ActivityItem; isNew: boolean }) {
         <span className="material-symbols-outlined text-[16px]">{icon}</span>
       </div>
 
-      {/* Text */}
+      {/* Text — card name is the headline, event is the detail */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{headline}</p>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{item.qr_label}</p>
           {isNew && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />}
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{item.qr_label}</p>
-        {meta.length > 0 && (
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{meta.join(" · ")}</p>
-        )}
+        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{detail}</p>
       </div>
 
       {/* Time */}
@@ -170,6 +192,7 @@ export default function ActivityPanel({
   }, [open, onUnreadChange]);
 
   const unreadTs = lastSeenAt;
+  const displayItems = useMemo(() => groupItems(items), [items]);
 
   return (
     <>
@@ -211,7 +234,7 @@ export default function ActivityPanel({
             <div className="flex items-center justify-center py-16">
               <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : items.length === 0 ? (
+          ) : displayItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
               <span className="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-700 mb-3">qr_code_scanner</span>
               <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No activity yet</p>
@@ -219,7 +242,7 @@ export default function ActivityPanel({
             </div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-[#242736]">
-              {items.map((item) => (
+              {displayItems.map((item) => (
                 <ActivityRow
                   key={item.id}
                   item={item}
@@ -231,7 +254,7 @@ export default function ActivityPanel({
         </div>
 
         {/* Footer */}
-        {items.length > 0 && (
+        {displayItems.length > 0 && (
           <div className="px-5 py-4 border-t border-slate-100 dark:border-[#242736] shrink-0">
             <Link
               href="/dashboard/codes"

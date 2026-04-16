@@ -374,6 +374,9 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 ? "No templates yet — create one to pre-fill and lock fields for your team."
                 : "Click a template below to pre-fill fields. Locked fields can't be edited after applying."}
             </p>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 italic">
+              Templates only pre-fill fields here during creation. After the QR code is saved, all fields become editable again.
+            </p>
           </div>
           <a
             href="/dashboard/settings"

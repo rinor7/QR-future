@@ -47,6 +47,14 @@ function FacebookIcon({ className }: { className?: string }) {
 }
 import { useState, useEffect } from "react";
 
+function normalizeUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 function formatPhone(phone: string): string {
   const digits = phone.replace(/\D/g, "");
   // Switzerland +41 + 9 digits → +41 XX XXX XX XX
@@ -327,7 +335,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
             </a>
           ))}
           {(contact.websites?.length ? contact.websites.filter((w) => w.url) : contact.website ? [{ url: contact.website, label: "" }] : []).map((ws, i) => (
-            <a key={i} href={ws.url} target="_blank" rel="noopener noreferrer" onClick={() => track("click_website")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
+            <a key={i} href={normalizeUrl(ws.url)} target="_blank" rel="noopener noreferrer" onClick={() => track("click_website")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
                 <Globe className="w-4 h-4" />
               </div>
@@ -384,37 +392,37 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
         {(contact.linkedinUrl || contact.instagramUrl || contact.facebookUrl || contact.tiktokUrl || contact.snapchatUrl || contact.xUrl || contact.otherSocialUrl) && (
           <div className="px-5 pb-6 flex items-center justify-center flex-wrap gap-3">
             {contact.linkedinUrl && (
-              <a href={contact.linkedinUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_linkedin")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="LinkedIn">
+              <a href={normalizeUrl(contact.linkedinUrl)} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_linkedin")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="LinkedIn">
                 <LinkedInIcon className="w-4 h-4" />
               </a>
             )}
             {contact.instagramUrl && (
-              <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_instagram")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Instagram">
+              <a href={normalizeUrl(contact.instagramUrl)} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_instagram")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Instagram">
                 <InstagramIcon className="w-4 h-4" />
               </a>
             )}
             {contact.facebookUrl && (
-              <a href={contact.facebookUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_facebook")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Facebook">
+              <a href={normalizeUrl(contact.facebookUrl)} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_facebook")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Facebook">
                 <FacebookIcon className="w-4 h-4" />
               </a>
             )}
             {contact.tiktokUrl && (
-              <a href={contact.tiktokUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_tiktok")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="TikTok">
+              <a href={normalizeUrl(contact.tiktokUrl)} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_tiktok")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="TikTok">
                 <Music2 className="w-4 h-4" />
               </a>
             )}
             {contact.snapchatUrl && (
-              <a href={contact.snapchatUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_snapchat")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Snapchat">
+              <a href={normalizeUrl(contact.snapchatUrl)} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_snapchat")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Snapchat">
                 <Ghost className="w-4 h-4" />
               </a>
             )}
             {contact.xUrl && (
-              <a href={contact.xUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_x")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="X">
+              <a href={normalizeUrl(contact.xUrl)} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_x")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="X">
                 <XBrandIcon className="w-4 h-4" />
               </a>
             )}
             {contact.otherSocialUrl && (
-              <a href={contact.otherSocialUrl} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_other")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Link">
+              <a href={normalizeUrl(contact.otherSocialUrl)} target="_blank" rel="noopener noreferrer" onClick={() => track("click_social_other")} className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: th.socialBg(color), color: th.socialText(color) }} title="Link">
                 <Link2 className="w-4 h-4" />
               </a>
             )}

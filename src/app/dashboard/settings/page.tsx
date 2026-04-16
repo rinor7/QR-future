@@ -657,27 +657,27 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1">LinkedIn</label>
-                    <input type="text" value={acctLinkedin} onChange={(e) => setAcctLinkedin(e.target.value)} placeholder="linkedin.com/company/..." className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                    <SocialPrefixInput prefix="linkedin.com/company/" fullPrefix="https://linkedin.com/company/" value={acctLinkedin} onChange={setAcctLinkedin} placeholder="your-company" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1">Instagram</label>
-                    <input type="text" value={acctInstagram} onChange={(e) => setAcctInstagram(e.target.value)} placeholder="instagram.com/..." className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                    <SocialPrefixInput prefix="instagram.com/" fullPrefix="https://instagram.com/" value={acctInstagram} onChange={setAcctInstagram} placeholder="username" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1">Facebook</label>
-                    <input type="text" value={acctFacebook} onChange={(e) => setAcctFacebook(e.target.value)} placeholder="facebook.com/..." className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                    <SocialPrefixInput prefix="facebook.com/" fullPrefix="https://facebook.com/" value={acctFacebook} onChange={setAcctFacebook} placeholder="pagename" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1">TikTok</label>
-                    <input type="text" value={acctTiktok} onChange={(e) => setAcctTiktok(e.target.value)} placeholder="tiktok.com/@..." className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                    <SocialPrefixInput prefix="tiktok.com/@" fullPrefix="https://tiktok.com/@" value={acctTiktok} onChange={setAcctTiktok} placeholder="username" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1">Snapchat</label>
-                    <input type="text" value={acctSnapchat} onChange={(e) => setAcctSnapchat(e.target.value)} placeholder="snapchat.com/add/..." className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                    <SocialPrefixInput prefix="snapchat.com/add/" fullPrefix="https://snapchat.com/add/" value={acctSnapchat} onChange={setAcctSnapchat} placeholder="username" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1">X / Twitter</label>
-                    <input type="text" value={acctX} onChange={(e) => setAcctX(e.target.value)} placeholder="x.com/..." className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                    <SocialPrefixInput prefix="x.com/" fullPrefix="https://x.com/" value={acctX} onChange={setAcctX} placeholder="handle" />
                   </div>
                 </div>
               </div>
@@ -1283,6 +1283,46 @@ export default function SettingsPage() {
           acctSnapchat,
           acctX,
         }}
+      />
+    </div>
+  );
+}
+
+function SocialPrefixInput({
+  prefix,
+  fullPrefix,
+  value,
+  onChange,
+  placeholder,
+}: {
+  prefix: string;
+  fullPrefix: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  function getSuffix(full: string): string {
+    if (!full) return "";
+    if (full.startsWith(fullPrefix)) return full.slice(fullPrefix.length);
+    const variants = [fullPrefix.replace("https://", "http://"), fullPrefix.replace("https://", "")];
+    for (const v of variants) {
+      if (full.startsWith(v)) return full.slice(v.length);
+    }
+    return full;
+  }
+
+  return (
+    <div className="w-full flex items-stretch bg-gray-50 dark:bg-[#242736] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+      <span className="flex items-center text-xs text-gray-400 bg-gray-100 dark:bg-[#1e2130] px-3 border-r border-gray-200 dark:border-[#2a2e3e] whitespace-nowrap shrink-0 select-none">
+        {prefix}
+      </span>
+      <input
+        type="text"
+        value={getSuffix(value)}
+        onChange={(e) => onChange(e.target.value ? fullPrefix + e.target.value.trim() : "")}
+        placeholder={placeholder}
+        size={1}
+        className="flex-1 min-w-0 px-3 py-2.5 text-sm bg-transparent focus:outline-none placeholder:text-gray-400"
       />
     </div>
   );
