@@ -186,14 +186,15 @@ export default function CodesPage() {
         if (profile.role === "admin" || profile.userId === profile.ownerId) {
           getSupabaseBrowser()
             .from("profiles")
-            .select("email, first_name, last_name")
+            .select("user_id, email, first_name, last_name")
             .eq("owner_id", profile.ownerId)
             .then(({ data: members }) => {
               if (members) {
                 const map: Record<string, string> = {};
-                const list = members.map((m: { email: string; first_name: string | null; last_name: string | null }) => {
+                const list = members.map((m: { user_id: string; email: string; first_name: string | null; last_name: string | null }) => {
                   const name = [m.first_name, m.last_name].filter(Boolean).join(" ") || m.email;
                   map[m.email] = name;
+                  map[m.user_id] = name;
                   return { email: m.email, name };
                 });
                 setMemberMap(map);
@@ -321,10 +322,11 @@ export default function CodesPage() {
       if (!matchesSearch || !matchesStatus || !matchesUser) return false;
       if (search.trim()) return true;
       if (currentFolderId) return contactFolders[c.id] === currentFolderId;
-      // Root level: show only QR codes not in any folder (or in a "Root" folder we're hiding)
+      // Admin/owner root: show every card across all folders (flat view)
+      if (isOwner || isAdmin) return true;
+      // Non-admin root: show only unassigned + auto-Root
       const fid = contactFolders[c.id];
       if (!fid) return true;
-      // Also show cards assigned to the hidden Root folder
       const assignedFolder = findNode(folderTree, fid);
       if (assignedFolder && assignedFolder.name === "Root") return true;
       return false;
@@ -633,6 +635,12 @@ export default function CodesPage() {
                       <div className="text-center relative z-10 w-full min-w-0">
                         <h4 className="font-headline font-bold text-white truncate text-sm leading-tight">{folder.name}</h4>
                         <p className="text-xs font-medium text-blue-100 mt-0.5">{qrCount} {qrCount === 1 ? "QR Code" : "QR Codes"}</p>
+                        {(isAdmin || isOwner) && folder.created_by && folder.created_by !== userId && (
+                          <span className="inline-flex items-center gap-0.5 mt-1.5 px-1.5 py-0.5 rounded-full bg-white/20 text-white text-[9px] font-bold" title={`Created by ${memberMap[folder.created_by] ?? "team member"}`}>
+                            <span className="material-symbols-outlined text-[10px]">person</span>
+                            <span className="truncate max-w-[90px]">{memberMap[folder.created_by] ?? "team"}</span>
+                          </span>
+                        )}
                       </div>
                       {!isReader && (() => {
                         const folderHasActive = isFolderActive(folder);
