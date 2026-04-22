@@ -10,25 +10,6 @@ import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
 
-const EVENT_LABELS: Record<string, string> = {
-  click_phone:            "Phone",
-  click_email:            "Email",
-  click_website:          "Website",
-  click_pdf:              "PDF",
-  click_link:             "Link",
-  click_save_contact:     "Save Contact",
-  click_share:            "Share",
-  click_social_linkedin:  "LinkedIn",
-  click_social_instagram: "Instagram",
-  click_social_facebook:  "Facebook",
-  click_social_tiktok:    "TikTok",
-  click_social_snapchat:  "Snapchat",
-  click_social_x:         "X",
-  click_social_other:     "Other",
-  lead_capture_open:      "Lead Form Opened",
-  lead_capture_submit:    "Lead Submitted",
-};
-
 const EVENT_ICONS: Record<string, string> = {
   click_phone: "call", click_email: "mail", click_website: "language",
   click_pdf: "picture_as_pdf", click_link: "link", click_save_contact: "contact_page",
@@ -124,12 +105,31 @@ export default function DashboardPage() {
     return { id, count, name: c ? `${c.firstName} ${c.lastName}`.trim() || c.company || "—" : "—" };
   });
 
+  const EVENT_LABELS: Record<string, string> = {
+    click_phone:            tr.evt_phone,
+    click_email:            tr.evt_email,
+    click_website:          tr.evt_website,
+    click_pdf:              tr.evt_pdf,
+    click_link:             tr.evt_link,
+    click_save_contact:     tr.evt_save_contact,
+    click_share:            tr.evt_share,
+    click_social_linkedin:  tr.evt_linkedin,
+    click_social_instagram: tr.evt_instagram,
+    click_social_facebook:  tr.evt_facebook,
+    click_social_tiktok:    tr.evt_tiktok,
+    click_social_snapchat:  tr.evt_snapchat,
+    click_social_x:         tr.evt_x,
+    click_social_other:     tr.evt_other,
+    lead_capture_open:      tr.evt_lead_open,
+    lead_capture_submit:    tr.evt_lead_submit,
+  };
+
   const kpiCards = [
-    { label: "Total QR Codes",   display: contacts.length.toLocaleString(),                     icon: "qr_code_2",         color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20" },
-    { label: "Total Scans",      display: (stats?.total ?? 0).toLocaleString(),                  icon: "qr_code_scanner",   color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20" },
-    { label: "Unique Visitors",  display: (stats?.unique ?? 0).toLocaleString(),                 icon: "person",            color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20" },
-    { label: "Returning",        display: (stats?.returning ?? 0).toLocaleString(),              icon: "repeat",            color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-900/20", badge: returningRate > 0 ? `${returningRate}%` : null },
-    { label: "Conversion Rate",  display: `${stats?.conversionRate ?? 0}%`,                      icon: "conversion_path",   color: "text-teal-600",   bg: "bg-teal-50 dark:bg-teal-900/20" },
+    { label: tr.kpi_total_qrs,        display: contacts.length.toLocaleString(),                icon: "qr_code_2",         color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20" },
+    { label: tr.kpi_total_scans,      display: (stats?.total ?? 0).toLocaleString(),            icon: "qr_code_scanner",   color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20" },
+    { label: tr.kpi_unique_visitors,  display: (stats?.unique ?? 0).toLocaleString(),           icon: "person",            color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20" },
+    { label: tr.kpi_returning,        display: (stats?.returning ?? 0).toLocaleString(),        icon: "repeat",            color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-900/20", badge: returningRate > 0 ? `${returningRate}%` : null },
+    { label: tr.kpi_conversion_rate,  display: `${stats?.conversionRate ?? 0}%`,                icon: "conversion_path",   color: "text-teal-600",   bg: "bg-teal-50 dark:bg-teal-900/20" },
   ];
 
   return (
@@ -138,13 +138,13 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-extrabold font-headline tracking-tight text-slate-900 dark:text-slate-100">Dashboard</h2>
+          <h2 className="text-3xl font-extrabold font-headline tracking-tight text-slate-900 dark:text-slate-100">{tr.dashboard_title}</h2>
           <p className="text-slate-500 mt-1 text-sm">{tr.dashboard_subtitle}</p>
         </div>
         <div className="flex gap-3">
           {limitReached && isOwner && (
             <Link href="/dashboard/upgrade" className="px-4 py-2 bg-amber-50 text-amber-700 rounded-xl text-sm font-semibold border border-amber-200 hover:bg-amber-100 transition-colors">
-              Upgrade Plan →
+              {tr.upgrade_plan_btn}
             </Link>
           )}
           {!limitReached && !isReader && (
@@ -178,12 +178,12 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-white dark:bg-[#1a1d27] rounded-xl border border-slate-100 dark:border-[#242736] px-5 py-3 flex items-center gap-3">
           <span className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0" />
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Active QR Codes</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{tr.dashboard_active_codes}</span>
           <span className="ml-auto font-bold text-slate-900 dark:text-slate-100">{activeCount}</span>
         </div>
         <div className="bg-white dark:bg-[#1a1d27] rounded-xl border border-slate-100 dark:border-[#242736] px-5 py-3 flex items-center gap-3">
           <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0" />
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Paused QR Codes</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{tr.dashboard_paused_codes}</span>
           <span className="ml-auto font-bold text-slate-900 dark:text-slate-100">{pausedCount}</span>
         </div>
       </div>
@@ -195,8 +195,8 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h4 className="font-bold text-slate-900 dark:text-slate-100">Scans Over Time</h4>
-              <p className="text-xs text-slate-400 mt-0.5">Total scans across all QR codes</p>
+              <h4 className="font-bold text-slate-900 dark:text-slate-100">{tr.chart_title}</h4>
+              <p className="text-xs text-slate-400 mt-0.5">{tr.chart_subtitle}</p>
             </div>
             <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#242736] rounded-xl p-1">
               {(["7", "30"] as const).map((r) => (
@@ -215,7 +215,7 @@ export default function DashboardPage() {
               <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : chart.every((d) => d.count === 0) ? (
-            <div className="h-48 flex items-center justify-center text-slate-300 dark:text-slate-600 text-sm">No scans in this period</div>
+            <div className="h-48 flex items-center justify-center text-slate-300 dark:text-slate-600 text-sm">{tr.chart_no_scans}</div>
           ) : (
             <div className="overflow-x-auto -mx-1 px-1" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
             <div
@@ -253,8 +253,8 @@ export default function DashboardPage() {
         {/* Recent Activity */}
         <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5">
           <div className="flex justify-between items-center mb-4">
-            <h4 className="font-bold text-slate-900 dark:text-slate-100">Recent QR Codes</h4>
-            <Link href="/dashboard/codes" className="text-blue-600 text-xs font-semibold hover:underline">View all</Link>
+            <h4 className="font-bold text-slate-900 dark:text-slate-100">{tr.recent_codes}</h4>
+            <Link href="/dashboard/codes" className="text-blue-600 text-xs font-semibold hover:underline">{tr.view_all}</Link>
           </div>
           {loading ? (
             <div className="flex items-center justify-center py-10">
@@ -263,8 +263,8 @@ export default function DashboardPage() {
           ) : recentContacts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <span className="material-symbols-outlined text-4xl text-slate-200 dark:text-slate-700 mb-2">qr_code_2</span>
-              <p className="text-sm text-slate-400">No QR codes yet</p>
-              <Link href="/dashboard/create" className="btn-primary mt-3 text-xs py-2 px-4">Create first</Link>
+              <p className="text-sm text-slate-400">{tr.no_qrs_yet}</p>
+              <Link href="/dashboard/create" className="btn-primary mt-3 text-xs py-2 px-4">{tr.create_first}</Link>
             </div>
           ) : (
             <div className="space-y-1">
@@ -277,7 +277,7 @@ export default function DashboardPage() {
                     <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</p>
                     <p className="text-xs text-slate-400 truncate">{contact.company || contact.title || ""}</p>
                     {contact.createdBy && (
-                      <p className="text-[11px] text-slate-400 truncate mt-0.5">By {contact.createdBy}</p>
+                      <p className="text-[11px] text-slate-400 truncate mt-0.5">{tr.by_label} {contact.createdBy}</p>
                     )}
                   </div>
                   <span className={`w-2 h-2 rounded-full shrink-0 ${contact.isActive !== false ? "bg-green-500" : "bg-amber-400"}`} />
@@ -295,15 +295,15 @@ export default function DashboardPage() {
         <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h4 className="font-bold text-slate-900 dark:text-slate-100">Interactions</h4>
-              <p className="text-xs text-slate-400 mt-0.5">Click counts across all QR codes</p>
+              <h4 className="font-bold text-slate-900 dark:text-slate-100">{tr.interactions_title}</h4>
+              <p className="text-xs text-slate-400 mt-0.5">{tr.interactions_subtitle}</p>
             </div>
-            <span className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-[#242736] px-2.5 py-1 rounded-full">{totalInteractions.toLocaleString()} total</span>
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-[#242736] px-2.5 py-1 rounded-full">{totalInteractions.toLocaleString()} {tr.interactions_total}</span>
           </div>
           {(stats?.interactions ?? []).length === 0 ? (
             <div className="py-8 text-center">
               <span className="material-symbols-outlined text-[40px] text-slate-200 dark:text-slate-700 block mb-2">touch_app</span>
-              <p className="text-sm text-slate-400">No interactions tracked yet</p>
+              <p className="text-sm text-slate-400">{tr.no_interactions}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -330,15 +330,15 @@ export default function DashboardPage() {
         <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h4 className="font-bold text-slate-900 dark:text-slate-100">Top Performing QR Codes</h4>
-              <p className="text-xs text-slate-400 mt-0.5">Ranked by total scan count</p>
+              <h4 className="font-bold text-slate-900 dark:text-slate-100">{tr.top_qrs_title}</h4>
+              <p className="text-xs text-slate-400 mt-0.5">{tr.top_qrs_subtitle}</p>
             </div>
-            <Link href="/dashboard/codes" className="text-xs font-semibold text-blue-600 hover:underline">View all</Link>
+            <Link href="/dashboard/codes" className="text-xs font-semibold text-blue-600 hover:underline">{tr.view_all}</Link>
           </div>
           {topQR.length === 0 ? (
             <div className="py-8 text-center">
               <span className="material-symbols-outlined text-[40px] text-slate-200 dark:text-slate-700 block mb-2">leaderboard</span>
-              <p className="text-sm text-slate-400">No scan data yet</p>
+              <p className="text-sm text-slate-400">{tr.no_scan_data}</p>
             </div>
           ) : (
             <div className="space-y-3">

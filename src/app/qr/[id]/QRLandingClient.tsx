@@ -46,6 +46,7 @@ function FacebookIcon({ className }: { className?: string }) {
   );
 }
 import { useState, useEffect } from "react";
+import { useLang } from "@/lib/language";
 
 function normalizeUrl(url: string | null | undefined): string {
   if (!url) return "";
@@ -123,6 +124,7 @@ const THEMES = {
 } as const;
 
 export default function QRLandingClient({ contact, leadCaptureActive = false }: { contact: QRContact; leadCaptureActive?: boolean }) {
+  const { lang, tr, toggleLang } = useLang();
   const [shared, setShared] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
@@ -138,7 +140,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
 
   async function handleLeadSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!leadConsent) { setLeadError("Please tick the consent checkbox to continue."); return; }
+    if (!leadConsent) { setLeadError(tr.landing_lead_consent_required); return; }
     setLeadSubmitting(true);
     setLeadError(null);
     const visitorId = typeof window !== "undefined" ? localStorage.getItem("qr_visitor_id") : null;
@@ -148,12 +150,12 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contactId: contact.id, visitorId, name: leadName, email: leadEmail, comment: leadComment, consent: leadConsent }),
       });
-      if (!res.ok) { const d = await res.json(); setLeadError(d.error ?? "Something went wrong."); }
+      if (!res.ok) { const d = await res.json(); setLeadError(d.error ?? tr.landing_lead_error_generic); }
       else {
         track("lead_capture_submit");
         setLeadSubmitted(true);
       }
-    } catch { setLeadError("Network error. Please try again."); }
+    } catch { setLeadError(tr.landing_lead_error_network); }
     finally { setLeadSubmitting(false); }
   }
   const color = contact.primaryColor || "#2563eb";
@@ -251,12 +253,21 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
               ? "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%)"
               : "radial-gradient(circle at 80% 20%, white 0%, transparent 60%)"
           }} />
+          {/* Language toggle — top left */}
+          <button
+            onClick={toggleLang}
+            className="absolute top-3 left-3 h-8 px-2.5 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 text-[11px] font-bold tracking-wide"
+            style={{ backgroundColor: "rgba(255,255,255,0.25)", color: "#fff" }}
+            title={lang === "de" ? "Switch to English" : "Zu Deutsch wechseln"}
+          >
+            {lang === "de" ? "DE" : "EN"}
+          </button>
           {/* Share icon — top right */}
           <button
             onClick={handleShare}
             className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
             style={{ backgroundColor: "rgba(255,255,255,0.25)", color: "#fff" }}
-            title={shared ? "Kopiert!" : "Teilen"}
+            title={shared ? tr.landing_copied : tr.landing_share}
           >
             {shared ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
           </button>
@@ -318,7 +329,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
                 <Phone className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{ph.label || "Anrufen"}</div>
+                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{ph.label || tr.landing_call}</div>
                 <div className="text-sm font-semibold">{formatPhone(ph.number)}</div>
               </div>
             </a>
@@ -329,7 +340,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
                 <Mail className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{em.label || "E-Mail"}</div>
+                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{em.label || tr.landing_email_default}</div>
                 <div className="text-sm font-semibold truncate">{em.email}</div>
               </div>
             </a>
@@ -340,7 +351,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
                 <Globe className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{ws.label || "Webseite"}</div>
+                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{ws.label || tr.landing_website_default}</div>
                 <div className="text-sm font-semibold truncate">{ws.url.replace(/^https?:\/\//, "")}</div>
               </div>
             </a>
@@ -351,7 +362,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
                 <FileText className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{link.type === "file" ? "Dokument" : "Link"}</div>
+                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{link.type === "file" ? tr.landing_document : tr.landing_link}</div>
                 <div className="text-sm font-semibold">{link.label}</div>
               </div>
               {link.type === "file" && (
@@ -369,7 +380,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
           <div className="px-5 pb-4">
             <button onClick={() => { track("click_save_contact"); handleVCard(); }} className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm border-2 transition-colors" style={{ borderColor: th.borderColor(color), color: th.btnText(color) }}>
               <Download className="w-4 h-4" />
-              Kontakt speichern
+              {tr.landing_save_contact}
             </button>
           </div>
         )}
@@ -383,7 +394,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
               style={{ backgroundColor: color }}
             >
               <UserPlus className="w-4 h-4" />
-              Leave your contact
+              {tr.landing_lead_btn}
             </button>
           </div>
         )}
@@ -438,9 +449,9 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
           {/* Header */}
           <div className="flex items-center justify-between px-6 pt-6 pb-4">
             <div>
-              <h3 className="font-bold text-gray-900 text-lg">Leave your contact</h3>
+              <h3 className="font-bold text-gray-900 text-lg">{tr.landing_lead_title}</h3>
               <p className="text-xs text-gray-400 mt-0.5">
-                {`${contact.firstName} ${contact.lastName}`.trim() || contact.company} will be in touch.
+                {`${contact.firstName} ${contact.lastName}`.trim() || contact.company} {tr.landing_lead_subtitle_suffix}
               </p>
             </div>
             <button onClick={() => setShowLeadForm(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
@@ -453,43 +464,43 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
               <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: `${color}20` }}>
                 <Check className="w-7 h-7" style={{ color }} />
               </div>
-              <p className="font-semibold text-gray-900">Thank you!</p>
-              <p className="text-sm text-gray-400 mt-1">Your contact has been received.</p>
+              <p className="font-semibold text-gray-900">{tr.landing_lead_thanks}</p>
+              <p className="text-sm text-gray-400 mt-1">{tr.landing_lead_received}</p>
               <button onClick={() => setShowLeadForm(false)} className="mt-5 w-full py-3 rounded-2xl font-semibold text-sm text-white transition-colors" style={{ backgroundColor: color }}>
-                Close
+                {tr.landing_lead_close}
               </button>
             </div>
           ) : (
             <form onSubmit={handleLeadSubmit} className="px-6 pb-6 space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Name *</label>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{tr.landing_lead_name} *</label>
                 <input
                   type="text"
                   required
                   value={leadName}
                   onChange={(e) => setLeadName(e.target.value)}
-                  placeholder="Your full name"
+                  placeholder={tr.landing_lead_name_ph}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2"
                   style={{ focusRingColor: color } as React.CSSProperties}
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Email *</label>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{tr.landing_lead_email} *</label>
                 <input
                   type="email"
                   required
                   value={leadEmail}
                   onChange={(e) => setLeadEmail(e.target.value)}
-                  placeholder="your@email.com"
+                  placeholder={tr.landing_lead_email_ph}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Comment <span className="normal-case text-gray-400 font-normal">(optional)</span></label>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{tr.landing_lead_comment} <span className="normal-case text-gray-400 font-normal">{tr.landing_lead_optional}</span></label>
                 <textarea
                   value={leadComment}
                   onChange={(e) => setLeadComment(e.target.value)}
-                  placeholder="Any message or note…"
+                  placeholder={tr.landing_lead_comment_ph}
                   rows={3}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 resize-none"
                 />
@@ -505,7 +516,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
                   style={{ accentColor: color }}
                 />
                 <span className="text-xs text-gray-500 leading-relaxed">
-                  I agree that my name, email and message may be stored and used to contact me. I can withdraw my consent at any time.
+                  {tr.landing_lead_consent}
                 </span>
               </label>
 
@@ -517,7 +528,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
                 className="w-full py-3 rounded-2xl font-semibold text-sm text-white transition-all disabled:opacity-40 mt-1"
                 style={{ backgroundColor: color }}
               >
-                {leadSubmitting ? "Sending…" : "Send contact"}
+                {leadSubmitting ? tr.landing_lead_sending : tr.landing_lead_send}
               </button>
             </form>
           )}

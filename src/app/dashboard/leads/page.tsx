@@ -6,6 +6,7 @@ import { UserPlus, Mail, MessageSquare, Calendar, Search, Download, X, ExternalL
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { getUserProfile } from "@/lib/store";
+import { useLang } from "@/lib/language";
 
 type Lead = {
   id: string;
@@ -27,6 +28,7 @@ type PreviewCard = {
 };
 
 function QRPreviewModal({ card, onClose }: { card: PreviewCard; onClose: () => void }) {
+  const { tr } = useLang();
   const cardUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/qr/${card.contact_id}`;
   const label = card.qr_label || card.contact_name || card.contact_id;
 
@@ -69,7 +71,7 @@ function QRPreviewModal({ card, onClose }: { card: PreviewCard; onClose: () => v
             className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
-            Open Live Card
+            {tr.leads_open_live}
           </a>
           <div className="grid grid-cols-2 gap-2">
             <Link
@@ -78,7 +80,7 @@ function QRPreviewModal({ card, onClose }: { card: PreviewCard; onClose: () => v
               className="flex items-center justify-center gap-2 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <Pencil className="w-3.5 h-3.5" />
-              Edit
+              {tr.leads_edit}
             </Link>
             <Link
               href={`/dashboard/analytics/${card.contact_id}`}
@@ -86,7 +88,7 @@ function QRPreviewModal({ card, onClose }: { card: PreviewCard; onClose: () => v
               className="flex items-center justify-center gap-2 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <BarChart2 className="w-3.5 h-3.5" />
-              Analytics
+              {tr.leads_analytics}
             </Link>
           </div>
         </div>
@@ -96,6 +98,7 @@ function QRPreviewModal({ card, onClose }: { card: PreviewCard; onClose: () => v
 }
 
 export default function LeadsPage() {
+  const { tr } = useLang();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -172,9 +175,9 @@ export default function LeadsPage() {
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Leads</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{tr.leads_title}</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            Contacts submitted via your QR cards
+            {tr.leads_subtitle}
           </p>
         </div>
         <button
@@ -182,7 +185,7 @@ export default function LeadsPage() {
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
         >
           <Download className="w-4 h-4" />
-          Export CSV
+          {tr.export_csv}
         </button>
       </div>
 
@@ -192,7 +195,7 @@ export default function LeadsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by name, email or QR card…"
+            placeholder={tr.leads_search_ph}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -204,7 +207,7 @@ export default function LeadsPage() {
             onChange={(e) => setFilterByUser(e.target.value)}
             className="bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">All Members</option>
+            <option value="all">{tr.leads_all_members}</option>
             {teamMembers.map((m) => (
               <option key={m.email} value={m.email}>{m.name}</option>
             ))}
@@ -222,16 +225,16 @@ export default function LeadsPage() {
             <UserPlus className="w-7 h-7 text-blue-500" />
           </div>
           <p className="font-semibold text-gray-700 dark:text-gray-300">
-            {search ? "No leads match your search" : "No leads yet"}
+            {search ? tr.leads_none_search : tr.leads_none}
           </p>
           <p className="text-sm text-gray-400 mt-1">
-            {!search && "Enable Lead Capture on a QR card to start collecting contacts."}
+            {!search && tr.leads_none_hint}
           </p>
         </div>
       ) : (
         <div className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-sm overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-800 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            {filtered.length} lead{filtered.length !== 1 ? "s" : ""}
+            {filtered.length} {filtered.length !== 1 ? tr.leads_count_many : tr.leads_count_one}
           </div>
           <div className="divide-y divide-gray-100 dark:divide-gray-800">
             {filtered.map((lead) => (
@@ -269,18 +272,18 @@ export default function LeadsPage() {
                 <div className="shrink-0 flex items-center gap-2">
                   <button
                     onClick={() => setPreview({ contact_id: lead.contact_id, qr_label: lead.qr_label, contact_name: lead.contact_name })}
-                    title="Preview QR code"
+                    title={tr.leads_preview_qr}
                     className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                   >
                     <QrCode className="w-4 h-4" />
                   </button>
                   <Link
                     href={`/dashboard/edit/${lead.contact_id}`}
-                    title={lead.qr_label || lead.contact_name || "Edit QR card"}
+                    title={lead.qr_label || lead.contact_name || tr.leads_edit_card}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 text-gray-600 dark:text-gray-300 rounded-lg text-xs font-medium transition-colors max-w-[140px] truncate"
                   >
                     <ExternalLink className="w-3 h-3 shrink-0" />
-                    <span className="truncate">{lead.qr_label || lead.contact_name || "QR Card"}</span>
+                    <span className="truncate">{lead.qr_label || lead.contact_name || tr.leads_qr_card}</span>
                   </Link>
                 </div>
               </div>

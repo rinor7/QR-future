@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from "@/lib/language";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,7 +36,9 @@ export default function RootLayout({
         {/* Apply dark mode class before paint to prevent flash */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{if(location.pathname.startsWith('/dashboard')&&localStorage.getItem('qr-dark-mode')==='true'){document.documentElement.classList.add('dark')}}catch(e){}})()` }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <LanguageProvider>{children}</LanguageProvider>
+      </body>
     </html>
   );
 }

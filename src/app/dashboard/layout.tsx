@@ -5,7 +5,6 @@ import { Menu } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import ActivityPanel from "@/components/ActivityPanel";
-import { LanguageProvider } from "@/lib/language";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -31,7 +30,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <LanguageProvider>
+    <>
       <div className="flex min-h-screen bg-[#eef1f8] dark:bg-[#0f1117]">
         {/* Mobile top bar */}
         <div className="wide:hidden fixed top-0 left-0 right-0 h-14 bg-[#eef1f8] dark:bg-[#0f1117] flex items-center px-4 z-30 gap-3">
@@ -97,6 +96,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onClose={() => setActivityOpen(false)}
         onUnreadChange={setActivityCount}
       />
-    </LanguageProvider>
+    </>
   );
 }

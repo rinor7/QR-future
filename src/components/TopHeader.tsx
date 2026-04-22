@@ -15,7 +15,7 @@ export default function TopHeader({
   activityCount?: number;
 }) {
   const router = useRouter();
-  const { lang, toggleLang } = useLang();
+  const { lang, tr, toggleLang } = useLang();
   const [userEmail, setUserEmail] = useState("");
   const [userRole, setUserRole] = useState("Enterprise Admin");
   const [plan, setPlan] = useState<Plan>("free");
@@ -157,7 +157,7 @@ export default function TopHeader({
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               >
                 <span className="material-symbols-outlined text-base">logout</span>
-                Sign out
+                {tr.sign_out}
               </button>
             </div>
           )}
