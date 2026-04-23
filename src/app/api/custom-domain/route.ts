@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const { supabase, ownerId, role } = await getOwner(user.id);
 
   // Only owner or admin can set custom domain
-  if (role === "reader" || role === "writer") {
+  if (role === "writer") {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
 

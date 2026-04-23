@@ -159,7 +159,7 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
     email: row.email as string,
     firstName: (row.first_name as string) ?? "",
     lastName: (row.last_name as string) ?? "",
-    role: (row.role as Role) ?? "reader",
+    role: (row.role as Role) ?? "writer",
     createdAt: row.created_at as string,
   }));
 }
@@ -199,8 +199,8 @@ export async function getAllContacts(): Promise<QRContact[]> {
     .select("*")
     .eq("user_id", profile.ownerId);
 
-  // Writers and readers only see QR codes they personally created
-  if (profile.role === "writer" || profile.role === "reader") {
+  // Writers only see QR codes they personally created
+  if (profile.role === "writer") {
     query = query.eq("created_by", user.email ?? "");
   }
 

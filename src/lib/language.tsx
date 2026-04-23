@@ -177,7 +177,6 @@ export const t = {
     // Roles
     role_admin: "Admin",
     role_writer: "Bearbeiter",
-    role_reader: "Leser",
     role_owner: "Owner",
     role_label: "Rolle",
     our_plans: "Unsere Pläne",
@@ -607,7 +606,6 @@ export const t = {
     users_stat_total: "Benutzer gesamt",
     users_stat_admins: "Admins",
     users_stat_pending: "Offene Einladungen",
-    users_stat_restricted: "Eingeschränkt",
     users_table_title: "Aktuelle Team-Mitglieder",
     users_col_user: "Benutzer-Details",
     users_col_access: "Zugriffslevel",
@@ -787,7 +785,6 @@ export const t = {
     // Roles
     role_admin: "Admin",
     role_writer: "Writer",
-    role_reader: "Reader",
     role_owner: "Owner",
     role_label: "Role",
     our_plans: "Our Plans",
@@ -1217,7 +1214,6 @@ export const t = {
     users_stat_total: "Total Users",
     users_stat_admins: "Admins",
     users_stat_pending: "Pending Invites",
-    users_stat_restricted: "Restricted",
     users_table_title: "Current Team Members",
     users_col_user: "User Details",
     users_col_access: "Access Level",

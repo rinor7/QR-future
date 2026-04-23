@@ -8,7 +8,6 @@ import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
-import { useRole } from "@/lib/useRole";
 
 const EVENT_ICONS: Record<string, string> = {
   click_phone: "call", click_email: "mail", click_website: "language",
@@ -32,7 +31,6 @@ interface StatsData {
 export default function DashboardPage() {
   const { tr } = useLang();
   const router = useRouter();
-  const { isReader, loading: roleLoading } = useRole();
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState<string | null>(null);
@@ -91,7 +89,7 @@ export default function DashboardPage() {
   const pausedCount = contacts.filter((c) => c.isActive === false).length;
   const recentContacts = contacts.slice(0, 3);
   const limit = PLAN_LIMITS[plan];
-  const limitReached = !roleLoading && !isReader && limit !== -1 && contacts.length >= limit;
+  const limitReached = limit !== -1 && contacts.length >= limit;
 
   // Build chart bars
   const chart = stats?.chart ?? [];
@@ -147,7 +145,7 @@ export default function DashboardPage() {
               {tr.upgrade_plan_btn}
             </Link>
           )}
-          {!limitReached && !isReader && (
+          {!limitReached && (
             <Link href="/dashboard/create" className="btn-primary flex items-center gap-2 text-sm">
               <span className="material-symbols-outlined text-sm">add</span>
               {tr.create_qr}

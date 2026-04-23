@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
     .select("id, name, company, qr_label, folder_id, is_active, created_at, lead_capture_enabled")
     .eq("user_id", ownerId)
     .order("created_at", { ascending: false });
-  if (role === "writer" || role === "reader") {
+  if (role === "writer") {
     contactsQuery = contactsQuery.eq("created_by", profile?.email ?? "");
   }
   if (folderId) contactsQuery = contactsQuery.eq("folder_id", folderId);

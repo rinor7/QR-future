@@ -8,7 +8,6 @@ import QRForm from "@/components/QRForm";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { ExternalLink, Copy, Check, Download, FolderOpen, Folder as FolderIcon, ChevronRight, ChevronDown, X } from "lucide-react";
 import { useLang } from "@/lib/language";
-import { useRole } from "@/lib/useRole";
 import { getAllFolders, buildTree, assignQrToFolder, type FolderWithStats } from "@/lib/folders";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
@@ -42,7 +41,6 @@ export default function EditPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { tr } = useLang();
-  const { isReader, loading: roleLoading } = useRole();
   const id = params.id as string;
 
   const [contact, setContact] = useState<QRContact | null>(null);
@@ -61,10 +59,6 @@ export default function EditPage() {
   const [folderTree, setFolderTree] = useState<FolderWithStats[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [folderOpen, setFolderOpen] = useState(false);
-
-  useEffect(() => {
-    if (!roleLoading && isReader) router.replace("/dashboard/codes");
-  }, [isReader, roleLoading, router]);
 
   useEffect(() => {
     fetch("/api/platform/support-email").then((r) => r.json()).then(({ supportEmail: s }) => { if (s) setSupportEmail(s); });

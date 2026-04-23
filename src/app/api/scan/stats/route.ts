@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   const role = profile?.role ?? "admin";
 
   let contactsQuery = supabase.from("contacts").select("id").eq("user_id", ownerId);
-  if (role === "writer" || role === "reader") {
+  if (role === "writer") {
     contactsQuery = contactsQuery.eq("created_by", user.email ?? "");
   }
   const { data: contacts } = await contactsQuery;

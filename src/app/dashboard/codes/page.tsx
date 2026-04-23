@@ -123,7 +123,7 @@ function FolderPicker({
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function CodesPage() {
   const { tr } = useLang();
-  const { isAdmin, isReader } = useRole();
+  const { isAdmin } = useRole();
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -512,7 +512,7 @@ export default function CodesPage() {
             <span className="material-symbols-outlined">file_download</span>
             {currentFolderId ? tr.codes_export_folder : tr.codes_export_csv}
           </a>
-          {!isReader && !limitReached && (
+          {!limitReached && (
             <Link href="/dashboard/create" className="btn-primary flex items-center gap-2 px-6 py-3 font-headline font-bold shadow-lg">
               <span className="material-symbols-outlined">add_circle</span>
               {tr.create_qr}
@@ -649,7 +649,7 @@ export default function CodesPage() {
                           </span>
                         )}
                       </div>
-                      {!isReader && (() => {
+                      {(() => {
                         const folderHasActive = isFolderActive(folder);
                         return (
                           <button
@@ -780,7 +780,7 @@ export default function CodesPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-1 mt-5 pt-4 border-t border-slate-100 dark:border-[#242736]">
-                            {!isReader && (
+                            {(
                               <Link href={`/dashboard/edit/${contact.id}`} title="Edit" className="w-8 h-8 flex items-center justify-center text-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
                                 <span className="material-symbols-outlined text-[17px]">edit</span>
                               </Link>
@@ -797,7 +797,7 @@ export default function CodesPage() {
                             <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                               <span className="material-symbols-outlined text-[17px]">download</span>
                             </button>
-                            {!isReader && (
+                            {(
                               <button onClick={() => setPauseModal({ id: contact.id, currentlyActive: contact.isActive !== false, isFolder: false })} disabled={togglingId === contact.id} title={contact.isActive !== false ? "Pause" : "Activate"} className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20" : "text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"}`}>
                                 <span className="material-symbols-outlined text-[17px]">{contact.isActive !== false ? "pause" : "play_arrow"}</span>
                               </button>
@@ -861,7 +861,7 @@ export default function CodesPage() {
                         </div>
                         {/* Actions */}
                         <div className="flex items-center gap-1 shrink-0">
-                          {!isReader && (
+                          {(
                             <Link href={`/dashboard/edit/${contact.id}`} title="Edit" className="w-8 h-8 flex items-center justify-center text-primary rounded-lg hover:bg-blue-50 transition-colors">
                               <span className="material-symbols-outlined text-[17px]">edit</span>
                             </Link>
@@ -875,7 +875,7 @@ export default function CodesPage() {
                           <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
                             <span className="material-symbols-outlined text-[17px]">download</span>
                           </button>
-                          {!isReader && (
+                          {(
                             <button
                               onClick={() => setPauseModal({ id: contact.id, currentlyActive: contact.isActive !== false, isFolder: false })}
                               disabled={togglingId === contact.id}
@@ -896,7 +896,7 @@ export default function CodesPage() {
                 })}
 
                 {/* New QR Code dashed card */}
-                {!isReader && !limitReached && (
+                {!limitReached && (
                   <Link href="/dashboard/create" className="bg-white border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center p-10 text-center group hover:border-primary/40 hover:bg-blue-50/30 transition-all cursor-pointer min-h-[280px]">
                     <div className="w-14 h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform shadow-sm">
                       <span className="material-symbols-outlined text-2xl">add</span>

@@ -69,7 +69,7 @@ function FloatingDropdown({ anchor, memberId, memberEmail, memberRole, memberCon
           {!isCurrentRow && (
             <>
               <p className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Change Role</p>
-              {(["admin", "writer", "reader"] as Role[]).map((r) => (
+              {(["admin", "writer"] as Role[]).map((r) => (
                 <button
                   key={r}
                   onClick={() => { onRoleChange(memberId, r); onClose(); }}
@@ -235,7 +235,6 @@ export default function UsersPage() {
 
   const adminCount      = members.filter((m) => m.role === "admin" || m.role === "owner").length;
   const pendingCount    = members.filter((m) => m.confirmed === false).length;
-  const restrictedCount = members.filter((m) => m.role === "reader").length;
   const totalPages      = Math.ceil(members.length / PAGE_SIZE);
   const paginatedMembers = members.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
@@ -280,12 +279,11 @@ export default function UsersPage() {
       </div>
 
       {/* ── Stats ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {[
           { label: tr.users_stat_total,      value: members.length, icon: "group",         bg: "bg-blue-50 dark:bg-blue-900/20",    color: "text-blue-600",   badge: "+12%", badgeCls: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20" },
           { label: tr.users_stat_admins,     value: adminCount,     icon: "verified_user", bg: "bg-violet-50 dark:bg-violet-900/20",color: "text-violet-600", badge: null,   badgeCls: "" },
           { label: tr.users_stat_pending,    value: pendingCount,   icon: "schedule",      bg: "bg-amber-50 dark:bg-amber-900/20",  color: "text-amber-500",  badge: null,   badgeCls: "" },
-          { label: tr.users_stat_restricted, value: restrictedCount,icon: "lock",          bg: "bg-red-50 dark:bg-red-900/20",      color: "text-red-500",    badge: null,   badgeCls: "" },
         ].map(({ label, value, icon, bg, color, badge, badgeCls }) => (
           <div key={label} className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5">
             <div className="flex items-center justify-between mb-3">
@@ -342,9 +340,7 @@ export default function UsersPage() {
                     ? { label: "Owner",  cls: "text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20" }
                     : m.role === "admin"
                     ? { label: "Admin",  cls: "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20" }
-                    : m.role === "writer"
-                    ? { label: "Writer", cls: "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-[#242736]" }
-                    : { label: "Reader", cls: "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-[#242736]" };
+                    : { label: "Writer", cls: "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-[#242736]" };
 
                   return (
                     <tr key={m.userId} className="border-b border-slate-50 dark:border-[#242736] last:border-0 hover:bg-slate-50/60 dark:hover:bg-[#242736]/40 transition-colors">
@@ -480,7 +476,7 @@ export default function UsersPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {/* Owner */}
           <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5">
             <div className="flex items-center gap-2 mb-3">
@@ -572,36 +568,6 @@ export default function UsersPage() {
             </ul>
           </div>
 
-          {/* Reader */}
-          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[16px] text-slate-500" style={{ fontVariationSettings: "'FILL' 1" }}>visibility</span>
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Reader</h4>
-                <p className="text-[10px] text-slate-400">View only</p>
-              </div>
-            </div>
-            <ul className="space-y-1.5">
-              {[
-                ["View QR codes & analytics", true],
-                ["Create or edit QR codes", false],
-                ["Delete QR codes", false],
-                ["Manage folders", false],
-                ["Invite or remove members", false],
-                ["Apply company templates", false],
-                ["Access settings & branding", false],
-              ].map(([item, allowed]) => (
-                <li key={item as string} className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-400">
-                  <span className={`material-symbols-outlined text-[13px] mt-0.5 shrink-0 ${allowed ? "text-emerald-500" : "text-slate-300 dark:text-slate-600"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                    {allowed ? "check_circle" : "cancel"}
-                  </span>
-                  <span className={allowed ? "" : "text-slate-400 dark:text-slate-600"}>{item as string}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
       </div>
 
@@ -634,7 +600,6 @@ export default function UsersPage() {
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Role</label>
                 <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value as Role)} className="w-full bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-[#2a2e3e] rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="writer">{tr.role_writer}</option>
-                  <option value="reader">{tr.role_reader}</option>
                   <option value="admin">{tr.role_admin}</option>
                 </select>
               </div>

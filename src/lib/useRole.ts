@@ -18,6 +18,5 @@ export function useRole() {
     loading,
     isAdmin: role === "admin",
     isWriter: role === "writer",
-    isReader: role === "reader",
   };
 }

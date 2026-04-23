@@ -6,7 +6,6 @@ import { createContact } from "@/lib/store";
 import { CreateQRContact, PLAN_LABELS } from "@/lib/types";
 import { useState, useEffect } from "react";
 import { useLang } from "@/lib/language";
-import { useRole } from "@/lib/useRole";
 import {
   getAllFolders, buildTree, assignQrToFolder,
   type FolderWithStats,
@@ -61,7 +60,6 @@ function FolderPickerNode({
 export default function CreatePage() {
   const router = useRouter();
   const { tr } = useLang();
-  const { isReader, loading: roleLoading } = useRole();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<CreateQRContact>>({
@@ -74,10 +72,6 @@ export default function CreatePage() {
   const [folderTree, setFolderTree] = useState<FolderWithStats[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [folderOpen, setFolderOpen] = useState(false);
-
-  useEffect(() => {
-    if (!roleLoading && isReader) router.replace("/dashboard/codes");
-  }, [isReader, roleLoading, router]);
 
   const [orgDefaults, setOrgDefaults] = useState<{ company?: string; logoUrl?: string }>({});
 

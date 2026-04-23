@@ -52,9 +52,7 @@ export default function TopHeader({
           ? "Owner"
           : p.role === "admin"
           ? "Admin"
-          : p.role === "writer"
-          ? "Writer"
-          : "Reader";
+          : "Writer";
         setUserRole(role);
       }
     });
