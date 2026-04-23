@@ -55,6 +55,8 @@ export default function ClientDetailPage() {
 
   const [detail, setDetail] = useState<ClientDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [qrPage, setQrPage] = useState(0);
+  const QR_PAGE_SIZE = 30;
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -214,42 +216,74 @@ export default function ClientDetailPage() {
         {qrCodes.length === 0 ? (
           <p className="px-6 py-5 text-sm text-gray-400">{tr.client_detail_no_qr}</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-xs text-gray-400 uppercase tracking-wide bg-gray-50">
-                <th className="text-left px-6 py-3">{tr.clients_label}</th>
-                <th className="text-left px-6 py-3">{tr.clients_status}</th>
-                <th className="text-left px-6 py-3">{tr.client_detail_scans}</th>
-                <th className="text-left px-6 py-3">{tr.client_detail_joined}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {qrCodes.map((q) => (
-                <tr key={q.id} className="border-t border-gray-50 hover:bg-gray-50/50">
-                  <td className="px-6 py-3">
-                    <p className="font-medium text-gray-900">{q.label}</p>
-                    {q.company && <p className="text-xs text-gray-400">{q.company}</p>}
-                  </td>
-                  <td className="px-6 py-3">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      q.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
-                    }`}>
-                      {q.isActive ? tr.client_detail_active : tr.client_detail_paused}
+          (() => {
+            const totalPages = Math.ceil(qrCodes.length / QR_PAGE_SIZE);
+            const paginated  = qrCodes.slice(qrPage * QR_PAGE_SIZE, (qrPage + 1) * QR_PAGE_SIZE);
+            return (
+              <>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-xs text-gray-400 uppercase tracking-wide bg-gray-50">
+                      <th className="text-left px-6 py-3">{tr.clients_label}</th>
+                      <th className="text-left px-6 py-3">{tr.clients_status}</th>
+                      <th className="text-left px-6 py-3">{tr.client_detail_scans}</th>
+                      <th className="text-left px-6 py-3">{tr.client_detail_joined}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginated.map((q) => (
+                      <tr key={q.id} className="border-t border-gray-50 hover:bg-gray-50/50">
+                        <td className="px-6 py-3">
+                          <p className="font-medium text-gray-900">{q.label}</p>
+                          {q.company && <p className="text-xs text-gray-400">{q.company}</p>}
+                        </td>
+                        <td className="px-6 py-3">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                            q.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                          }`}>
+                            {q.isActive ? tr.client_detail_active : tr.client_detail_paused}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3">
+                          <span className="inline-flex items-center gap-1 text-gray-700 font-medium">
+                            <BarChart2 className="w-3.5 h-3.5 text-gray-400" />
+                            {q.scans}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3 text-gray-400 text-xs">
+                          {new Date(q.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 text-xs text-gray-500">
+                    <span>
+                      Showing {qrPage * QR_PAGE_SIZE + 1}–{Math.min((qrPage + 1) * QR_PAGE_SIZE, qrCodes.length)} of {qrCodes.length}
                     </span>
-                  </td>
-                  <td className="px-6 py-3">
-                    <span className="inline-flex items-center gap-1 text-gray-700 font-medium">
-                      <BarChart2 className="w-3.5 h-3.5 text-gray-400" />
-                      {q.scans}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 text-gray-400 text-xs">
-                    {new Date(q.createdAt).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setQrPage((p) => Math.max(0, p - 1))}
+                        disabled={qrPage === 0}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40"
+                      >
+                        Previous
+                      </button>
+                      <span className="px-3 py-1.5 font-medium">Page {qrPage + 1} / {totalPages}</span>
+                      <button
+                        onClick={() => setQrPage((p) => Math.min(totalPages - 1, p + 1))}
+                        disabled={qrPage >= totalPages - 1}
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()
         )}
       </div>
     </div>

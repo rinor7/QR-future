@@ -478,7 +478,12 @@ export default function SettingsPage() {
             {emailSuccess && <p className="text-xs text-green-600">{tr.settings_email_success}</p>}
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                {isOwner ? (
+                {isPlatformAdmin ? (
+                  <>
+                    <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">{tr.settings_role_label}</span>
+                    <span className="text-sm font-semibold text-violet-600">Platform Owner</span>
+                  </>
+                ) : isOwner ? (
                   <>
                     <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">{tr.plan_label}:</span>
                     <span className="text-sm font-semibold text-blue-600">{PLAN_LABELS[plan]}</span>
@@ -594,7 +599,7 @@ export default function SettingsPage() {
               )}
             </div>
             {/* Owner toggle: allow/disallow members from using 2FA */}
-            {isOwner && (
+            {isOwner && !isPlatformAdmin && (
               <div className="pt-4 border-t border-slate-200 dark:border-slate-700/50">
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -615,8 +620,8 @@ export default function SettingsPage() {
           </form>
         </section>
 
-        {/* Company Information (owner or admin only) */}
-        {(isOwner || userRole === "admin") && (
+        {/* Company Information (owner or admin only, not platform admin) */}
+        {(isOwner || userRole === "admin") && !isPlatformAdmin && (
           <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
             <div className="flex items-center gap-4 mb-8">
               <div className="bg-green-500/10 p-3 rounded-xl text-green-600">
@@ -729,7 +734,8 @@ export default function SettingsPage() {
           </section>
         )}
 
-        {/* Platform Preferences (12 cols) */}
+        {/* Platform Preferences (12 cols) — hidden from platform owner */}
+        {!isPlatformAdmin && (
         <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
           <div className="flex items-center gap-4 mb-10">
             <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-xl text-slate-600 dark:text-slate-400">
@@ -782,9 +788,10 @@ export default function SettingsPage() {
             )}
           </div>
         </section>
+        )}
 
-        {/* CRM / Export (owner or admin only) */}
-        {(isOwner || userRole === "admin") && (
+        {/* CRM / Export (owner or admin only, not platform admin) */}
+        {(isOwner || userRole === "admin") && !isPlatformAdmin && (
           <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
             <div className="flex flex-wrap items-start gap-4 mb-8">
               <div className="bg-teal-500/10 p-3 rounded-xl text-teal-600 shrink-0">
@@ -881,8 +888,8 @@ export default function SettingsPage() {
           </section>
         )}
 
-        {/* Branding / White Label (owner or admin only) */}
-        {(isOwner || userRole === "admin") && (
+        {/* Branding / White Label (owner or admin only, not platform admin) */}
+        {(isOwner || userRole === "admin") && !isPlatformAdmin && (
           <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
             <div className="flex items-center gap-4 mb-8">
               <div className="bg-purple-500/10 p-3 rounded-xl text-purple-600">
@@ -972,8 +979,8 @@ export default function SettingsPage() {
           </section>
         )}
 
-        {/* Company Templates (owner or admin only) */}
-        {(isOwner || userRole === "admin") && (
+        {/* Company Templates (owner or admin only, not platform admin) */}
+        {(isOwner || userRole === "admin") && !isPlatformAdmin && (
           <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
@@ -1170,7 +1177,8 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* Danger Zone */}
+      {/* Danger Zone — hidden from platform owner (their account is managed separately) */}
+      {!isPlatformAdmin && (
       <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700/50">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-red-50 dark:bg-red-900/10 rounded-xl">
           <div>
@@ -1198,6 +1206,7 @@ export default function SettingsPage() {
           </button>
         </div>
       </div>
+      )}
 
       {/* Delete account confirmation modal */}
       {showDeleteModal && (

@@ -6,7 +6,7 @@ import { getUserProfile } from "@/lib/store";
 import { ClientAccount, Plan, PLAN_LABELS } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Trash2, Users, AlertTriangle, ArrowRight, Eye, Lock } from "lucide-react";
+import { Trash2, Users, AlertTriangle, Eye, Lock } from "lucide-react";
 
 const PLAN_COLORS: Record<Plan, string> = {
   free: "bg-gray-100 text-gray-600",
@@ -21,9 +21,9 @@ export default function ClientsPage() {
 
   const [clients, setClients] = useState<ClientAccount[]>([]);
   const [loading, setLoading] = useState(true);
-  const [removingId, setRemovingId] = useState<string | null>(null);
-  const [pendingPlan, setPendingPlan] = useState<{ userId: string; email: string; from: Plan; to: Plan } | null>(null);
-  const [changingPlan, setChangingPlan] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ClientAccount | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -46,41 +46,24 @@ export default function ClientsPage() {
     }
   }
 
-  function requestPlanChange(userId: string, newPlan: Plan) {
-    const client = clients.find((c) => c.userId === userId);
-    if (!client || client.plan === newPlan) return;
-    setPendingPlan({ userId, email: client.email, from: client.plan, to: newPlan });
-  }
-
-  async function confirmPlanChange() {
-    if (!pendingPlan) return;
-    setChangingPlan(true);
-    await fetch("/api/admin/clients/update-plan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: pendingPlan.userId, plan: pendingPlan.to }),
-    });
-    setClients((prev) => prev.map((c) => c.userId === pendingPlan.userId ? { ...c, plan: pendingPlan.to } : c));
-    setChangingPlan(false);
-    setPendingPlan(null);
-  }
-
-  async function handleDelete(userId: string) {
-    if (removingId === userId) {
+  async function handleConfirmDelete() {
+    if (!deleteTarget || deleteConfirmText !== "DELETE") return;
+    setDeleting(true);
+    try {
       await fetch("/api/admin/clients/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId: deleteTarget.userId }),
       });
-      setClients((prev) => prev.filter((c) => c.userId !== userId));
-      setRemovingId(null);
-    } else {
-      setRemovingId(userId);
-      setTimeout(() => setRemovingId(null), 3000);
+      setClients((prev) => prev.filter((c) => c.userId !== deleteTarget.userId));
+      setDeleteTarget(null);
+      setDeleteConfirmText("");
+    } finally {
+      setDeleting(false);
     }
   }
 
-  const INACTIVITY_DAYS = 1;
+  const INACTIVITY_DAYS = 14;
   const inactiveClients = clients.filter((c) => {
     if (!c.lastActivityAt) return true; // never had activity
     const daysSince = (Date.now() - new Date(c.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24);
@@ -188,29 +171,17 @@ export default function ClientsPage() {
                   </td>
                   {/* Plan */}
                   <td className="px-6 py-4">
-                    {!c.hasStripe && c.plan === "free" ? (
-                      <select
-                        value={c.plan}
-                        onChange={(e) => requestPlanChange(c.userId, e.target.value as Plan)}
-                        className={`px-2 py-1 rounded-lg text-xs font-semibold border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer ${PLAN_COLORS[c.plan]}`}
-                      >
-                        {(["free", "star", "premium", "platinum"] as Plan[]).map((p) => (
-                          <option key={p} value={p}>{PLAN_LABELS[p]}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <div className="flex flex-col gap-1">
-                        <span className={`text-xs font-semibold px-2 py-1 rounded-lg w-fit ${PLAN_COLORS[c.plan]}`}>
-                          {PLAN_LABELS[c.plan]}
-                        </span>
-                        <span className="text-xs text-gray-400 flex items-center gap-1">
-                          {c.hasStripe
-                            ? <><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />Stripe</>
-                            : <><Lock className="w-3 h-3" />{tr.clients_manual}</>
-                          }
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex flex-col gap-1">
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-lg w-fit ${PLAN_COLORS[c.plan]}`}>
+                        {PLAN_LABELS[c.plan]}
+                      </span>
+                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                        {c.hasStripe
+                          ? <><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />Stripe</>
+                          : <><Lock className="w-3 h-3" />{tr.clients_manual}</>
+                        }
+                      </span>
+                    </div>
                   </td>
                   {/* QR count */}
                   <td className="px-6 py-4">
@@ -235,15 +206,11 @@ export default function ClientsPage() {
                   {/* Delete */}
                   <td className="px-6 py-4 text-right">
                     <button
-                      onClick={() => handleDelete(c.userId)}
-                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        removingId === c.userId
-                          ? "bg-red-600 text-white"
-                          : "text-red-500 hover:bg-red-50"
-                      }`}
+                      onClick={() => { setDeleteTarget(c); setDeleteConfirmText(""); }}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
                     >
                       <Trash2 className="w-3 h-3" />
-                      {removingId === c.userId ? tr.clients_delete_confirm : tr.clients_delete}
+                      {tr.clients_delete}
                     </button>
                   </td>
                 </tr>
@@ -253,42 +220,60 @@ export default function ClientsPage() {
         </table>
       </div>
 
-      {/* Plan change confirmation modal */}
-      {pendingPlan && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">{tr.clients_plan_modal_title}</h2>
-            <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
-              <div className="text-center">
-                <p className="text-xs text-gray-400 mb-1">{tr.clients_from}</p>
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${PLAN_COLORS[pendingPlan.from]}`}>
-                  {PLAN_LABELS[pendingPlan.from]}
-                </span>
+      {/* Delete client confirmation modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
-              <ArrowRight className="w-4 h-4 text-gray-400 shrink-0" />
-              <div className="text-center">
-                <p className="text-xs text-gray-400 mb-1">{tr.clients_to}</p>
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${PLAN_COLORS[pendingPlan.to]}`}>
-                  {PLAN_LABELS[pendingPlan.to]}
-                </span>
-              </div>
-              <div className="flex-1 text-right">
-                <p className="text-xs text-gray-500 font-medium truncate">{pendingPlan.email}</p>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Delete client account</h3>
+                <p className="text-xs text-slate-500 truncate">{deleteTarget.email}</p>
               </div>
             </div>
+            <div className="bg-red-50 rounded-xl p-4 mb-4 border border-red-100">
+              <p className="text-sm font-semibold text-red-800 mb-2">
+                This permanently deletes their entire organisation. Unrecoverable.
+              </p>
+              <ul className="text-sm text-red-800 space-y-1 list-disc list-inside">
+                <li>All their QR codes ({deleteTarget.qrCount})</li>
+                <li>Every scan & interaction log</li>
+                <li>Every lead captured</li>
+                <li>Every folder and permission</li>
+                <li>Every sub-user account under their org</li>
+                <li>The login itself — nobody can sign back in</li>
+              </ul>
+            </div>
+            <p className="text-sm font-semibold text-red-600 mb-3">
+              This cannot be undone. No restore, no refund, no backup.
+            </p>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              Type <span className="text-red-500 font-bold">DELETE</span> to confirm
+            </label>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="DELETE"
+              autoFocus
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 text-slate-900 mb-5"
+            />
             <div className="flex gap-3">
               <button
-                onClick={() => setPendingPlan(null)}
-                className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+                onClick={handleConfirmDelete}
+                disabled={deleteConfirmText !== "DELETE" || deleting}
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white py-3 rounded-xl font-bold text-sm transition-colors"
               >
-                {tr.clients_plan_modal_cancel}
+                {deleting ? "Deleting…" : "Yes, delete permanently"}
               </button>
               <button
-                onClick={confirmPlanChange}
-                disabled={changingPlan}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2.5 rounded-xl text-sm font-medium transition-colors"
+                onClick={() => { setDeleteTarget(null); setDeleteConfirmText(""); }}
+                disabled={deleting}
+                className="px-5 py-3 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-100 transition-colors"
               >
-                {changingPlan ? "..." : tr.clients_plan_modal_confirm}
+                Cancel
               </button>
             </div>
           </div>

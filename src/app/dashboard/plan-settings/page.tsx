@@ -130,6 +130,26 @@ export default function PlanSettingsPage() {
         <p className="text-sm text-gray-500 mt-1">{tr.plan_settings_subtitle}</p>
       </div>
 
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+        <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+          <span className="material-symbols-outlined text-amber-700 text-[20px]">warning</span>
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-amber-900 mb-1">Stripe prices must stay in sync</p>
+          <p className="text-xs text-amber-800 leading-relaxed">
+            If you change a plan price here, you <span className="font-semibold">must also update the matching product price in your Stripe dashboard</span>. Mismatched prices will cause checkout and billing conflicts — customers may be charged a different amount than what they see on the site.
+          </p>
+          <a
+            href="https://dashboard.stripe.com/products"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-amber-900 underline hover:text-amber-950"
+          >
+            Open Stripe products dashboard →
+          </a>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {configs.map((config) => {
           const isEditing = editing === config.plan;
