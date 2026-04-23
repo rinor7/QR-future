@@ -2,46 +2,27 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-
-const FAQS = [
-  {
-    q: "Was ist ein dynamischer QR-Code?",
-    a: "Ein dynamischer QR-Code leitet auf eine URL weiter, die Sie jederzeit ändern können, ohne den gedruckten QR-Code zu ersetzen. Ihre Kunden scannen immer die aktuellsten Daten.",
-  },
-  {
-    q: "Kann ich meinen QR-Code nach dem Drucken noch bearbeiten?",
-    a: "Ja! Das ist der grösste Vorteil unserer Plattform. Sie können Name, Kontaktdaten, Logo, Social-Media-Links und mehr jederzeit aktualisieren. Der QR-Code selbst bleibt unverändert.",
-  },
-  {
-    q: "Brauchen meine Kunden eine App zum Scannen?",
-    a: "Nein. Jedes moderne Smartphone kann QR-Codes direkt mit der Kamera-App scannen, ganz ohne App-Download.",
-  },
-  {
-    q: "Wie lade ich meinen QR-Code herunter?",
-    a: "Nach dem Erstellen können Sie Ihren QR-Code als PNG-Datei herunterladen und direkt auf Visitenkarten, Flyer oder Ihr Material drucken.",
-  },
-  {
-    q: "Kann ich sehen, wie oft mein QR-Code gescannt wurde?",
-    a: "Ja. Im Dashboard sehen Sie für jeden QR-Code die Scan-Statistiken: wann und wie oft gescannt wurde.",
-  },
-  {
-    q: "Was passiert, wenn ich mein Abo kündige?",
-    a: "Ihre QR-Codes bleiben aktiv. Sie können jedoch keine neuen Codes mehr erstellen und haben keinen Zugriff auf Premium-Funktionen, bis Sie wieder upgraden.",
-  },
-  {
-    q: "Kann ich mein eigenes Logo im QR-Code einbetten?",
-    a: "Ja. Ab dem Star-Plan können Sie Ihr Logo in die Mitte des QR-Codes einbetten, für einen professionellen, markentreuen Auftritt.",
-  },
-];
+import { useLang } from "@/lib/language";
 
 export default function FAQSection() {
+  const { tr } = useLang();
   const [open, setOpen] = useState<number | null>(null);
+
+  const FAQS = [
+    { q: tr.home_faq1_q, a: tr.home_faq1_a },
+    { q: tr.home_faq2_q, a: tr.home_faq2_a },
+    { q: tr.home_faq3_q, a: tr.home_faq3_a },
+    { q: tr.home_faq4_q, a: tr.home_faq4_a },
+    { q: tr.home_faq5_q, a: tr.home_faq5_a },
+    { q: tr.home_faq6_q, a: tr.home_faq6_a },
+    { q: tr.home_faq7_q, a: tr.home_faq7_a },
+  ];
 
   return (
     <section className="py-20 bg-gray-50">
       <div className="max-w-3xl mx-auto px-6">
-        <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">Häufige Fragen</h2>
-        <p className="text-center text-gray-500 mb-12">Alles was Sie wissen müssen, kurz und klar.</p>
+        <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">{tr.home_faq_title}</h2>
+        <p className="text-center text-gray-500 mb-12">{tr.home_faq_sub}</p>
         <div className="space-y-3">
           {FAQS.map((faq, i) => (
             <div key={i} className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
