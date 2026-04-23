@@ -239,7 +239,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
 
   return (
     <>
-    <div className={`min-h-screen flex flex-col items-center justify-center gap-4 p-4 ${th.page}`}>
+    <div className={`min-h-screen flex flex-col items-center justify-center gap-10 p-4 ${th.page}`}>
       <div className={`w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden ${th.card}`}>
 
         {/* Header with gradient or bg image */}
