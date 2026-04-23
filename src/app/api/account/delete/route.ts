@@ -78,9 +78,18 @@ export async function DELETE() {
       .neq("user_id", ownerId);
 
     for (const sub of subProfiles ?? []) {
+      // folders.created_by FK has no ON DELETE CASCADE — wipe any stragglers
+      // (cross-org rows, anything the organization_id delete above didn't catch)
+      await step(`null sub-user folder parents ${sub.user_id}`, supabase.from("folders").update({ parent_id: null }).eq("created_by", sub.user_id));
+      await step(`delete sub-user folders ${sub.user_id}`,      supabase.from("folders").delete().eq("created_by", sub.user_id));
       const { error } = await supabase.auth.admin.deleteUser(sub.user_id);
       if (error) errors.push(`delete sub-user ${sub.user_id}: ${error.message}`);
     }
+
+    // Owner may also have folders.created_by rows outside this org — wipe
+    // them before deleting the auth row.
+    await step("null owner folder parents", supabase.from("folders").update({ parent_id: null }).eq("created_by", ownerId));
+    await step("delete owner folders",      supabase.from("folders").delete().eq("created_by", ownerId));
 
     await step("delete owner profile", supabase.from("profiles").delete().eq("user_id", ownerId));
 
