@@ -15,6 +15,7 @@ import {
   Check,
   UserPlus,
   X,
+  QrCode,
 } from "lucide-react";
 
 function XBrandIcon({ className }: { className?: string }) {
@@ -238,7 +239,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
 
   return (
     <>
-    <div className={`min-h-screen flex items-center justify-center p-4 ${th.page}`}>
+    <div className={`min-h-screen flex flex-col items-center justify-center gap-4 p-4 ${th.page}`}>
       <div className={`w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden ${th.card}`}>
 
         {/* Header with gradient or bg image */}
@@ -452,6 +453,17 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
           );
         })()}
       </div>
+
+      <a
+        href="https://qr-card.ch"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+      >
+        <span>Powered by</span>
+        <QrCode className="w-4 h-4 text-blue-600" />
+        <span className="font-bold text-slate-900">qr-card.ch</span>
+      </a>
     </div>
 
     {/* Lead Capture Modal */}
