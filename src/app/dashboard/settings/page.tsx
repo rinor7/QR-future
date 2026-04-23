@@ -52,6 +52,7 @@ export default function SettingsPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deletePreview, setDeletePreview] = useState<{ subUsers: number; qrCodes: number; folders: number; scans: number; leads: number } | null>(null);
 
   // Templates
   const [templates, setTemplates] = useState<QRTemplate[]>([]);
@@ -135,9 +136,17 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const supabase = getSupabaseBrowser();
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.push("/login"); return; }
       setEmail(user.email ?? "");
+      // Self-heal: if profiles.email drifted from auth email (e.g. historical
+      // email changes that didn't mirror to profiles), sync it now.
+      if (user.email) {
+        const { data: prof } = await supabase.from("profiles").select("email").eq("user_id", user.id).single();
+        if (prof && prof.email !== user.email) {
+          await supabase.from("profiles").update({ email: user.email }).eq("user_id", user.id);
+        }
+      }
     });
     getUserProfile().then(async (p) => {
       if (p) {
@@ -353,6 +362,10 @@ export default function SettingsPage() {
     if (newEmail && newEmail !== email) {
       const { error } = await supabase.auth.updateUser({ email: newEmail });
       if (error) { setEmailError(error.message); setEmailLoading(false); return; }
+      if (user) {
+        await supabase.from("profiles").update({ email: newEmail }).eq("user_id", user.id);
+      }
+      setEmail(newEmail);
       setEmailSuccess(true);
       setNewEmail("");
     } else {
@@ -1169,7 +1182,16 @@ export default function SettingsPage() {
             </p>
           </div>
           <button
-            onClick={() => setShowDeleteModal(true)}
+            onClick={async () => {
+              setShowDeleteModal(true);
+              if (isOwner) {
+                try {
+                  const res = await fetch("/api/account/delete-preview");
+                  const data = await res.json();
+                  if (data.isOwner) setDeletePreview({ subUsers: data.subUsers, qrCodes: data.qrCodes, folders: data.folders, scans: data.scans, leads: data.leads });
+                } catch {}
+              }
+            }}
             className="border-2 border-red-500 text-red-500 px-6 py-2.5 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all w-full sm:w-auto shrink-0"
           >
             Delete Account
@@ -1189,9 +1211,18 @@ export default function SettingsPage() {
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
               {isOwner
-                ? "This will permanently delete your entire organisation including all QR codes, scan analytics, folders, and all sub-user accounts."
+                ? "You are the owner of this organisation. Deleting your account will permanently delete:"
                 : "This removes your login from this organisation. The admin will still see the QR cards you created — they'll be marked as created by a departed user. The admin will be notified."}
             </p>
+            {isOwner && deletePreview && (
+              <ul className="text-sm text-slate-700 dark:text-slate-300 mb-4 space-y-1.5 bg-red-50 dark:bg-red-900/10 rounded-xl p-4">
+                <li>• <span className="font-semibold">{deletePreview.subUsers}</span> sub-user{deletePreview.subUsers === 1 ? "" : "s"} — logins revoked immediately</li>
+                <li>• <span className="font-semibold">{deletePreview.qrCodes}</span> QR code{deletePreview.qrCodes === 1 ? "" : "s"}</li>
+                <li>• <span className="font-semibold">{deletePreview.folders}</span> folder{deletePreview.folders === 1 ? "" : "s"}</li>
+                <li>• <span className="font-semibold">{deletePreview.scans.toLocaleString()}</span> scan{deletePreview.scans === 1 ? "" : "s"} of analytics history</li>
+                <li>• <span className="font-semibold">{deletePreview.leads.toLocaleString()}</span> captured lead{deletePreview.leads === 1 ? "" : "s"}</li>
+              </ul>
+            )}
             <p className="text-sm font-semibold text-red-600 mb-5">This cannot be undone.</p>
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
               Type <span className="text-red-500 font-bold">DELETE</span> to confirm
@@ -1204,7 +1235,16 @@ export default function SettingsPage() {
               className="w-full bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 text-slate-900 dark:text-slate-100 mb-5"
             />
             {deleteError && (
-              <p className="text-xs text-red-500 mb-4 whitespace-pre-wrap break-words">{deleteError}</p>
+              <div className="mb-4">
+                <p className="text-xs text-red-500 whitespace-pre-wrap break-words">{deleteError}</p>
+                <a
+                  href="mailto:info@qr-card.ch?subject=Account%20deletion%20error&body=Hi%2C%20I%20encountered%20an%20error%20while%20trying%20to%20delete%20my%20account%3A%0A%0A"
+                  className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold text-blue-600 hover:underline"
+                >
+                  <span className="material-symbols-outlined text-[14px]">mail</span>
+                  Contact support: info@qr-card.ch
+                </a>
+              </div>
             )}
             <div className="flex gap-3">
               <button
@@ -1215,7 +1255,7 @@ export default function SettingsPage() {
                 {deleteLoading ? "Deleting…" : "Yes, delete everything"}
               </button>
               <button
-                onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(""); setDeleteError(null); }}
+                onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(""); setDeleteError(null); setDeletePreview(null); }}
                 disabled={deleteLoading}
                 className="px-5 py-3 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >

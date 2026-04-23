@@ -892,7 +892,6 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           <select
             value={form.country}
             onChange={(e) => set("country", e.target.value)}
-            required
             className={`${input} cursor-pointer`}
           >
             <option value="">— Land wählen —</option>
