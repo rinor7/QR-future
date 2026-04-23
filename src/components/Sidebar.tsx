@@ -5,27 +5,29 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { getUserProfile } from "@/lib/store";
+import { useLang } from "@/lib/language";
 
-type NavItem = { href: string; label: string; icon: string };
+type NavItem = { href: string; labelKey: keyof ReturnType<typeof useLang>["tr"]; icon: string };
 
 const USER_NAV: NavItem[] = [
-  { href: "/dashboard",         label: "Dashboard", icon: "dashboard" },
-  { href: "/dashboard/codes",   label: "QR Codes",  icon: "qr_code_2" },
-  { href: "/dashboard/leads",   label: "Leads",     icon: "contacts" },
-  { href: "/dashboard/nfc",     label: "NFC Cards", icon: "tap_and_play" },
-  { href: "/dashboard/users",   label: "Users",     icon: "group" },
-  { href: "/dashboard/upgrade", label: "Plans",     icon: "payments" },
-  { href: "/dashboard/settings",label: "Settings",  icon: "settings" },
+  { href: "/dashboard",         labelKey: "nav_dashboard", icon: "dashboard" },
+  { href: "/dashboard/codes",   labelKey: "nav_codes",     icon: "qr_code_2" },
+  { href: "/dashboard/leads",   labelKey: "nav_leads",     icon: "contacts" },
+  { href: "/dashboard/nfc",     labelKey: "nav_nfc",       icon: "tap_and_play" },
+  { href: "/dashboard/users",   labelKey: "nav_users",     icon: "group" },
+  { href: "/dashboard/upgrade", labelKey: "nav_plans",     icon: "payments" },
+  { href: "/dashboard/settings",labelKey: "nav_settings",  icon: "settings" },
 ];
 
 const ADMIN_NAV: NavItem[] = [
-  { href: "/dashboard/clients",       label: "Clients",       icon: "corporate_fare" },
-  { href: "/dashboard/plan-settings", label: "Plan Settings", icon: "tune" },
-  { href: "/dashboard/settings",      label: "Settings",      icon: "settings" },
+  { href: "/dashboard/clients",       labelKey: "nav_clients",       icon: "corporate_fare" },
+  { href: "/dashboard/plan-settings", labelKey: "nav_plan_settings", icon: "tune" },
+  { href: "/dashboard/settings",      labelKey: "nav_settings",      icon: "settings" },
 ];
 
 export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
+  const { tr } = useLang();
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
@@ -94,7 +96,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
             {brandName || "QR Orchestrator"}
           </h1>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mt-0.5">
-            Enterprise Suite
+            {tr.sidebar_enterprise}
           </p>
         </div>
         {/* Mobile close */}
@@ -108,7 +110,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
 
       {/* Nav */}
       <nav className="flex-1 px-3 space-y-1">
-        {baseNav.map(({ href, label, icon }) => {
+        {baseNav.map(({ href, labelKey, icon }) => {
           const active = href === "/dashboard"
             ? pathname === "/dashboard"
             : pathname.startsWith(href);
@@ -124,7 +126,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
               }`}
             >
               <span className="material-symbols-outlined text-[20px] shrink-0">{icon}</span>
-              {label}
+              {tr[labelKey]}
             </Link>
           );
         })}
@@ -140,7 +142,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
             style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
           >
             <span className="material-symbols-outlined text-lg">add</span>
-            Create QR Code
+            {tr.sidebar_create_qr}
           </Link>
         </div>
       )}

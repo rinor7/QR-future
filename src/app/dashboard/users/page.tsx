@@ -247,9 +247,9 @@ export default function UsersPage() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-8">
         <div>
-          <h1 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Team Access</h1>
+          <h1 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">{tr.users_team_access}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 max-w-lg leading-relaxed">
-            Orchestrate your enterprise hierarchy. Control permissions, invite stakeholders, and manage organizational growth from one central hub.
+            {tr.users_team_subtitle}
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
@@ -259,14 +259,14 @@ export default function UsersPage() {
             className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] rounded-xl hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors shadow-sm"
           >
             <span className="material-symbols-outlined text-[16px]">download</span>
-            Export List
+            {tr.users_export_list}
           </a>
           <button
             onClick={() => { setShowInviteModal(true); setInviteMsg(null); }}
             className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm"
           >
             <span className="material-symbols-outlined text-[16px]">person_add</span>
-            Invite Member
+            {tr.users_invite_member}
           </button>
         </div>
       </div>
@@ -274,10 +274,10 @@ export default function UsersPage() {
       {/* ── Stats ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Total Users",     value: members.length, icon: "group",         bg: "bg-blue-50 dark:bg-blue-900/20",    color: "text-blue-600",   badge: "+12%", badgeCls: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20" },
-          { label: "Admins",          value: adminCount,     icon: "verified_user", bg: "bg-violet-50 dark:bg-violet-900/20",color: "text-violet-600", badge: null,   badgeCls: "" },
-          { label: "Pending Invites", value: pendingCount,   icon: "schedule",      bg: "bg-amber-50 dark:bg-amber-900/20",  color: "text-amber-500",  badge: null,   badgeCls: "" },
-          { label: "Restricted",      value: restrictedCount,icon: "lock",          bg: "bg-red-50 dark:bg-red-900/20",      color: "text-red-500",    badge: null,   badgeCls: "" },
+          { label: tr.users_stat_total,      value: members.length, icon: "group",         bg: "bg-blue-50 dark:bg-blue-900/20",    color: "text-blue-600",   badge: "+12%", badgeCls: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20" },
+          { label: tr.users_stat_admins,     value: adminCount,     icon: "verified_user", bg: "bg-violet-50 dark:bg-violet-900/20",color: "text-violet-600", badge: null,   badgeCls: "" },
+          { label: tr.users_stat_pending,    value: pendingCount,   icon: "schedule",      bg: "bg-amber-50 dark:bg-amber-900/20",  color: "text-amber-500",  badge: null,   badgeCls: "" },
+          { label: tr.users_stat_restricted, value: restrictedCount,icon: "lock",          bg: "bg-red-50 dark:bg-red-900/20",      color: "text-red-500",    badge: null,   badgeCls: "" },
         ].map(({ label, value, icon, bg, color, badge, badgeCls }) => (
           <div key={label} className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5">
             <div className="flex items-center justify-between mb-3">
@@ -299,7 +299,7 @@ export default function UsersPage() {
 
         {/* Table title bar */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100 dark:border-[#242736]">
-          <h3 className="font-bold text-slate-900 dark:text-slate-100">Current Team Members</h3>
+          <h3 className="font-bold text-slate-900 dark:text-slate-100">{tr.users_table_title}</h3>
           <div className="flex gap-1">
             <button className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-[#242736] transition-colors">
               <span className="material-symbols-outlined text-[18px]">filter_list</span>
@@ -314,7 +314,7 @@ export default function UsersPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-slate-100 dark:border-[#242736]">
-                {["User Details", "Access Level", "Status", "Join Date", "Actions"].map((h, i) => (
+                {[tr.users_col_user, tr.users_col_access, tr.users_col_status, tr.users_col_join, tr.users_col_actions].map((h, i) => (
                   <th key={h} className={`px-6 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap ${i === 4 ? "text-right" : ""}`}>{h}</th>
                 ))}
               </tr>

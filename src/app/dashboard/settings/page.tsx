@@ -605,8 +605,8 @@ export default function SettingsPage() {
                 <span className="material-symbols-outlined">contacts</span>
               </div>
               <div>
-                <h3 className="text-2xl font-bold font-headline">Company Information</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Organization details and contact info — editable by admins, usable in templates</p>
+                <h3 className="text-2xl font-bold font-headline">{tr.settings_company_info}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{tr.settings_company_subtitle}</p>
               </div>
             </div>
             <form onSubmit={handleSaveAccountInfo} className="space-y-8">
@@ -615,13 +615,13 @@ export default function SettingsPage() {
               <div>
                 <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
                   <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">business</span>
-                  Organization Name
+                  {tr.settings_org_name}
                 </h4>
                 <input
                   type="text"
                   value={organizationName}
                   onChange={(e) => setOrganizationName(e.target.value)}
-                  placeholder="Your organization name"
+                  placeholder={tr.settings_org_name_ph}
                   className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all text-sm"
                 />
               </div>
@@ -630,20 +630,20 @@ export default function SettingsPage() {
               <div>
                 <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
                   <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">contact_phone</span>
-                  Contact Info
+                  {tr.settings_contact_info}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Phone</label>
-                    <input type="text" value={acctPhone} onChange={(e) => setAcctPhone(e.target.value)} placeholder="+41 00 000 00 00" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                    <label className="block text-xs font-medium text-slate-500 mb-1">{tr.field_phone}</label>
+                    <input type="text" value={acctPhone} onChange={(e) => setAcctPhone(e.target.value)} placeholder={tr.settings_phone_ph} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Email</label>
-                    <input type="email" value={acctEmail} onChange={(e) => setAcctEmail(e.target.value)} placeholder="info@company.com" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                    <label className="block text-xs font-medium text-slate-500 mb-1">{tr.field_email}</label>
+                    <input type="email" value={acctEmail} onChange={(e) => setAcctEmail(e.target.value)} placeholder={tr.settings_email_ph} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Website</label>
-                    <input type="text" value={acctWebsite} onChange={(e) => setAcctWebsite(e.target.value)} placeholder="www.company.com" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                    <label className="block text-xs font-medium text-slate-500 mb-1">{tr.field_website}</label>
+                    <input type="text" value={acctWebsite} onChange={(e) => setAcctWebsite(e.target.value)} placeholder={tr.settings_website_ph} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
                   </div>
                 </div>
               </div>
@@ -652,7 +652,7 @@ export default function SettingsPage() {
               <div>
                 <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
                   <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">share</span>
-                  Social Media
+                  {tr.settings_social_media}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -686,24 +686,24 @@ export default function SettingsPage() {
               <div>
                 <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
                   <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">location_on</span>
-                  Address
+                  {tr.settings_address}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <input type="text" value={acctStreet} onChange={(e) => setAcctStreet(e.target.value)} placeholder="Street" className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  <input type="text" value={acctStreetNr} onChange={(e) => setAcctStreetNr(e.target.value)} placeholder="Nr." className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  <input type="text" value={acctPlz} onChange={(e) => setAcctPlz(e.target.value)} placeholder="PLZ / ZIP" className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  <input type="text" value={acctCity} onChange={(e) => setAcctCity(e.target.value)} placeholder="City" className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  <input type="text" value={acctCountry} onChange={(e) => setAcctCountry(e.target.value)} placeholder="Country" className="sm:col-span-2 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctStreet} onChange={(e) => setAcctStreet(e.target.value)} placeholder={tr.settings_street_ph} className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctStreetNr} onChange={(e) => setAcctStreetNr(e.target.value)} placeholder={tr.settings_streetnr_ph} className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctPlz} onChange={(e) => setAcctPlz(e.target.value)} placeholder={tr.settings_plz_ph} className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctCity} onChange={(e) => setAcctCity(e.target.value)} placeholder={tr.settings_city_ph} className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <input type="text" value={acctCountry} onChange={(e) => setAcctCountry(e.target.value)} placeholder={tr.settings_country_ph} className="sm:col-span-2 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
                 </div>
               </div>
 
               <div className="flex items-center gap-3 pt-2">
                 <button type="submit" disabled={acctSaving} className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
-                  {acctSaving ? "Saving…" : "Save Company Info"}
+                  {acctSaving ? tr.settings_saving : tr.settings_save_company}
                 </button>
                 {acctSaved && (
                   <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
-                    <span className="material-symbols-outlined text-[16px]">check_circle</span>Saved
+                    <span className="material-symbols-outlined text-[16px]">check_circle</span>{tr.settings_saved_short}
                   </span>
                 )}
               </div>
@@ -717,22 +717,22 @@ export default function SettingsPage() {
             <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-xl text-slate-600 dark:text-slate-400">
               <span className="material-symbols-outlined">tune</span>
             </div>
-            <h3 className="text-2xl font-bold font-headline">Platform Preferences</h3>
+            <h3 className="text-2xl font-bold font-headline">{tr.settings_platform_prefs}</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {/* Regional */}
             <div className="space-y-4">
               <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">language</span>
-                Regional
+                {tr.settings_regional}
               </h4>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130] hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors cursor-pointer">
-                  <span className="text-sm">Language</span>
+                  <span className="text-sm">{tr.settings_language}</span>
                   <button onClick={toggleLang} className="text-sm font-bold text-blue-600">{lang === "de" ? "Deutsch" : "English (EN)"}</button>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130] hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors cursor-pointer">
-                  <span className="text-sm">Timezone</span>
+                  <span className="text-sm">{tr.settings_timezone}</span>
                   <span className="text-sm font-bold text-blue-600">UTC+1 (CET)</span>
                 </div>
               </div>
@@ -742,13 +742,13 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">feature_search</span>
-                  Features
+                  {tr.settings_features}
                 </h4>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130]">
                     <div>
-                      <p className="text-sm font-medium">Lead Capture</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Allow QR profiles to collect visitor contacts</p>
+                      <p className="text-sm font-medium">{tr.settings_lead_capture}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{tr.settings_lead_capture_hint}</p>
                     </div>
                     <button
                       onClick={() => handleToggleLeadCapture(!leadCaptureDisabled)}
@@ -773,8 +773,8 @@ export default function SettingsPage() {
                 <span className="material-symbols-outlined">hub</span>
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-2xl font-bold font-headline">CRM / Export</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Export leads or connect to external tools via webhook</p>
+                <h3 className="text-2xl font-bold font-headline">{tr.settings_crm_export}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{tr.settings_crm_subtitle}</p>
               </div>
               <a
                 href="/api/leads/export"
@@ -782,7 +782,7 @@ export default function SettingsPage() {
                 className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-sm w-full sm:w-auto"
               >
                 <span className="material-symbols-outlined text-[18px]">download</span>
-                Export All Leads (CSV)
+                {tr.settings_export_all_leads}
               </a>
             </div>
 

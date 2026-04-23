@@ -493,8 +493,8 @@ export default function CodesPage() {
       {/* ── Header ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 sm:mb-12">
         <div>
-          <h1 className="font-headline text-3xl sm:text-[3.5rem] font-bold leading-none tracking-tighter mb-2">QR Codes</h1>
-          <p className="text-on-surface-variant font-medium">Manage and monitor your enterprise QR infrastructure.</p>
+          <h1 className="font-headline text-3xl sm:text-[3.5rem] font-bold leading-none tracking-tighter mb-2">{tr.codes_page_title}</h1>
+          <p className="text-on-surface-variant font-medium">{tr.codes_page_subtitle}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <a
@@ -503,7 +503,7 @@ export default function CodesPage() {
             className="flex items-center gap-2 bg-gray-100 dark:bg-[#242736] px-5 py-3 rounded-xl font-headline font-semibold text-blue-600 hover:bg-gray-200 dark:hover:bg-[#2a2e3e] transition-colors"
           >
             <span className="material-symbols-outlined">file_download</span>
-            {currentFolderId ? "Export Folder" : "CSV Export"}
+            {currentFolderId ? tr.codes_export_folder : tr.codes_export_csv}
           </a>
           {!isReader && !limitReached && (
             <Link href="/dashboard/create" className="btn-primary flex items-center gap-2 px-6 py-3 font-headline font-bold shadow-lg">
@@ -513,7 +513,7 @@ export default function CodesPage() {
           )}
           {limitReached && isOwner && (
             <Link href="/dashboard/upgrade" className="btn-primary flex items-center gap-2 px-6 py-3 font-headline font-bold shadow-lg">
-              Upgrade Plan →
+              {tr.upgrade_plan_btn}
             </Link>
           )}
         </div>
@@ -524,7 +524,7 @@ export default function CodesPage() {
         <div className="flex items-center gap-2 mb-8 text-sm">
           <button onClick={() => setCurrentFolderId(null)} className="flex items-center gap-1.5 text-outline hover:text-primary transition-colors font-medium">
             <span className="material-symbols-outlined text-base">arrow_back</span>
-            QR Codes
+            {tr.codes_back_to_codes}
           </button>
           {breadcrumb.map((seg, i) => (
             <span key={seg.id} className="flex items-center gap-2">
@@ -567,7 +567,7 @@ export default function CodesPage() {
             onChange={(e) => setFilterByUser(e.target.value)}
             className="bg-gray-100 dark:bg-[#242736] text-slate-700 dark:text-slate-300 border-none rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">All Members</option>
+            <option value="all">{tr.codes_all_members}</option>
             {teamMembers.map((m) => (
               <option key={m.email} value={m.email}>{m.name}</option>
             ))}
@@ -576,7 +576,7 @@ export default function CodesPage() {
         {canCreateFolder && (
           <button onClick={() => { setCreatingFolder(true); setFolderNameError(null); setNewFolderName(""); }} className="flex items-center gap-2 bg-gray-100 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm font-semibold text-blue-600 hover:bg-gray-200 dark:hover:bg-[#2a2e3e] transition-colors">
             <span className="material-symbols-outlined text-base">create_new_folder</span>
-            Neuer Ordner
+            {tr.codes_new_folder}
           </button>
         )}
       </div>
@@ -587,11 +587,11 @@ export default function CodesPage() {
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-primary">create_new_folder</span>
             <input autoFocus value={newFolderName} onChange={(e) => { setNewFolderName(e.target.value); setFolderNameError(null); }}
-              placeholder={currentFolderId ? "Unterordner-Name" : "Ordner-Name"}
+              placeholder={currentFolderId ? tr.codes_subfolder_ph : tr.codes_folder_ph}
               className="flex-1 text-sm focus:outline-none bg-transparent text-on-surface" />
             <button type="submit" disabled={savingFolder || !newFolderName.trim()} className="btn-primary flex items-center gap-1.5 text-sm px-4 py-2 disabled:opacity-50">
               {savingFolder ? <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <span className="material-symbols-outlined text-sm">check</span>}
-              Erstellen
+              {tr.codes_create_folder_btn}
             </button>
             <button type="button" onClick={() => { setCreatingFolder(false); setNewFolderName(""); setFolderNameError(null); }} className="p-2 text-outline hover:text-on-surface rounded-xl hover:bg-surface-container-low transition-colors">
               <span className="material-symbols-outlined text-base">close</span>
@@ -611,8 +611,8 @@ export default function CodesPage() {
           {!search.trim() && visibleFolders.length > 0 && (
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-headline text-xs font-extrabold uppercase tracking-widest text-outline">ORDNER</h3>
-                <button className="text-primary text-sm font-semibold hover:underline">View all folders</button>
+                <h3 className="font-headline text-xs font-extrabold uppercase tracking-widest text-outline">{tr.codes_folders_section}</h3>
+                <button className="text-primary text-sm font-semibold hover:underline">{tr.codes_view_all_folders}</button>
               </div>
               <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {visibleFolders.map((folder) => {
@@ -634,7 +634,7 @@ export default function CodesPage() {
                       <span className="material-symbols-outlined text-[52px] text-white/90 group-hover:text-white transition-colors mb-2 relative z-10" style={{ fontVariationSettings: "'FILL' 1" }}>folder_open</span>
                       <div className="text-center relative z-10 w-full min-w-0">
                         <h4 className="font-headline font-bold text-white truncate text-sm leading-tight">{folder.name}</h4>
-                        <p className="text-xs font-medium text-blue-100 mt-0.5">{qrCount} {qrCount === 1 ? "QR Code" : "QR Codes"}</p>
+                        <p className="text-xs font-medium text-blue-100 mt-0.5">{qrCount} {qrCount === 1 ? tr.codes_qr_singular : tr.codes_qr_plural}</p>
                         {(isAdmin || isOwner) && folder.created_by && folder.created_by !== userId && (
                           <span className="inline-flex items-center gap-0.5 mt-1.5 px-1.5 py-0.5 rounded-full bg-white/20 text-white text-[9px] font-bold" title={`Created by ${memberMap[folder.created_by] ?? "team member"}`}>
                             <span className="material-symbols-outlined text-[10px]">person</span>
@@ -648,7 +648,7 @@ export default function CodesPage() {
                           <button
                             onClick={(e) => { e.stopPropagation(); setPauseModal({ id: folder.id, currentlyActive: folderHasActive, isFolder: true, folderNode: folder }); }}
                             disabled={togglingFolder === folder.id}
-                            title={folderHasActive ? "Pause all QRs in folder" : "Activate all QRs in folder"}
+                            title={folderHasActive ? tr.codes_pause_folder : tr.codes_activate_folder}
                             className={`absolute top-2 right-2 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg transition-all disabled:opacity-30 hover:bg-white/20 ${folderHasActive ? "text-white" : "text-green-200"}`}
                           >
                             {togglingFolder === folder.id
@@ -673,7 +673,7 @@ export default function CodesPage() {
               onDragLeave={() => setDragOverId(null)}
               onDrop={(e) => { e.preventDefault(); handleDropOnRoot(); }}
             >
-              Hierher ziehen um aus Ordner zu entfernen
+              {tr.codes_drag_remove}
             </div>
           )}
 
@@ -681,7 +681,7 @@ export default function CodesPage() {
           <section>
             <div className="flex items-center justify-between mb-8">
               <h3 className="font-headline text-xs font-extrabold uppercase tracking-widest text-outline">
-                {currentFolder ? `QR-CODES IN ${currentFolder.name.toUpperCase()}` : "RECENT QR CODES"}
+                {currentFolder ? `${tr.codes_qrs_in_folder_prefix} ${currentFolder.name.toUpperCase()}` : tr.codes_recent_section}
               </h3>
               <div className="flex gap-1">
                 <button

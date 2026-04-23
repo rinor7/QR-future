@@ -309,3 +309,4 @@ Editable plan configuration (prices and features).
 - Stored in `profiles.support_email` for the platform admin user
 - Fetched via `/api/platform/support-email` (public, no auth required)
 - Shown as a mailto link when a QR card save error occurs
+
