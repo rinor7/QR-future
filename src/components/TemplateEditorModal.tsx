@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import PhonePreview from "./PhonePreview";
+import QRCodeStyled from "./QRCodeStyled";
+import type { CreateQRContact } from "@/lib/types";
 
 export interface QRTemplate {
   id: string;
@@ -324,9 +327,33 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
 
   const totalLocked = included.size;
 
+  const previewForm: Partial<CreateQRContact> = {
+    firstName: "Max",
+    lastName: "Muster",
+    title: "Sales Manager",
+    company: (values.company as string) || "Muster AG",
+    logoUrl: (values.logo_url as string) || undefined,
+    primaryColor: (values.primary_color as string) || "#2563eb",
+    theme: ((values.theme as string) || "classic") as "classic" | "dark" | "minimal",
+    showLogoInQr: values.show_logo_in_qr !== false,
+    phones: tplPhones.filter((p) => p.number).length > 0 ? tplPhones.filter((p) => p.number) : [{ number: "+41 79 000 00 00", label: "" }],
+    emails: tplEmails.filter((e) => e.email).length > 0 ? tplEmails.filter((e) => e.email) : [{ email: "max@muster.ch", label: "" }],
+    websites: tplWebsites.filter((w) => w.url).length > 0 ? tplWebsites.filter((w) => w.url) : [{ url: "muster.ch", label: "" }],
+    linkedinUrl: (values.linkedin_url as string) || undefined,
+    instagramUrl: (values.instagram_url as string) || undefined,
+    facebookUrl: (values.facebook_url as string) || undefined,
+    tiktokUrl: (values.tiktok_url as string) || undefined,
+    snapchatUrl: (values.snapchat_url as string) || undefined,
+    xUrl: (values.x_url as string) || undefined,
+    otherSocialUrl: (values.other_social_url as string) || undefined,
+  };
+
+  type DotStyle = "square" | "dots" | "rounded" | "classy" | "classy-rounded" | "extra-rounded";
+  type CornerStyle = "square" | "dot" | "extra-rounded";
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+      <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-[#242736] shrink-0">
@@ -339,7 +366,8 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
           </button>
         </div>
 
-        {/* Body */}
+        {/* Body — split: form (left) + preview (right) */}
+        <div className="flex-1 flex overflow-hidden">
         <div className="overflow-y-auto flex-1 px-6 py-4 space-y-3">
 
           {/* Name */}
@@ -649,6 +677,33 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
               </div>
             );
           })}
+        </div>
+
+        {/* Right: live preview (hidden on small screens) */}
+        <div className="hidden md:flex w-80 shrink-0 border-l border-slate-100 dark:border-[#242736] bg-slate-50/60 dark:bg-[#14171f] overflow-y-auto flex-col items-center gap-6 p-5">
+          <div className="w-full text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Live Preview</p>
+            <p className="text-[11px] text-slate-500">Sample card · your branding applied</p>
+          </div>
+          <PhonePreview form={previewForm} showLabel={false} />
+          <div className="w-full border-t border-slate-200 dark:border-slate-700 pt-5 flex flex-col items-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">QR Code</p>
+            <div className="rounded-xl bg-white p-3 shadow-sm">
+              <QRCodeStyled
+                value="https://qr-card.ch/demo"
+                size={140}
+                dotStyle={(values.qr_dot_style as DotStyle) || "square"}
+                cornerStyle={(values.qr_corner_style as CornerStyle) || "square"}
+                dotColor={(values.qr_dot_color as string) || "#000000"}
+                bgColor={(values.qr_bg_color as string) || "#ffffff"}
+                gradient={values.qr_gradient === true}
+                gradientColor={(values.qr_gradient_color as string) || "#2563eb"}
+                logoUrl={(values.logo_url as string) || undefined}
+                showLogo={values.show_logo_in_qr !== false}
+              />
+            </div>
+          </div>
+        </div>
         </div>
 
         {/* Footer */}
