@@ -26,6 +26,7 @@ interface DropdownProps {
   memberId: string;
   memberEmail: string;
   memberRole: Role;
+  memberConfirmed: boolean;
   isOwnerRow: boolean;
   isCurrentRow: boolean;
   removingId: string | null;
@@ -38,7 +39,7 @@ interface DropdownProps {
   tr: Record<string, string>;
 }
 
-function FloatingDropdown({ anchor, memberId, memberEmail, memberRole, isOwnerRow, isCurrentRow, removingId, resendingId, resendMsg, onRoleChange, onResend, onRemove, onClose, tr }: DropdownProps) {
+function FloatingDropdown({ anchor, memberId, memberEmail, memberRole, memberConfirmed, isOwnerRow, isCurrentRow, removingId, resendingId, resendMsg, onRoleChange, onResend, onRemove, onClose, tr }: DropdownProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -81,14 +82,16 @@ function FloatingDropdown({ anchor, memberId, memberEmail, memberRole, isOwnerRo
               <div className="border-t border-slate-100 dark:border-[#242736] my-1" />
             </>
           )}
-          <button
-            onClick={() => { onResend(memberId, memberEmail); onClose(); }}
-            disabled={resendingId === memberId}
-            className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-[#242736] text-slate-700 dark:text-slate-300 flex items-center gap-2 disabled:opacity-50 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[14px]">mail</span>
-            {resendMsg === memberId ? "Sent!" : resendingId === memberId ? "Sending…" : tr.users_resend ?? "Resend Invite"}
-          </button>
+          {!memberConfirmed && (
+            <button
+              onClick={() => { onResend(memberId, memberEmail); onClose(); }}
+              disabled={resendingId === memberId}
+              className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-[#242736] text-slate-700 dark:text-slate-300 flex items-center gap-2 disabled:opacity-50 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[14px]">mail</span>
+              {resendMsg === memberId ? "Sent!" : resendingId === memberId ? "Sending…" : tr.users_resend ?? "Resend Invite"}
+            </button>
+          )}
           {!isCurrentRow && (
             <button
               onClick={() => { onRemove(memberId); if (removingId === memberId) onClose(); }}
@@ -147,10 +150,15 @@ export default function UsersPage() {
   async function load() {
     setLoading(true);
     try {
-      const [profile, team] = await Promise.all([getUserProfile(), getTeamMembers()]);
+      const [profile, team, confirmationRes] = await Promise.all([
+        getUserProfile(),
+        getTeamMembers(),
+        fetch("/api/users/confirmation").then((r) => r.ok ? r.json() : {}).catch(() => ({})),
+      ]);
       setCurrentUserId(profile?.userId ?? "");
       setOwnerId(profile?.ownerId ?? "");
-      setMembers(team);
+      const confirmation = confirmationRes as Record<string, boolean>;
+      setMembers(team.map((m) => ({ ...m, confirmed: !!confirmation[m.userId] })));
     } finally {
       setLoading(false);
     }
@@ -226,7 +234,7 @@ export default function UsersPage() {
   const [page, setPage] = useState(0);
 
   const adminCount      = members.filter((m) => m.role === "admin" || m.role === "owner").length;
-  const pendingCount    = members.filter((m) => !m.firstName && !m.lastName).length;
+  const pendingCount    = members.filter((m) => m.confirmed === false).length;
   const restrictedCount = members.filter((m) => m.role === "reader").length;
   const totalPages      = Math.ceil(members.length / PAGE_SIZE);
   const paginatedMembers = members.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -327,7 +335,7 @@ export default function UsersPage() {
               ) : (
                 paginatedMembers.map((m, idx) => {
                   const isOwnerRow = m.userId === ownerId || m.role === "owner";
-                  const isPending    = !m.firstName && !m.lastName;
+                  const isPending    = m.confirmed === false;
                   const avatarColor  = AVATAR_COLORS[(page * PAGE_SIZE + idx) % AVATAR_COLORS.length];
 
                   const roleMeta = isOwnerRow
@@ -449,6 +457,7 @@ export default function UsersPage() {
           memberId={openMember.userId}
           memberEmail={openMember.email}
           memberRole={openMember.role}
+          memberConfirmed={!!openMember.confirmed}
           isOwnerRow={openMember.userId === ownerId || openMember.role === "owner"}
           isCurrentRow={openMember.userId === currentUserId}
           removingId={removingId}

@@ -117,4 +117,5 @@ export interface TeamMember {
   lastName: string;
   role: Role;
   createdAt: string;
+  confirmed?: boolean;
 }
