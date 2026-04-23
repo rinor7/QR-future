@@ -288,7 +288,12 @@ export default function SettingsPage() {
       const res = await fetch("/api/account/delete", { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) {
-        setDeleteError(data.error || "Failed to delete account");
+        if (Array.isArray(data.details) && data.details.length > 0) {
+          console.error("[account/delete] details:", data.details);
+          setDeleteError(`${data.error || "Failed to delete account"}\n${data.details.join("\n")}`);
+        } else {
+          setDeleteError(data.error || "Failed to delete account");
+        }
         setDeleteLoading(false);
         return;
       }
@@ -1199,7 +1204,7 @@ export default function SettingsPage() {
               className="w-full bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 text-slate-900 dark:text-slate-100 mb-5"
             />
             {deleteError && (
-              <p className="text-xs text-red-500 mb-4">{deleteError}</p>
+              <p className="text-xs text-red-500 mb-4 whitespace-pre-wrap break-words">{deleteError}</p>
             )}
             <div className="flex gap-3">
               <button
