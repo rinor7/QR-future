@@ -397,6 +397,13 @@ export default function CodesPage() {
       } else {
         await assignQrToFolder(contactId, folderId);
         setContactFolders((prev) => ({ ...prev, [contactId]: folderId }));
+        // Give the QR's creator read access to the target folder so they can
+        // see their own card in context. No-op if they already have a role.
+        fetch("/api/folders/grant-creator", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contactId, folderId }),
+        }).catch(() => {});
       }
     } finally {
       setAssigningFolder(null);
