@@ -189,8 +189,8 @@ export default function EditPage() {
         <div className="mb-6 flex items-center gap-3 px-5 py-4 bg-green-50 border border-green-200 rounded-2xl text-green-800">
           <span className="material-symbols-outlined text-green-500 text-[22px] shrink-0">check_circle</span>
           <div className="flex-1">
-            <p className="font-semibold text-sm">QR Code created successfully!</p>
-            <p className="text-xs text-green-600 mt-0.5">Your QR code is ready. Download it below or make any adjustments and save.</p>
+            <p className="font-semibold text-sm">{tr.edit_qr_created_success}</p>
+            <p className="text-xs text-green-600 mt-0.5">{tr.edit_qr_ready}</p>
           </div>
           <button
             onClick={() => setSaved(false)}
@@ -215,9 +215,9 @@ export default function EditPage() {
         const selectedFolder = selectedFolderId ? findFolder(folderTree, selectedFolderId) : null;
         return (
           <div className="mb-6">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Basic Information</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{tr.edit_basic_info}</p>
             <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] border-l-4 border-l-blue-500 p-6">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Destination Folder <span className="text-slate-400 font-normal">(optional)</span></label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{tr.edit_dest_folder} <span className="text-slate-400 font-normal">{tr.optional}</span></label>
             <div className="relative">
               <button
                 type="button"
@@ -227,7 +227,7 @@ export default function EditPage() {
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="material-symbols-outlined text-[18px] text-blue-500 shrink-0">folder</span>
                   <span className={`truncate ${selectedFolder ? "text-slate-800 dark:text-slate-200 font-medium" : "text-slate-400 dark:text-slate-500"}`}>
-                    {selectedFolder ? selectedFolder.name : "No folder selected"}
+                    {selectedFolder ? selectedFolder.name : tr.edit_no_folder}
                   </span>
                 </div>
                 <span className="material-symbols-outlined text-[18px] text-slate-400 shrink-0">{folderOpen ? "expand_less" : "expand_more"}</span>

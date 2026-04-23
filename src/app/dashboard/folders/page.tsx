@@ -35,6 +35,7 @@ import {
 import { getUserProfile } from "@/lib/store";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
+import { useLang } from "@/lib/language";
 
 const FOLDER_TYPES: FolderType[] = [
   "company", "subsidiary", "location", "department", "team", "custom",
@@ -54,6 +55,7 @@ function FolderForm({
   onCancel: () => void;
   label: string;
 }) {
+  const { tr } = useLang();
   const [name, setName] = useState(initialName);
   const [type, setType] = useState<FolderType>(initialType);
   const [saving, setSaving] = useState(false);
@@ -67,7 +69,7 @@ function FolderForm({
     try {
       await onSave(name.trim(), type);
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Fehler");
+      setErr(e instanceof Error ? e.message : tr.folders_generic_error);
       setSaving(false);
     }
   }
@@ -78,7 +80,7 @@ function FolderForm({
         autoFocus
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Ordnername"
+        placeholder={tr.folders_name_ph}
         className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-44"
       />
       <select
@@ -120,6 +122,7 @@ function MoveModal({
   onMove: (folderId: string, newParentId: string | null) => Promise<void>;
   onClose: () => void;
 }) {
+  const { tr } = useLang();
   const [selected, setSelected] = useState<string>("__root__");
   const [moving, setMoving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -143,7 +146,7 @@ function MoveModal({
       await onMove(folder.id, selected === "__root__" ? null : selected);
       onClose();
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Fehler");
+      setErr(e instanceof Error ? e.message : tr.folders_generic_error);
       setMoving(false);
     }
   }
@@ -151,16 +154,16 @@ function MoveModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
-        <h2 className="text-base font-bold text-gray-900 mb-1">Ordner verschieben</h2>
+        <h2 className="text-base font-bold text-gray-900 mb-1">{tr.folders_move}</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Neues Verzeichnis für <strong>{folder.name}</strong>:
+          {tr.folders_move_for} <strong>{folder.name}</strong>:
         </p>
         <select
           value={selected}
           onChange={(e) => setSelected(e.target.value)}
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
         >
-          <option value="__root__">— Root (kein übergeordneter Ordner)</option>
+          <option value="__root__">{tr.folders_root_option}</option>
           {options.map((o) => (
             <option key={o.id} value={o.id}>{"  ".repeat(o.depth)}{o.name}</option>
           ))}
@@ -168,10 +171,10 @@ function MoveModal({
         {err && <p className="text-xs text-red-600 mb-3">{err}</p>}
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
-            Abbrechen
+            {tr.folders_cancel}
           </button>
           <button onClick={handleMove} disabled={moving} className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">
-            {moving ? "Verschieben..." : "Verschieben"}
+            {moving ? tr.folders_moving : tr.folders_move_btn}
           </button>
         </div>
       </div>
@@ -201,6 +204,7 @@ function FolderNode({
   depth: number;
   isRoot?: boolean;
 }) {
+  const { tr } = useLang();
   const [expanded, setExpanded] = useState(depth === 0);
   const [addingChild, setAddingChild] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -229,7 +233,7 @@ function FolderNode({
       await deleteFolderRpc(node.id);
       onRefresh();
     } catch (e: unknown) {
-      setDeleteErr(e instanceof Error ? e.message : "Fehler");
+      setDeleteErr(e instanceof Error ? e.message : tr.folders_generic_error);
       setDeleting(false);
     }
   }
@@ -266,7 +270,7 @@ function FolderNode({
         {/* Name / edit */}
         {editing ? (
           <div onClick={(e) => e.stopPropagation()}>
-            <FolderForm initialName={node.name} initialType={node.type} onSave={handleEdit} onCancel={() => setEditing(false)} label="Speichern" />
+            <FolderForm initialName={node.name} initialType={node.type} onSave={handleEdit} onCancel={() => setEditing(false)} label={tr.folders_save} />
           </div>
         ) : (
           <>
@@ -285,19 +289,19 @@ function FolderNode({
               className={`flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ${isSelected ? "opacity-100" : ""}`}
               onClick={(e) => e.stopPropagation()}
             >
-              <button onClick={() => { setAddingChild(true); setExpanded(true); }} title="Unterordner" className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-white/20 text-white/80" : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"}`}>
+              <button onClick={() => { setAddingChild(true); setExpanded(true); }} title={tr.folders_subfolder} className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-white/20 text-white/80" : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"}`}>
                 <FolderPlus className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => setEditing(true)} title="Umbenennen" className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-white/20 text-white/80" : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"}`}>
+              <button onClick={() => setEditing(true)} title={tr.folders_rename} className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-white/20 text-white/80" : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"}`}>
                 <Pencil className="w-3.5 h-3.5" />
               </button>
               {!isRoot && (
-                <button onClick={() => setMovingFolder(true)} title="Verschieben" className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-white/20 text-white/80" : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"}`}>
+                <button onClick={() => setMovingFolder(true)} title={tr.folders_move_btn} className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-white/20 text-white/80" : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"}`}>
                   <MoveRight className="w-3.5 h-3.5" />
                 </button>
               )}
               {!isRoot && (
-                <button onClick={() => setDeleting(true)} title="Löschen" className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-red-200 text-white/80" : "text-gray-400 hover:text-red-500 hover:bg-red-50"}`}>
+                <button onClick={() => setDeleting(true)} title={tr.folders_delete} className={`p-1 rounded-lg transition-colors ${isSelected ? "hover:bg-red-200 text-white/80" : "text-gray-400 hover:text-red-500 hover:bg-red-50"}`}>
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               )}
@@ -309,7 +313,7 @@ function FolderNode({
       {/* Add child form */}
       {addingChild && (
         <div style={{ paddingLeft: `${(depth + 1) * 18 + 12}px` }} className="pb-1">
-          <FolderForm onSave={handleCreate} onCancel={() => setAddingChild(false)} label="Erstellen" />
+          <FolderForm onSave={handleCreate} onCancel={() => setAddingChild(false)} label={tr.folders_create} />
         </div>
       )}
 
@@ -320,12 +324,12 @@ function FolderNode({
             <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
               <Trash2 className="w-6 h-6 text-red-600" />
             </div>
-            <h2 className="text-base font-bold text-gray-900 text-center mb-2">Ordner löschen?</h2>
-            <p className="text-sm text-gray-500 text-center mb-2"><strong>{node.name}</strong> wird unwiderruflich gelöscht.</p>
+            <h2 className="text-base font-bold text-gray-900 text-center mb-2">{tr.folders_delete_q}</h2>
+            <p className="text-sm text-gray-500 text-center mb-2"><strong>{node.name}</strong> {tr.folders_delete_body}</p>
             {deleteErr && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2 mb-4 text-center">{deleteErr}</p>}
             <div className="flex gap-3 mt-4">
-              <button onClick={() => { setDeleting(false); setDeleteErr(null); }} className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">Abbrechen</button>
-              <button onClick={handleDelete} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">Ja, löschen</button>
+              <button onClick={() => { setDeleting(false); setDeleteErr(null); }} className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">{tr.folders_cancel}</button>
+              <button onClick={handleDelete} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">{tr.folders_yes_delete}</button>
             </div>
           </div>
         </div>
@@ -357,6 +361,7 @@ function FolderQRItem({
   currentFolderId: string;
   onMoved: () => void;
 }) {
+  const { tr } = useLang();
   const [moving, setMoving] = useState(false);
   const [showMove, setShowMove] = useState(false);
 
@@ -389,20 +394,20 @@ function FolderQRItem({
         <QRCodeDisplay value={qrUrl} size={40} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 truncate">{contact.name || "(kein Name)"}</p>
+        <p className="text-sm font-medium text-gray-900 truncate">{contact.name || tr.folders_no_name}</p>
         {contact.company && <p className="text-xs text-gray-400 truncate">{contact.company}</p>}
       </div>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-        <Link href={`/dashboard/edit/${contact.id}`} title="Bearbeiten" className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+        <Link href={`/dashboard/edit/${contact.id}`} title={tr.folders_edit_title} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
           <Pencil className="w-3.5 h-3.5" />
         </Link>
-        <a href={qrUrl} target="_blank" title="Öffnen" className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+        <a href={qrUrl} target="_blank" title={tr.folders_open_title} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
         <div className="relative">
           <button
             onClick={() => setShowMove((v) => !v)}
-            title="In Ordner verschieben"
+            title={tr.folders_move_to_folder}
             disabled={moving}
             className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
           >
@@ -411,7 +416,7 @@ function FolderQRItem({
           {showMove && (
             <div className="absolute right-0 top-8 z-20 bg-white border border-gray-200 rounded-xl shadow-lg py-1 w-44">
               <button onClick={() => handleMove("__none__")} className="w-full text-left px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50 transition-colors">
-                Aus Ordner entfernen
+                {tr.folders_remove_from}
               </button>
               {otherFolders.length > 0 && <div className="border-t border-gray-100 my-1" />}
               {otherFolders.map((f) => (
@@ -429,6 +434,7 @@ function FolderQRItem({
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function FoldersPage() {
+  const { tr } = useLang();
   const [tree, setTree] = useState<FolderWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [orgId, setOrgId] = useState("");
@@ -457,11 +463,11 @@ export default function FoldersPage() {
       setTree(buildTree(folders, stats));
       setError(null);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Fehler beim Laden");
+      setError(e instanceof Error ? e.message : tr.folders_load_error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tr.folders_load_error]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -504,8 +510,8 @@ export default function FoldersPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Ordner</h1>
-          <p className="text-gray-500 mt-1">{totalFolders} Ordner insgesamt</p>
+          <h1 className="text-3xl font-bold text-gray-900">{tr.folders_title}</h1>
+          <p className="text-gray-500 mt-1">{totalFolders} {tr.folders_total_suffix}</p>
         </div>
       </div>
 
@@ -518,8 +524,8 @@ export default function FoldersPage() {
         {/* Left: tree */}
         <div className="bg-white rounded-2xl border border-gray-200 flex-shrink-0 w-full max-w-xs">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Struktur</span>
-            <span className="text-xs text-gray-400">Klicken zum Öffnen</span>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{tr.folders_structure}</span>
+            <span className="text-xs text-gray-400">{tr.folders_click_to_open}</span>
           </div>
 
           {loading ? (
@@ -529,8 +535,8 @@ export default function FoldersPage() {
           ) : tree.length === 0 ? (
             <div className="flex flex-col items-center py-12 text-gray-400 px-4 text-center">
               <FolderIcon className="w-10 h-10 mb-2 opacity-30" />
-              <p className="text-sm font-medium">Noch keine Ordner</p>
-              <p className="text-xs mt-1">Ordner werden automatisch erstellt.</p>
+              <p className="text-sm font-medium">{tr.folders_none}</p>
+              <p className="text-xs mt-1">{tr.folders_none_hint}</p>
             </div>
           ) : (
             <div className="p-2">
@@ -557,8 +563,8 @@ export default function FoldersPage() {
           {!selectedFolder ? (
             <div className="bg-white rounded-2xl border border-gray-200 flex flex-col items-center justify-center py-16 text-gray-400">
               <FolderOpen className="w-12 h-12 mb-3 opacity-20" />
-              <p className="text-sm font-medium">Ordner auswählen</p>
-              <p className="text-xs mt-1">Klicken Sie links auf einen Ordner um dessen Inhalt zu sehen.</p>
+              <p className="text-sm font-medium">{tr.folders_select}</p>
+              <p className="text-xs mt-1">{tr.folders_select_hint}</p>
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-gray-200">
@@ -576,10 +582,10 @@ export default function FoldersPage() {
                   </div>
                   <div className="flex items-center gap-4 mt-0.5">
                     <span className="flex items-center gap-1 text-xs text-gray-400">
-                      <QrCode className="w-3 h-3" /> {selectedFolder.qrCount} QR-Codes
+                      <QrCode className="w-3 h-3" /> {selectedFolder.qrCount} {tr.folders_qr_codes_label}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-gray-400">
-                      <Users className="w-3 h-3" /> {selectedFolder.userCount} Nutzer
+                      <Users className="w-3 h-3" /> {selectedFolder.userCount} {tr.folders_users_label}
                     </span>
                   </div>
                 </div>
@@ -587,7 +593,7 @@ export default function FoldersPage() {
                   href={`/dashboard/codes?folder=${selectedId}`}
                   className="flex items-center gap-1.5 text-xs text-blue-600 hover:underline font-medium shrink-0"
                 >
-                  Alle QR-Codes <ExternalLink className="w-3 h-3" />
+                  {tr.folders_all_qr} <ExternalLink className="w-3 h-3" />
                 </Link>
               </div>
 
@@ -600,9 +606,9 @@ export default function FoldersPage() {
                 ) : folderContacts.length === 0 ? (
                   <div className="text-center py-10 text-gray-400">
                     <QrCode className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">Keine QR-Codes in diesem Ordner</p>
+                    <p className="text-sm">{tr.folders_no_qr}</p>
                     <Link href="/dashboard/codes" className="mt-2 inline-block text-xs text-blue-600 hover:underline font-medium">
-                      QR-Codes zuweisen
+                      {tr.folders_assign_qr}
                     </Link>
                   </div>
                 ) : (

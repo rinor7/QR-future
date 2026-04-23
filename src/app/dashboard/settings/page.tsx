@@ -425,8 +425,8 @@ export default function SettingsPage() {
     <div className="pt-8 pb-12 px-4 sm:px-10 max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-10">
-        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-headline">Settings</h2>
-        <p className="text-slate-500 dark:text-slate-400 mt-2">Manage your account orchestration and global platform preferences.</p>
+        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-headline">{tr.settings_title}</h2>
+        <p className="text-slate-500 dark:text-slate-400 mt-2">{tr.settings_subtitle_full}</p>
       </div>
 
       {/* Bento Grid */}
@@ -439,20 +439,20 @@ export default function SettingsPage() {
               <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-xl text-blue-600">
                 <span className="material-symbols-outlined">person</span>
               </div>
-              <h3 className="text-2xl font-bold font-headline">Account Information</h3>
+              <h3 className="text-2xl font-bold font-headline">{tr.settings_account_info}</h3>
             </div>
             <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">
-              {isOwner ? "Owner" : userRole === "admin" ? "Admin" : "Member"}
+              {isOwner ? tr.settings_role_owner : userRole === "admin" ? tr.settings_role_admin : tr.settings_role_member}
             </span>
           </div>
           <form onSubmit={handleChangeEmail} className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Full Name</label>
-                <input type="text" defaultValue="" placeholder="Your name" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
+                <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">{tr.settings_full_name}</label>
+                <input type="text" defaultValue="" placeholder={tr.settings_your_name_ph} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Email Address</label>
+                <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">{tr.settings_email_label}</label>
                 <input type="email" value={newEmail || email} onChange={(e) => setNewEmail(e.target.value)} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
               </div>
             </div>
@@ -462,19 +462,19 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2">
                 {isOwner ? (
                   <>
-                    <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Plan:</span>
+                    <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">{tr.plan_label}:</span>
                     <span className="text-sm font-semibold text-blue-600">{PLAN_LABELS[plan]}</span>
-                    <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline ml-1">Change</Link>
+                    <Link href="/dashboard/upgrade" className="text-xs text-blue-600 hover:underline ml-1">{tr.settings_plan_change_short}</Link>
                   </>
                 ) : (
                   <>
-                    <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Role:</span>
-                    <span className="text-sm font-semibold text-blue-600 capitalize">{userRole || "Member"}</span>
+                    <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">{tr.settings_role_label}</span>
+                    <span className="text-sm font-semibold text-blue-600 capitalize">{userRole || tr.settings_role_member}</span>
                   </>
                 )}
               </div>
               <button type="submit" disabled={emailLoading} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-60 w-full sm:w-auto">
-                {emailLoading ? tr.settings_email_saving : "Update Account"}
+                {emailLoading ? tr.settings_email_saving : tr.settings_update_account}
               </button>
             </div>
           </form>
@@ -486,53 +486,53 @@ export default function SettingsPage() {
             <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-xl text-slate-500 dark:text-slate-400">
               <span className="material-symbols-outlined">shield</span>
             </div>
-            <h3 className="text-xl font-bold font-headline">Security</h3>
+            <h3 className="text-xl font-bold font-headline">{tr.settings_security}</h3>
           </div>
           <form onSubmit={handleChangePassword} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Current Password</label>
+              <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">{tr.settings_pw_current}</label>
               <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="••••••••" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">New Password</label>
-              <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 6 characters" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
+              <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">{tr.settings_pw_new}</label>
+              <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={tr.settings_pw_min_ph} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Confirm Password</label>
-              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat password" className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
+              <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">{tr.settings_pw_confirm_label}</label>
+              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder={tr.settings_pw_repeat_ph} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
             </div>
             {pwError && <p className="text-xs text-red-500">{pwError}</p>}
             {pwSuccess && <p className="text-xs text-green-600">{tr.settings_pw_success}</p>}
             <button type="submit" disabled={pwLoading} className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-60">
-              {pwLoading ? tr.settings_pw_saving : "Change Password"}
+              {pwLoading ? tr.settings_pw_saving : tr.settings_pw_btn}
             </button>
             <div className="pt-4 border-t border-slate-200 dark:border-slate-700/50 space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">Two-Factor Auth</span>
-                  <p className="text-xs text-slate-400 mt-0.5">Extra login security via authenticator app</p>
+                  <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{tr.settings_2fa}</span>
+                  <p className="text-xs text-slate-400 mt-0.5">{tr.settings_2fa_hint}</p>
                 </div>
                 {!mfaEnrolled && !mfaEnrolling && (isOwner || mfaMembersAllowed) && (
                   <button type="button" onClick={handleStartMfa} className="shrink-0 text-xs font-semibold bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors">
-                    Enable
+                    {tr.settings_2fa_enable}
                   </button>
                 )}
                 {!mfaEnrolled && !mfaEnrolling && !isOwner && !mfaMembersAllowed && (
-                  <span className="shrink-0 text-xs text-slate-400 italic">Disabled by admin</span>
+                  <span className="shrink-0 text-xs text-slate-400 italic">{tr.settings_2fa_disabled}</span>
                 )}
                 {mfaEnrolled && !mfaDisabling && (
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="flex items-center gap-1 text-xs font-semibold text-green-600">
-                      <span className="material-symbols-outlined text-[14px]">check_circle</span>Active
+                      <span className="material-symbols-outlined text-[14px]">check_circle</span>{tr.settings_2fa_active}
                     </span>
-                    <button type="button" onClick={() => setMfaDisabling(true)} className="text-xs text-slate-400 hover:text-red-500 transition-colors font-medium">Disable</button>
+                    <button type="button" onClick={() => setMfaDisabling(true)} className="text-xs text-slate-400 hover:text-red-500 transition-colors font-medium">{tr.settings_2fa_disable}</button>
                   </div>
                 )}
               </div>
               {/* QR enrollment step */}
               {mfaEnrolling && (
                 <div className="space-y-3 bg-slate-50 dark:bg-[#242736] rounded-xl p-4">
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Scan with your authenticator app (Google Authenticator, Authy, etc.)</p>
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{tr.settings_2fa_scan}</p>
                   <div className="flex justify-center bg-white p-3 rounded-xl">
                     <QRCode value={mfaUri} size={160} />
                   </div>

@@ -80,7 +80,7 @@ export default function ClientDetailPage() {
   if (!detail) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <p className="text-gray-500">Client not found.</p>
+        <p className="text-gray-500">{tr.clients_not_found}</p>
       </div>
     );
   }
@@ -155,7 +155,7 @@ export default function ClientDetailPage() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <h2 className="text-sm font-semibold text-gray-700 mb-4">{tr.client_detail_profile}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <InfoRow icon={<Mail className="w-4 h-4 text-gray-400" />} label="Email" value={profile.email} />
+          <InfoRow icon={<Mail className="w-4 h-4 text-gray-400" />} label={tr.clients_email} value={profile.email} />
           <InfoRow
             icon={<CalendarDays className="w-4 h-4 text-gray-400" />}
             label={tr.client_detail_joined}
@@ -181,7 +181,7 @@ export default function ClientDetailPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-gray-400 uppercase tracking-wide bg-gray-50">
-                <th className="text-left px-6 py-3">Email</th>
+                <th className="text-left px-6 py-3">{tr.clients_email}</th>
                 <th className="text-left px-6 py-3">{tr.client_detail_role}</th>
                 <th className="text-left px-6 py-3">{tr.client_detail_joined_team}</th>
               </tr>
@@ -217,8 +217,8 @@ export default function ClientDetailPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-gray-400 uppercase tracking-wide bg-gray-50">
-                <th className="text-left px-6 py-3">Label</th>
-                <th className="text-left px-6 py-3">Status</th>
+                <th className="text-left px-6 py-3">{tr.clients_label}</th>
+                <th className="text-left px-6 py-3">{tr.clients_status}</th>
                 <th className="text-left px-6 py-3">{tr.client_detail_scans}</th>
                 <th className="text-left px-6 py-3">{tr.client_detail_joined}</th>
               </tr>

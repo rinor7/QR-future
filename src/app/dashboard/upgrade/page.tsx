@@ -79,12 +79,12 @@ export default function UpgradePage() {
       {/* Hero */}
       <section className="max-w-7xl mx-auto mb-10 sm:mb-16 flex flex-col md:flex-row gap-8 sm:gap-12 items-end">
         <div className="flex-1">
-          <span className="text-blue-600 font-bold tracking-widest text-xs uppercase mb-4 block">Subscription Management</span>
+          <span className="text-blue-600 font-bold tracking-widest text-xs uppercase mb-4 block">{tr.upgrade_hero_eyebrow_full}</span>
           <h3 className="text-3xl sm:text-5xl font-bold font-headline leading-tight tracking-tight text-slate-900 dark:text-slate-100 mb-4 sm:mb-6">
-            Elevate your <span className="text-blue-600">orchestration</span> experience.
+            {tr.upgrade_hero_h} <span className="text-blue-600">{tr.upgrade_hero_orchestration}</span>{tr.upgrade_hero_h_end}
           </h3>
           <p className="text-base sm:text-xl text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
-            Scale your enterprise QR infrastructure with surgical precision. Choose a tier that matches your global footprint and security requirements.
+            {tr.upgrade_hero_sub}
           </p>
         </div>
         <div className="hidden lg:block w-1/3 aspect-video rounded-2xl overflow-hidden" style={{ boxShadow: "0px 20px 40px rgba(0,62,199,0.18)" }}>
@@ -166,17 +166,17 @@ export default function UpgradePage() {
             >
               {isCurrent && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
-                  Current Plan
+                  {tr.upgrade_current_label}
                 </div>
               )}
               <div className="mb-8">
                 <h4 className={`text-lg font-bold font-headline mb-1 ${isPlatinum ? "text-purple-600" : "text-slate-900 dark:text-slate-100"}`}>{planName}</h4>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                  {config.plan === "free" ? "For individual experimenters." : config.plan === "star" ? "Perfect for small businesses." : config.plan === "premium" ? "High-volume orchestration." : "Ultimate enterprise control."}
+                  {config.plan === "free" ? tr.upgrade_for_individuals : config.plan === "star" ? tr.upgrade_for_smb : config.plan === "premium" ? tr.upgrade_for_high_vol : tr.upgrade_for_enterprise}
                 </p>
                 <div className="flex items-baseline gap-1">
                   <span className={`text-4xl font-extrabold font-headline ${isCurrent ? "text-blue-600" : "text-slate-900 dark:text-slate-100"}`}>CHF {config.price}</span>
-                  <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">/mo</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">{tr.upgrade_per_mo}</span>
                 </div>
               </div>
               <ul className="space-y-4 mb-10 flex-1">
@@ -189,9 +189,9 @@ export default function UpgradePage() {
               </ul>
 
               {isCurrent ? (
-                <button className="w-full py-3 px-4 rounded-xl bg-gray-100 dark:bg-[#242736] text-slate-500 font-bold cursor-default opacity-60">Active</button>
+                <button className="w-full py-3 px-4 rounded-xl bg-gray-100 dark:bg-[#242736] text-slate-500 font-bold cursor-default opacity-60">{tr.upgrade_active_btn}</button>
               ) : config.plan === "free" ? (
-                <button className="w-full py-3 px-4 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors">Stay on Free</button>
+                <button className="w-full py-3 px-4 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors">{tr.upgrade_stay_free}</button>
               ) : meta.priceId && isOwner ? (
                 <button
                   onClick={() => handleUpgrade(meta.priceId!)}
@@ -199,7 +199,7 @@ export default function UpgradePage() {
                   className="w-full py-4 px-4 rounded-xl text-white font-bold transition-all active:scale-95 shadow-md disabled:opacity-60"
                   style={{ background: isPlatinum ? "linear-gradient(135deg, #6b21a8 0%, #9333ea 100%)" : "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
                 >
-                  {loading === meta.priceId ? tr.upgrade_loading : "Upgrade Now"}
+                  {loading === meta.priceId ? tr.upgrade_loading : tr.upgrade_now}
                 </button>
               ) : null}
             </div>
@@ -209,13 +209,13 @@ export default function UpgradePage() {
 
       {/* Comparison table */}
       <section className="max-w-5xl mx-auto mt-8 mb-12 overflow-x-auto">
-        <h5 className="text-2xl sm:text-3xl font-bold font-headline text-center mb-8 sm:mb-16 text-slate-900 dark:text-slate-100">Compare full capabilities</h5>
+        <h5 className="text-2xl sm:text-3xl font-bold font-headline text-center mb-8 sm:mb-16 text-slate-900 dark:text-slate-100">{tr.upgrade_compare_features}</h5>
         <div className="space-y-0.5 min-w-[480px]">
           <div className="grid grid-cols-5 py-4 px-6 items-center text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-[#242736]">
-            <div className="col-span-2">Core Feature</div>
-            <div className="text-center">Free</div>
-            <div className="text-center text-blue-600">Star</div>
-            <div className="text-center">Premium</div>
+            <div className="col-span-2">{tr.upgrade_core_feature}</div>
+            <div className="text-center">{tr.upgrade_plan_free}</div>
+            <div className="text-center text-blue-600">{tr.upgrade_plan_star}</div>
+            <div className="text-center">{tr.upgrade_plan_premium}</div>
           </div>
           {COMPARE_ROWS.map((row) => (
             <div key={row.label} className="grid grid-cols-5 py-6 px-6 items-center hover:bg-gray-50 dark:hover:bg-[#1e2130] transition-colors rounded-xl">

@@ -158,8 +158,8 @@ export default function ClientsPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
-              <th className="text-left px-6 py-3">Email</th>
-              <th className="text-left px-6 py-3">Plan</th>
+              <th className="text-left px-6 py-3">{tr.clients_email}</th>
+              <th className="text-left px-6 py-3">{tr.clients_plan}</th>
               <th className="text-left px-6 py-3">{tr.clients_col_qr}</th>
               <th className="text-left px-6 py-3">{tr.clients_col_joined}</th>
               <th className="px-6 py-3" />
@@ -206,7 +206,7 @@ export default function ClientsPage() {
                         <span className="text-xs text-gray-400 flex items-center gap-1">
                           {c.hasStripe
                             ? <><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />Stripe</>
-                            : <><Lock className="w-3 h-3" />Manuell</>
+                            : <><Lock className="w-3 h-3" />{tr.clients_manual}</>
                           }
                         </span>
                       </div>
@@ -260,14 +260,14 @@ export default function ClientsPage() {
             <h2 className="text-lg font-bold text-gray-900">{tr.clients_plan_modal_title}</h2>
             <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
               <div className="text-center">
-                <p className="text-xs text-gray-400 mb-1">From</p>
+                <p className="text-xs text-gray-400 mb-1">{tr.clients_from}</p>
                 <span className={`text-xs font-semibold px-2 py-1 rounded-full ${PLAN_COLORS[pendingPlan.from]}`}>
                   {PLAN_LABELS[pendingPlan.from]}
                 </span>
               </div>
               <ArrowRight className="w-4 h-4 text-gray-400 shrink-0" />
               <div className="text-center">
-                <p className="text-xs text-gray-400 mb-1">To</p>
+                <p className="text-xs text-gray-400 mb-1">{tr.clients_to}</p>
                 <span className={`text-xs font-semibold px-2 py-1 rounded-full ${PLAN_COLORS[pendingPlan.to]}`}>
                   {PLAN_LABELS[pendingPlan.to]}
                 </span>
