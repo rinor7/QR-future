@@ -61,7 +61,6 @@ export async function DELETE() {
     }
 
     await step("delete contacts",  supabase.from("contacts").delete().eq("user_id", ownerId));
-    await step("delete nfc_cards", supabase.from("nfc_cards").delete().eq("user_id", ownerId));
 
     // Folders: null parents first (ON DELETE RESTRICT trap), then delete
     await step("null folder parents", supabase.from("folders").update({ parent_id: null }).eq("organization_id", ownerId));
