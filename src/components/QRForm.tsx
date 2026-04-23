@@ -242,6 +242,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
   function normalizeUrl(url: string): string {
     if (!url) return url;
     if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    if (!url.includes(".")) return "";
     return `https://${url}`;
   }
 
