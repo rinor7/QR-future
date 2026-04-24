@@ -10,17 +10,17 @@ import { Plan, PLAN_LABELS } from "@/lib/types";
 const MAX_FEATURES = 4;
 
 const PLAN_COLORS: Record<Plan, string> = {
-  free: "border-gray-200 dark:border-[#242736] bg-gray-50",
-  star: "border-yellow-300 bg-yellow-50",
-  premium: "border-blue-300 bg-blue-50",
-  platinum: "border-purple-300 bg-purple-50",
+  free: "border-gray-200 dark:border-[#242736] bg-gray-50 dark:bg-[#1a1d27]",
+  star: "border-yellow-300 dark:border-yellow-700/50 bg-yellow-50 dark:bg-yellow-900/10",
+  premium: "border-blue-300 dark:border-blue-700/50 bg-blue-50 dark:bg-blue-900/10",
+  platinum: "border-purple-300 dark:border-purple-700/50 bg-purple-50 dark:bg-purple-900/10",
 };
 
 const PLAN_BADGES: Record<Plan, string> = {
-  free: "bg-gray-100 text-gray-600",
-  star: "bg-yellow-100 text-yellow-700",
-  premium: "bg-blue-100 text-blue-700",
-  platinum: "bg-purple-100 text-purple-700",
+  free: "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300",
+  star: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+  premium: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  platinum: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
 };
 
 interface PlanConfig {
@@ -169,7 +169,7 @@ export default function PlanSettingsPage() {
 
               {/* Price */}
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">{tr.plan_settings_price}</label>
+                <label className="text-xs font-medium text-gray-600 dark:text-slate-400 mb-1 block">{tr.plan_settings_price}</label>
                 <div className={`flex items-center gap-1 bg-white dark:bg-[#1a1d27] border rounded-xl px-3 py-2 ${isEditing ? "border-blue-300" : "border-gray-200 dark:border-[#242736]"}`}>
                   <span className="text-sm text-gray-400 dark:text-slate-500">CHF</span>
                   <input
@@ -185,7 +185,7 @@ export default function PlanSettingsPage() {
 
               {/* Features */}
               <div className="flex-1">
-                <label className="text-xs font-medium text-gray-600 mb-2 block">
+                <label className="text-xs font-medium text-gray-600 dark:text-slate-400 mb-2 block">
                   {tr.plan_settings_features} ({current.features.filter(Boolean).length}/{MAX_FEATURES})
                 </label>
                 <div className="space-y-2">
@@ -232,7 +232,7 @@ export default function PlanSettingsPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={cancelEdit}
-                    className="flex-1 border border-gray-200 dark:border-[#242736] text-gray-600 py-2 rounded-xl text-xs font-medium hover:bg-white dark:bg-[#1a1d27] transition-colors"
+                    className="flex-1 border border-gray-200 dark:border-[#242736] text-gray-600 dark:text-slate-300 py-2 rounded-xl text-xs font-medium hover:bg-white dark:hover:bg-[#242736] transition-colors"
                   >
                     {tr.plan_settings_cancel}
                   </button>
@@ -247,7 +247,7 @@ export default function PlanSettingsPage() {
               ) : (
                 <button
                   onClick={() => startEdit(config)}
-                  className="w-full flex items-center justify-center gap-1.5 border border-gray-300 bg-white dark:bg-[#1a1d27] hover:bg-gray-50 dark:hover:bg-[#242736] text-gray-700 dark:text-slate-300 py-2 rounded-xl text-xs font-medium transition-colors"
+                  className="w-full flex items-center justify-center gap-1.5 border border-gray-300 dark:border-[#242736] bg-white dark:bg-[#1a1d27] hover:bg-gray-50 dark:hover:bg-[#242736] text-gray-700 dark:text-slate-300 py-2 rounded-xl text-xs font-medium transition-colors"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                   {tr.plan_settings_edit}
