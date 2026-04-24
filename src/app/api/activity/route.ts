@@ -47,22 +47,16 @@ export async function GET() {
   const ownerId = profile?.owner_id ?? user.id;
 
   // Platform owner sees a curated feed of platform-wide events only: new users,
-  // team invites/joins, account deletions, email changes, 2FA changes.
-  // Scans, interactions, leads are NOT shown (they'd drown real platform signal).
+  // team invites/joins, and account deletions. Scans, interactions, leads, and
+  // security events (email/MFA changes) are NOT shown.
   if (profile?.is_platform_admin) {
     const items: ActivityItem[] = [];
 
-    // All org_notifications across every owner (account deletions, and any new
-    // events we start logging — invite_sent, email_changed, mfa_enabled, etc.)
     const PLATFORM_NOTIFICATION_TYPES = [
       "user_deleted",
       "user_signed_up",
       "user_invited",
       "invite_accepted",
-      "email_changed",
-      "mfa_enabled",
-      "mfa_disabled",
-      "team_mfa_toggled",
     ];
     const { data: notes } = await supabase
       .from("org_notifications")

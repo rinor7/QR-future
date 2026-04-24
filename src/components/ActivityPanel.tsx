@@ -96,10 +96,6 @@ function ActivityRow({ item, isNew }: { item: DisplayItem; isNew: boolean }) {
       user_signed_up: "person_add",
       user_invited: "mail",
       invite_accepted: "how_to_reg",
-      email_changed: "alternate_email",
-      mfa_enabled: "verified_user",
-      mfa_disabled: "gpp_bad",
-      team_mfa_toggled: "groups",
     };
     const icon = iconMap[kind] ?? "notifications";
     return (
