@@ -1184,16 +1184,26 @@ export default function SettingsPage() {
               {/* Right: button */}
               <div className="flex flex-col items-end gap-2 shrink-0">
                 {hasStripeSubscription ? (
-                  <button
-                    onClick={handleManageBilling}
-                    disabled={portalLoading}
-                    className="bg-white text-blue-900 px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors shadow-xl disabled:opacity-70 flex items-center gap-2"
-                  >
-                    {portalLoading && (
-                      <span className="w-4 h-4 border-2 border-blue-900/30 border-t-blue-900 rounded-full animate-spin" />
-                    )}
-                    {portalLoading ? "Opening…" : "Manage Billing"}
-                  </button>
+                  <>
+                    <button
+                      onClick={handleManageBilling}
+                      disabled={portalLoading}
+                      className="bg-white text-blue-900 px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors shadow-xl disabled:opacity-70 flex items-center gap-2"
+                    >
+                      {portalLoading && (
+                        <span className="w-4 h-4 border-2 border-blue-900/30 border-t-blue-900 rounded-full animate-spin" />
+                      )}
+                      {portalLoading ? "Opening…" : "Manage Billing"}
+                    </button>
+                    <button
+                      onClick={handleManageBilling}
+                      disabled={portalLoading}
+                      className="border border-white/40 text-white px-7 py-2.5 rounded-xl font-semibold text-xs hover:bg-white/10 transition-colors disabled:opacity-70 flex items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">receipt_long</span>
+                      View Invoices
+                    </button>
+                  </>
                 ) : (
                   <Link
                     href="/dashboard/upgrade"

@@ -33,6 +33,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
   const [brandName, setBrandName] = useState("");
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
   const [brandColor, setBrandColor] = useState("");
+  const [supportEmail, setSupportEmail] = useState("");
 
   async function loadBranding() {
     const supabase = (await import("@/lib/supabase-browser")).getSupabaseBrowser();
@@ -54,6 +55,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
         setIsPlatformAdmin(p.isPlatformAdmin ?? false);
         setIsAdmin(p.role === "admin");
         setIsOwner(p.userId === p.ownerId);
+        setSupportEmail(p.supportEmail ?? "");
       }
     });
     loadBranding();
@@ -132,7 +134,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
 
       {/* Create QR Code CTA */}
       {!isPlatformAdmin && (
-        <div className="px-4 pt-4 pb-10">
+        <div className="px-4 pt-4">
           <Link
             href="/dashboard/create"
             onClick={onClose}
@@ -144,6 +146,20 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
           </Link>
         </div>
       )}
+
+      {/* Contact Support */}
+      {!isPlatformAdmin && supportEmail && (
+        <div className="px-4 pt-3 pb-6">
+          <a
+            href={`mailto:${supportEmail}?subject=${encodeURIComponent("Support request")}`}
+            className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 py-2.5 rounded-xl transition-colors"
+          >
+            <span className="material-symbols-outlined text-[18px]">support_agent</span>
+            {tr.contact_support}
+          </a>
+        </div>
+      )}
+      {!isPlatformAdmin && !supportEmail && <div className="pb-6" />}
     </aside>
   );
 }

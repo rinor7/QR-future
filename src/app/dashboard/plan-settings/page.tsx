@@ -178,7 +178,7 @@ export default function PlanSettingsPage() {
                     value={current.price}
                     onChange={(e) => setDraftPrice(e.target.value)}
                     disabled={!isEditing || config.plan === "free"}
-                    className="flex-1 text-sm font-semibold text-gray-900 dark:text-slate-100 bg-transparent focus:outline-none disabled:text-gray-400 disabled:dark:text-slate-500 w-full"
+                    className="flex-1 text-sm font-semibold text-gray-900 dark:text-slate-100 bg-transparent focus:outline-none disabled:text-gray-400 dark:disabled:text-slate-500 w-full"
                   />
                 </div>
               </div>

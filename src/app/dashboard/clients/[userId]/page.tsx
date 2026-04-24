@@ -96,7 +96,7 @@ export default function ClientDetailPage() {
       {/* Back link */}
       <Link
         href="/dashboard/clients"
-        className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-800 hover:dark:text-slate-200 transition-colors"
+        className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         {tr.client_detail_back}
@@ -131,25 +131,25 @@ export default function ClientDetailPage() {
           label={tr.client_detail_qrcodes}
           value={qrCodes.length}
           icon={<QrCode className="w-5 h-5 text-blue-600" />}
-          bg="bg-blue-50"
+          bg="bg-blue-50 dark:bg-blue-900/20"
         />
         <StatCard
           label={tr.client_detail_active}
           value={activeCount}
           icon={<span className="text-lg">✅</span>}
-          bg="bg-green-50"
+          bg="bg-green-50 dark:bg-green-900/20"
         />
         <StatCard
           label={tr.client_detail_paused}
           value={pausedCount}
           icon={<span className="text-lg">⏸️</span>}
-          bg="bg-amber-50"
+          bg="bg-amber-50 dark:bg-amber-900/20"
         />
         <StatCard
           label={tr.client_detail_total_scans}
           value={totalScans}
           icon={<BarChart2 className="w-5 h-5 text-orange-500" />}
-          bg="bg-orange-50"
+          bg="bg-orange-50 dark:bg-orange-900/20"
         />
       </div>
 
