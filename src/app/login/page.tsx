@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { QrCode, Check } from "lucide-react";
+import { useSupportEmail } from "@/lib/useSupportEmail";
 
 function GoogleIcon() {
   return (
@@ -31,6 +32,7 @@ function LoginForm() {
   const [mfaChallengeId, setMfaChallengeId] = useState("");
   const [mfaError, setMfaError] = useState<string | null>(null);
   const [mfaLoading, setMfaLoading] = useState(false);
+  const supportEmail = useSupportEmail();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -188,7 +190,14 @@ function LoginForm() {
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-2xl text-center font-mono tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-300"
                 />
                 {mfaError && (
-                  <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">{mfaError}</p>
+                  <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+                    <p>{mfaError}</p>
+                    {supportEmail && (
+                      <a href={`mailto:${supportEmail}`} className="inline-block mt-1 text-xs font-semibold underline hover:text-red-700">
+                        Kontakt / Contact: {supportEmail}
+                      </a>
+                    )}
+                  </div>
                 )}
                 <button
                   type="submit"
@@ -255,9 +264,14 @@ function LoginForm() {
                     />
                   </div>
                   {error && (
-                    <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
-                      {error}
-                    </p>
+                    <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+                      <p>{error}</p>
+                      {supportEmail && (
+                        <a href={`mailto:${supportEmail}`} className="inline-block mt-1 text-xs font-semibold underline hover:text-red-700">
+                          Kontakt / Contact: {supportEmail}
+                        </a>
+                      )}
+                    </div>
                   )}
                   <button
                     type="submit"

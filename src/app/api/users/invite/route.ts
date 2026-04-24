@@ -75,5 +75,13 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Platform-wide activity log
+  await supabase.from("org_notifications").insert({
+    owner_id: ownerId,
+    type: "user_invited",
+    message: `${email} invited as ${role}`,
+    metadata: { email, role },
+  });
+
   return NextResponse.json({ success: true });
 }

@@ -10,7 +10,7 @@ import { Plan, PLAN_LABELS } from "@/lib/types";
 const MAX_FEATURES = 4;
 
 const PLAN_COLORS: Record<Plan, string> = {
-  free: "border-gray-200 bg-gray-50",
+  free: "border-gray-200 dark:border-[#242736] bg-gray-50",
   star: "border-yellow-300 bg-yellow-50",
   premium: "border-blue-300 bg-blue-50",
   platinum: "border-purple-300 bg-purple-50",
@@ -126,26 +126,24 @@ export default function PlanSettingsPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{tr.plan_settings_title}</h1>
-        <p className="text-sm text-gray-500 mt-1">{tr.plan_settings_subtitle}</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{tr.plan_settings_title}</h1>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{tr.plan_settings_subtitle}</p>
       </div>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
-        <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-          <span className="material-symbols-outlined text-amber-700 text-[20px]">warning</span>
+      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-2xl p-4 flex items-start gap-3">
+        <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+          <span className="material-symbols-outlined text-amber-700 dark:text-amber-300 text-[20px]">warning</span>
         </div>
         <div className="flex-1">
-          <p className="text-sm font-semibold text-amber-900 mb-1">Stripe prices must stay in sync</p>
-          <p className="text-xs text-amber-800 leading-relaxed">
-            If you change a plan price here, you <span className="font-semibold">must also update the matching product price in your Stripe dashboard</span>. Mismatched prices will cause checkout and billing conflicts — customers may be charged a different amount than what they see on the site.
-          </p>
+          <p className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-1">{tr.plan_settings_stripe_banner_title}</p>
+          <p className="text-xs text-amber-800 dark:text-amber-200/90 leading-relaxed">{tr.plan_settings_stripe_banner_body}</p>
           <a
             href="https://dashboard.stripe.com/products"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-amber-900 underline hover:text-amber-950"
+            className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-amber-900 dark:text-amber-200 underline hover:text-amber-950"
           >
-            Open Stripe products dashboard →
+            {tr.plan_settings_stripe_banner_link}
           </a>
         </div>
       </div>
@@ -172,15 +170,15 @@ export default function PlanSettingsPage() {
               {/* Price */}
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">{tr.plan_settings_price}</label>
-                <div className={`flex items-center gap-1 bg-white border rounded-xl px-3 py-2 ${isEditing ? "border-blue-300" : "border-gray-200"}`}>
-                  <span className="text-sm text-gray-400">CHF</span>
+                <div className={`flex items-center gap-1 bg-white dark:bg-[#1a1d27] border rounded-xl px-3 py-2 ${isEditing ? "border-blue-300" : "border-gray-200 dark:border-[#242736]"}`}>
+                  <span className="text-sm text-gray-400 dark:text-slate-500">CHF</span>
                   <input
                     type="number"
                     min="0"
                     value={current.price}
                     onChange={(e) => setDraftPrice(e.target.value)}
                     disabled={!isEditing || config.plan === "free"}
-                    className="flex-1 text-sm font-semibold text-gray-900 bg-transparent focus:outline-none disabled:text-gray-400 w-full"
+                    className="flex-1 text-sm font-semibold text-gray-900 dark:text-slate-100 bg-transparent focus:outline-none disabled:text-gray-400 disabled:dark:text-slate-500 w-full"
                   />
                 </div>
               </div>
@@ -201,7 +199,7 @@ export default function PlanSettingsPage() {
                             value={f}
                             onChange={(e) => setDraftFeature(i, e.target.value)}
                             placeholder={tr.plan_settings_feature_placeholder}
-                            className="flex-1 text-xs bg-white border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 text-xs bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-[#242736] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                           <button onClick={() => removeDraftFeature(i)} className="text-gray-300 hover:text-red-400 transition-colors">
                             <X className="w-3.5 h-3.5" />
@@ -222,7 +220,7 @@ export default function PlanSettingsPage() {
                     config.features.filter(Boolean).map((f, i) => (
                       <div key={i} className="flex items-center gap-1.5">
                         <Check className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                        <span className="text-xs text-gray-700">{f}</span>
+                        <span className="text-xs text-gray-700 dark:text-slate-300">{f}</span>
                       </div>
                     ))
                   )}
@@ -234,7 +232,7 @@ export default function PlanSettingsPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={cancelEdit}
-                    className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-xl text-xs font-medium hover:bg-white transition-colors"
+                    className="flex-1 border border-gray-200 dark:border-[#242736] text-gray-600 py-2 rounded-xl text-xs font-medium hover:bg-white dark:bg-[#1a1d27] transition-colors"
                   >
                     {tr.plan_settings_cancel}
                   </button>
@@ -249,7 +247,7 @@ export default function PlanSettingsPage() {
               ) : (
                 <button
                   onClick={() => startEdit(config)}
-                  className="w-full flex items-center justify-center gap-1.5 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 py-2 rounded-xl text-xs font-medium transition-colors"
+                  className="w-full flex items-center justify-center gap-1.5 border border-gray-300 bg-white dark:bg-[#1a1d27] hover:bg-gray-50 dark:hover:bg-[#242736] text-gray-700 dark:text-slate-300 py-2 rounded-xl text-xs font-medium transition-colors"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                   {tr.plan_settings_edit}
@@ -263,10 +261,10 @@ export default function PlanSettingsPage() {
       {/* Stripe warning modal */}
       {stripeWarning && draft && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-5">
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-5">
             <div>
-              <h2 className="text-base font-bold text-gray-900 mb-1">{tr.plan_settings_stripe_title}</h2>
-              <p className="text-sm text-gray-500">{tr.plan_settings_stripe_body}</p>
+              <h2 className="text-base font-bold text-gray-900 dark:text-slate-100 mb-1">{tr.plan_settings_stripe_title}</h2>
+              <p className="text-sm text-gray-500 dark:text-slate-400">{tr.plan_settings_stripe_body}</p>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-1.5 text-sm text-amber-800">
               <p className="font-semibold">{tr.plan_settings_stripe_steps}</p>
@@ -279,7 +277,7 @@ export default function PlanSettingsPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setStripeWarning(false)}
-                className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 border border-gray-200 dark:border-[#242736] text-gray-700 dark:text-slate-300 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors"
               >
                 {tr.plan_settings_cancel}
               </button>

@@ -364,6 +364,14 @@ export default function SettingsPage() {
       if (error) { setEmailError(error.message); setEmailLoading(false); return; }
       if (user) {
         await supabase.from("profiles").update({ email: newEmail }).eq("user_id", user.id);
+        const { data: prof } = await supabase.from("profiles").select("owner_id").eq("user_id", user.id).single();
+        const ownerIdForLog = prof?.owner_id ?? user.id;
+        await supabase.from("org_notifications").insert({
+          owner_id: ownerIdForLog,
+          type: "email_changed",
+          message: `${email} changed email to ${newEmail}`,
+          metadata: { from: email, to: newEmail, user_id: user.id },
+        });
       }
       setEmail(newEmail);
       setEmailSuccess(true);
@@ -413,6 +421,16 @@ export default function SettingsPage() {
     setMfaEnrolled(true);
     setMfaEnrolling(false);
     setMfaUri(""); setMfaSecret(""); setMfaCode(""); setMfaVerifying(false);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: prof } = await supabase.from("profiles").select("owner_id").eq("user_id", user.id).single();
+      await supabase.from("org_notifications").insert({
+        owner_id: prof?.owner_id ?? user.id,
+        type: "mfa_enabled",
+        message: `${user.email} enabled 2FA`,
+        metadata: { user_id: user.id, email: user.email },
+      });
+    }
   }
 
   function handleCancelMfa() {
@@ -426,6 +444,16 @@ export default function SettingsPage() {
     const { error } = await supabase.auth.mfa.unenroll({ factorId: mfaFactorId });
     if (error) { setMfaError(error.message); setMfaVerifying(false); return; }
     setMfaEnrolled(false); setMfaDisabling(false); setMfaFactorId(""); setMfaVerifying(false);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: prof } = await supabase.from("profiles").select("owner_id").eq("user_id", user.id).single();
+      await supabase.from("org_notifications").insert({
+        owner_id: prof?.owner_id ?? user.id,
+        type: "mfa_disabled",
+        message: `${user.email} disabled 2FA`,
+        metadata: { user_id: user.id, email: user.email },
+      });
+    }
   }
 
   async function handleToggleMfaMembers(val: boolean) {
@@ -435,6 +463,12 @@ export default function SettingsPage() {
     if (user) {
       await supabase.from("profiles").update({ mfa_members_allowed: val }).eq("user_id", user.id);
       setMfaMembersAllowed(val);
+      await supabase.from("org_notifications").insert({
+        owner_id: user.id,
+        type: "team_mfa_toggled",
+        message: `Team 2FA ${val ? "enabled" : "disabled"} for ${user.email}'s team`,
+        metadata: { enabled: val, owner_email: user.email },
+      });
     }
     setMfaMembersSaving(false);
   }
@@ -918,7 +952,7 @@ export default function SettingsPage() {
                       placeholder="e.g. Acme Corp"
                       className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500"
                     />
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Replaces &quot;QR Orchestrator&quot; in the sidebar and dashboard</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Replaces &quot;qr-card.ch&quot; in the sidebar and dashboard</p>
                   </div>
                   <div className="space-y-2">
                     <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Brand Logo</label>
@@ -1123,7 +1157,7 @@ export default function SettingsPage() {
               <div>
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-200 block mb-2">Subscription Status</span>
                 <h3 className="text-2xl sm:text-3xl font-bold font-headline leading-tight">{PLAN_LABELS[plan]} Plan</h3>
-                <p className="text-blue-200 text-sm mt-1.5">Active subscription · QR Orchestrator</p>
+                <p className="text-blue-200 text-sm mt-1.5">Active subscription · qr-card.ch</p>
               </div>
 
               {/* Center: usage */}

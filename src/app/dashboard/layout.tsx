@@ -5,14 +5,17 @@ import { Menu } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import ActivityPanel from "@/components/ActivityPanel";
+import { getUserProfile } from "@/lib/store";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [activityCount, setActivityCount] = useState(0);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   useEffect(() => {
+    getUserProfile().then((p) => setIsPlatformAdmin(p?.isPlatformAdmin ?? false));
     const saved = localStorage.getItem("qr-dark-mode") === "true";
     setDarkMode(saved);
     if (saved) document.documentElement.classList.add("dark");
@@ -31,7 +34,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <>
-      <div className="flex min-h-screen bg-[#eef1f8] dark:bg-[#0f1117]">
+      {/* Platform Owner banner — makes it obvious which account is active */}
+      {isPlatformAdmin && (
+        <div className="sticky top-0 z-[60] w-full px-4 py-1.5 text-center text-[11px] font-bold tracking-wider uppercase text-white shadow-sm"
+             style={{ background: "linear-gradient(90deg, #7c3aed 0%, #a855f7 50%, #7c3aed 100%)" }}>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>shield_person</span>
+            Platform Owner · qr-card.ch
+          </span>
+        </div>
+      )}
+      <div className={`flex min-h-screen bg-[#eef1f8] dark:bg-[#0f1117] ${isPlatformAdmin ? "ring-4 ring-violet-500/30 ring-inset" : ""}`}>
         {/* Mobile top bar */}
         <div className="wide:hidden fixed top-0 left-0 right-0 h-14 bg-[#eef1f8] dark:bg-[#0f1117] flex items-center px-4 z-30 gap-3">
           <button
@@ -40,7 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <Menu className="w-5 h-5" />
           </button>
-          <span className="flex-1 font-bold text-slate-900 dark:text-slate-100" id="mobile-brand-name">QR Orchestrator</span>
+          <span className="flex-1 font-bold text-slate-900 dark:text-slate-100" id="mobile-brand-name">qr-card.ch</span>
           {/* Activity toggle (mobile) */}
           <button
             onClick={() => setActivityOpen((v) => !v)}

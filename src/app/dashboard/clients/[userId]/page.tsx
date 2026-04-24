@@ -82,7 +82,7 @@ export default function ClientDetailPage() {
   if (!detail) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <p className="text-gray-500">{tr.clients_not_found}</p>
+        <p className="text-gray-500 dark:text-slate-400">{tr.clients_not_found}</p>
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default function ClientDetailPage() {
       {/* Back link */}
       <Link
         href="/dashboard/clients"
-        className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+        className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-800 hover:dark:text-slate-200 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         {tr.client_detail_back}
@@ -109,7 +109,7 @@ export default function ClientDetailPage() {
             {profile.email[0].toUpperCase()}
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{profile.email}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{profile.email}</h1>
             <div className="flex items-center gap-2 mt-1">
               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[profile.plan]}`}>
                 {PLAN_LABELS[profile.plan]}
@@ -154,17 +154,17 @@ export default function ClientDetailPage() {
       </div>
 
       {/* Profile info */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">{tr.client_detail_profile}</h2>
+      <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm p-6">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-4">{tr.client_detail_profile}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <InfoRow icon={<Mail className="w-4 h-4 text-gray-400" />} label={tr.clients_email} value={profile.email} />
+          <InfoRow icon={<Mail className="w-4 h-4 text-gray-400 dark:text-slate-500" />} label={tr.clients_email} value={profile.email} />
           <InfoRow
-            icon={<CalendarDays className="w-4 h-4 text-gray-400" />}
+            icon={<CalendarDays className="w-4 h-4 text-gray-400 dark:text-slate-500" />}
             label={tr.client_detail_joined}
             value={new Date(profile.createdAt).toLocaleDateString()}
           />
           <InfoRow
-            icon={<Activity className="w-4 h-4 text-gray-400" />}
+            icon={<Activity className="w-4 h-4 text-gray-400 dark:text-slate-500" />}
             label={tr.client_detail_last_active}
             value={profile.lastActivityAt ? new Date(profile.lastActivityAt).toLocaleDateString() : "—"}
           />
@@ -172,17 +172,17 @@ export default function ClientDetailPage() {
       </div>
 
       {/* Team members */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
-          <Users className="w-4 h-4 text-gray-400" />
-          <h2 className="text-sm font-semibold text-gray-700">{tr.client_detail_members} ({members.length})</h2>
+      <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-50 dark:border-[#242736] flex items-center gap-2">
+          <Users className="w-4 h-4 text-gray-400 dark:text-slate-500" />
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">{tr.client_detail_members} ({members.length})</h2>
         </div>
         {members.length === 0 ? (
-          <p className="px-6 py-5 text-sm text-gray-400">{tr.client_detail_no_members}</p>
+          <p className="px-6 py-5 text-sm text-gray-400 dark:text-slate-500">{tr.client_detail_no_members}</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-gray-400 uppercase tracking-wide bg-gray-50">
+              <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide bg-gray-50">
                 <th className="text-left px-6 py-3">{tr.clients_email}</th>
                 <th className="text-left px-6 py-3">{tr.client_detail_role}</th>
                 <th className="text-left px-6 py-3">{tr.client_detail_joined_team}</th>
@@ -190,14 +190,14 @@ export default function ClientDetailPage() {
             </thead>
             <tbody>
               {members.map((m, i) => (
-                <tr key={i} className="border-t border-gray-50">
-                  <td className="px-6 py-3 text-gray-800">{m.email}</td>
+                <tr key={i} className="border-t border-gray-50 dark:border-[#242736]">
+                  <td className="px-6 py-3 text-gray-800 dark:text-slate-200">{m.email}</td>
                   <td className="px-6 py-3">
                     <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium capitalize">
                       {m.role}
                     </span>
                   </td>
-                  <td className="px-6 py-3 text-gray-400 text-xs">
+                  <td className="px-6 py-3 text-gray-400 dark:text-slate-500 text-xs">
                     {new Date(m.joinedAt).toLocaleDateString()}
                   </td>
                 </tr>
@@ -208,13 +208,13 @@ export default function ClientDetailPage() {
       </div>
 
       {/* QR Codes */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
-          <QrCode className="w-4 h-4 text-gray-400" />
-          <h2 className="text-sm font-semibold text-gray-700">{tr.client_detail_qrcodes} ({qrCodes.length})</h2>
+      <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-50 dark:border-[#242736] flex items-center gap-2">
+          <QrCode className="w-4 h-4 text-gray-400 dark:text-slate-500" />
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">{tr.client_detail_qrcodes} ({qrCodes.length})</h2>
         </div>
         {qrCodes.length === 0 ? (
-          <p className="px-6 py-5 text-sm text-gray-400">{tr.client_detail_no_qr}</p>
+          <p className="px-6 py-5 text-sm text-gray-400 dark:text-slate-500">{tr.client_detail_no_qr}</p>
         ) : (
           (() => {
             const totalPages = Math.ceil(qrCodes.length / QR_PAGE_SIZE);
@@ -223,7 +223,7 @@ export default function ClientDetailPage() {
               <>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-xs text-gray-400 uppercase tracking-wide bg-gray-50">
+                    <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide bg-gray-50">
                       <th className="text-left px-6 py-3">{tr.clients_label}</th>
                       <th className="text-left px-6 py-3">{tr.clients_status}</th>
                       <th className="text-left px-6 py-3">{tr.client_detail_scans}</th>
@@ -232,25 +232,25 @@ export default function ClientDetailPage() {
                   </thead>
                   <tbody>
                     {paginated.map((q) => (
-                      <tr key={q.id} className="border-t border-gray-50 hover:bg-gray-50/50">
+                      <tr key={q.id} className="border-t border-gray-50 dark:border-[#242736] hover:bg-gray-50 dark:hover:bg-[#242736]/50">
                         <td className="px-6 py-3">
-                          <p className="font-medium text-gray-900">{q.label}</p>
-                          {q.company && <p className="text-xs text-gray-400">{q.company}</p>}
+                          <p className="font-medium text-gray-900 dark:text-slate-100">{q.label}</p>
+                          {q.company && <p className="text-xs text-gray-400 dark:text-slate-500">{q.company}</p>}
                         </td>
                         <td className="px-6 py-3">
                           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                            q.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                            q.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500 dark:text-slate-400"
                           }`}>
                             {q.isActive ? tr.client_detail_active : tr.client_detail_paused}
                           </span>
                         </td>
                         <td className="px-6 py-3">
-                          <span className="inline-flex items-center gap-1 text-gray-700 font-medium">
-                            <BarChart2 className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="inline-flex items-center gap-1 text-gray-700 dark:text-slate-300 font-medium">
+                            <BarChart2 className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
                             {q.scans}
                           </span>
                         </td>
-                        <td className="px-6 py-3 text-gray-400 text-xs">
+                        <td className="px-6 py-3 text-gray-400 dark:text-slate-500 text-xs">
                           {new Date(q.createdAt).toLocaleDateString()}
                         </td>
                       </tr>
@@ -258,7 +258,7 @@ export default function ClientDetailPage() {
                   </tbody>
                 </table>
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 text-xs text-gray-500">
+                  <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 dark:border-[#242736] text-xs text-gray-500 dark:text-slate-400">
                     <span>
                       Showing {qrPage * QR_PAGE_SIZE + 1}–{Math.min((qrPage + 1) * QR_PAGE_SIZE, qrCodes.length)} of {qrCodes.length}
                     </span>
@@ -266,7 +266,7 @@ export default function ClientDetailPage() {
                       <button
                         onClick={() => setQrPage((p) => Math.max(0, p - 1))}
                         disabled={qrPage === 0}
-                        className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40"
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-[#242736] hover:bg-gray-50 dark:hover:bg-[#242736] disabled:opacity-40"
                       >
                         Previous
                       </button>
@@ -274,7 +274,7 @@ export default function ClientDetailPage() {
                       <button
                         onClick={() => setQrPage((p) => Math.min(totalPages - 1, p + 1))}
                         disabled={qrPage >= totalPages - 1}
-                        className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40"
+                        className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-[#242736] hover:bg-gray-50 dark:hover:bg-[#242736] disabled:opacity-40"
                       >
                         Next
                       </button>
@@ -299,10 +299,10 @@ function StatCard({
   bg: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between">
+    <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm p-5 flex items-center justify-between">
       <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
+        <p className="text-xs text-gray-500 dark:text-slate-400">{label}</p>
+        <p className="text-3xl font-bold text-gray-900 dark:text-slate-100 mt-1">{value}</p>
       </div>
       <div className={`w-11 h-11 ${bg} rounded-xl flex items-center justify-center`}>
         {icon}
@@ -316,8 +316,8 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
     <div className="flex items-center gap-3">
       {icon}
       <div>
-        <p className="text-xs text-gray-400">{label}</p>
-        <p className="text-sm font-medium text-gray-800">{value}</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500">{label}</p>
+        <p className="text-sm font-medium text-gray-800 dark:text-slate-200">{value}</p>
       </div>
     </div>
   );

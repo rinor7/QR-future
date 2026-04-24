@@ -230,6 +230,17 @@ function FolderNode({
   async function handleDelete() {
     setDeleteErr(null);
     try {
+      const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
+      const supabase = getSupabaseBrowser();
+      const targetFolderId = node.parent_id; // null when folder is at root
+
+      // Move QR cards in this folder to the parent (or unassign if at root)
+      await supabase.from("contacts").update({ folder_id: targetFolderId }).eq("folder_id", node.id);
+      // Move team members assigned to this folder to the parent
+      await supabase.from("profiles").update({ folder_id: targetFolderId }).eq("folder_id", node.id);
+      // Re-parent any direct child folders so the RPC delete doesn't reject
+      await supabase.from("folders").update({ parent_id: targetFolderId }).eq("parent_id", node.id);
+
       await deleteFolderRpc(node.id);
       onRefresh();
     } catch (e: unknown) {
@@ -325,7 +336,16 @@ function FolderNode({
               <Trash2 className="w-6 h-6 text-red-600" />
             </div>
             <h2 className="text-base font-bold text-gray-900 text-center mb-2">{tr.folders_delete_q}</h2>
-            <p className="text-sm text-gray-500 text-center mb-2"><strong>{node.name}</strong> {tr.folders_delete_body}</p>
+            <p className="text-sm text-gray-500 text-center mb-3"><strong>{node.name}</strong> {tr.folders_delete_body}</p>
+            {(node.qrCount > 0 || node.userCount > 0 || node.children.length > 0) && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 mb-3 text-left space-y-1">
+                <p className="font-semibold">{tr.folders_delete_move_title}</p>
+                {node.qrCount > 0 && <p>• {node.qrCount} {tr.folders_delete_move_qrs}</p>}
+                {node.userCount > 0 && <p>• {node.userCount} {tr.folders_delete_move_users}</p>}
+                {node.children.length > 0 && <p>• {node.children.length} {tr.folders_delete_move_subfolders}</p>}
+                <p className="pt-1 border-t border-amber-100 mt-1">→ {node.parent_id ? tr.folders_delete_move_to_parent : tr.folders_delete_move_to_root}</p>
+              </div>
+            )}
             {deleteErr && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2 mb-4 text-center">{deleteErr}</p>}
             <div className="flex gap-3 mt-4">
               <button onClick={() => { setDeleting(false); setDeleteErr(null); }} className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">{tr.folders_cancel}</button>

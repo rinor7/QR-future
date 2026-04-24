@@ -4,11 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { QrCode } from "lucide-react";
+import { useSupportEmail } from "@/lib/useSupportEmail";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const supportEmail = useSupportEmail();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -75,6 +77,14 @@ export default function ForgotPasswordPage() {
             </form>
           )}
         </div>
+        {supportEmail && (
+          <p className="text-center text-xs text-gray-400 mt-6">
+            Probleme / Trouble?{" "}
+            <a href={`mailto:${supportEmail}`} className="text-blue-600 hover:underline font-medium">
+              {supportEmail}
+            </a>
+          </p>
+        )}
       </div>
     </div>
   );

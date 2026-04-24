@@ -88,19 +88,19 @@ export default function ClientsPage() {
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{tr.clients_title}</h1>
-        <p className="text-sm text-gray-500 mt-1">{tr.clients_subtitle}</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{tr.clients_title}</h1>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{tr.clients_subtitle}</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
-          <p className="text-2xl font-bold text-gray-900">{clients.length}</p>
-          <p className="text-xs text-gray-400 mt-1">{tr.clients_stat_total}</p>
+        <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm p-4 text-center">
+          <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{clients.length}</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{tr.clients_stat_total}</p>
         </div>
         {(["free", "star", "premium", "platinum"] as Plan[]).map((plan) => (
-          <div key={plan} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{planCounts[plan]}</p>
+          <div key={plan} className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm p-4 text-center">
+            <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{planCounts[plan]}</p>
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full mt-1 inline-block ${PLAN_COLORS[plan]}`}>
               {PLAN_LABELS[plan]}
             </span>
@@ -118,14 +118,14 @@ export default function ClientsPage() {
           <p className="text-xs text-amber-700 mb-4">{tr.clients_inactive_body}</p>
           <div className="flex flex-col gap-2">
             {inactiveClients.map((c) => (
-              <div key={c.userId} className="flex items-center justify-between bg-white rounded-xl border border-amber-100 px-4 py-2.5">
+              <div key={c.userId} className="flex items-center justify-between bg-white dark:bg-[#1a1d27] rounded-xl border border-amber-100 px-4 py-2.5">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold shrink-0">
                     {c.email[0].toUpperCase()}
                   </div>
-                  <span className="text-sm text-gray-800 font-medium">{c.email}</span>
+                  <span className="text-sm text-gray-800 dark:text-slate-200 font-medium">{c.email}</span>
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-400 dark:text-slate-500">
                   {c.lastActivityAt
                     ? `${tr.clients_last_active}: ${new Date(c.lastActivityAt).toLocaleDateString()}`
                     : tr.clients_never_active}
@@ -137,10 +137,10 @@ export default function ClientsPage() {
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-sm border border-gray-100 dark:border-[#242736] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
+            <tr className="border-b border-gray-100 dark:border-[#242736] text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">
               <th className="text-left px-6 py-3">{tr.clients_email}</th>
               <th className="text-left px-6 py-3">{tr.clients_plan}</th>
               <th className="text-left px-6 py-3">{tr.clients_col_qr}</th>
@@ -152,21 +152,21 @@ export default function ClientsPage() {
           <tbody>
             {clients.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
+                <td colSpan={6} className="px-6 py-12 text-center text-gray-400 dark:text-slate-500">
                   <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   {tr.clients_no_clients}
                 </td>
               </tr>
             ) : (
               clients.map((c) => (
-                <tr key={c.userId} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
+                <tr key={c.userId} className="border-b border-gray-50 dark:border-[#242736] last:border-0 hover:bg-gray-50 dark:hover:bg-[#242736]/50">
                   {/* Avatar + email */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
                         {c.email[0].toUpperCase()}
                       </div>
-                      <span className="text-gray-800 font-medium">{c.email}</span>
+                      <span className="text-gray-800 dark:text-slate-200 font-medium">{c.email}</span>
                     </div>
                   </td>
                   {/* Plan */}
@@ -175,7 +175,7 @@ export default function ClientsPage() {
                       <span className={`text-xs font-semibold px-2 py-1 rounded-lg w-fit ${PLAN_COLORS[c.plan]}`}>
                         {PLAN_LABELS[c.plan]}
                       </span>
-                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <span className="text-xs text-gray-400 dark:text-slate-500 flex items-center gap-1">
                         {c.hasStripe
                           ? <><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />Stripe</>
                           : <><Lock className="w-3 h-3" />{tr.clients_manual}</>
@@ -185,12 +185,12 @@ export default function ClientsPage() {
                   </td>
                   {/* QR count */}
                   <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1 text-gray-700 font-medium">
+                    <span className="inline-flex items-center gap-1 text-gray-700 dark:text-slate-300 font-medium">
                       {c.qrCount}
                     </span>
                   </td>
                   {/* Joined */}
-                  <td className="px-6 py-4 text-gray-400 text-xs">
+                  <td className="px-6 py-4 text-gray-400 dark:text-slate-500 text-xs">
                     {new Date(c.createdAt).toLocaleDateString()}
                   </td>
                   {/* View */}
@@ -223,7 +223,7 @@ export default function ClientsPage() {
       {/* Delete client confirmation modal */}
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8">
+          <div className="bg-white dark:bg-[#1a1d27] rounded-3xl shadow-2xl w-full max-w-lg p-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-6 h-6 text-red-600" />

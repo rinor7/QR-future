@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { QrCode } from "lucide-react";
+import { useSupportEmail } from "@/lib/useSupportEmail";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
   const [sessionError, setSessionError] = useState(false);
+  const supportEmail = useSupportEmail();
 
   useEffect(() => {
     const supabase = getSupabaseBrowser();
@@ -65,6 +67,14 @@ export default function ResetPasswordPage() {
           <a href="/forgot-password" className="block text-sm text-blue-600 hover:underline">
             Neuen Link anfordern
           </a>
+          {supportEmail && (
+            <p className="text-xs text-gray-400 pt-2 border-t border-gray-100">
+              Probleme / Trouble?{" "}
+              <a href={`mailto:${supportEmail}`} className="text-blue-600 hover:underline font-medium">
+                {supportEmail}
+              </a>
+            </p>
+          )}
         </div>
       </div>
     );
@@ -112,9 +122,14 @@ export default function ResetPasswordPage() {
             </div>
 
             {error && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
-                {error}
-              </p>
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+                <p>{error}</p>
+                {supportEmail && (
+                  <a href={`mailto:${supportEmail}`} className="inline-block mt-1 text-xs font-semibold underline hover:text-red-700">
+                    Kontakt / Contact: {supportEmail}
+                  </a>
+                )}
+              </div>
             )}
 
             <button

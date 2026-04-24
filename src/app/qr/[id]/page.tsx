@@ -25,6 +25,15 @@ export default async function QRLandingPage({ params }: { params: { id: string }
   if (!row) notFound();
   if (!row.is_active) redirect("https://qr-card.ch");
 
+  // Platform-wide support email — single source of truth, set by platform owner
+  const { data: platform } = await supabase
+    .from("profiles")
+    .select("support_email")
+    .eq("is_platform_admin", true)
+    .limit(1)
+    .maybeSingle();
+  const supportEmail = (platform?.support_email as string) || null;
+
   // Map DB row → app contact shape (same as toContact in store.ts)
   const contact = {
     id: row.id as string,
@@ -76,5 +85,5 @@ export default async function QRLandingPage({ params }: { params: { id: string }
     qrGradientColor: (row.qr_gradient_color as string) ?? "#2563eb",
   };
 
-  return <QRLandingClient contact={contact} leadCaptureActive={contact.leadCaptureEnabled} />;
+  return <QRLandingClient contact={contact} leadCaptureActive={contact.leadCaptureEnabled} supportEmail={supportEmail} />;
 }

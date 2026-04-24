@@ -38,13 +38,75 @@ export async function GET() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // Get owner_id
+  // Get owner_id + platform-admin status
   const { data: profile } = await supabase
     .from("profiles")
-    .select("owner_id")
+    .select("owner_id, is_platform_admin")
     .eq("user_id", user.id)
     .single();
   const ownerId = profile?.owner_id ?? user.id;
+
+  // Platform owner sees a curated feed of platform-wide events only: new users,
+  // team invites/joins, account deletions, email changes, 2FA changes.
+  // Scans, interactions, leads are NOT shown (they'd drown real platform signal).
+  if (profile?.is_platform_admin) {
+    const items: ActivityItem[] = [];
+
+    // All org_notifications across every owner (account deletions, and any new
+    // events we start logging — invite_sent, email_changed, mfa_enabled, etc.)
+    const PLATFORM_NOTIFICATION_TYPES = [
+      "user_deleted",
+      "user_signed_up",
+      "user_invited",
+      "invite_accepted",
+      "email_changed",
+      "mfa_enabled",
+      "mfa_disabled",
+      "team_mfa_toggled",
+    ];
+    const { data: notes } = await supabase
+      .from("org_notifications")
+      .select("id, type, message, created_at")
+      .in("type", PLATFORM_NOTIFICATION_TYPES)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    (notes ?? []).forEach((n, i) => {
+      items.push({
+        id: `notification-${n.id ?? i}`,
+        type: "notification",
+        qr_id: "",
+        qr_label: n.message ?? "",
+        notification_kind: n.type ?? undefined,
+        message: n.message ?? undefined,
+        ts: n.created_at,
+      });
+    });
+
+    // Derive signup / invite-accepted events from profiles.created_at for
+    // historical data (until we add explicit logging).
+    const { data: recentProfiles } = await supabase
+      .from("profiles")
+      .select("user_id, email, owner_id, created_at")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    (recentProfiles ?? []).forEach((p, i) => {
+      const isOwner = p.user_id === p.owner_id;
+      items.push({
+        id: `profile-${p.user_id ?? i}`,
+        type: "notification",
+        qr_id: "",
+        qr_label: p.email ?? "",
+        notification_kind: isOwner ? "user_signed_up" : "invite_accepted",
+        message: isOwner
+          ? `New signup: ${p.email}`
+          : `${p.email} joined a team`,
+        ts: p.created_at,
+      });
+    });
+
+    items.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
+    return NextResponse.json(items.slice(0, 50));
+  }
 
   // Get all contacts for this org
   const { data: contacts } = await supabase

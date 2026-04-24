@@ -125,7 +125,7 @@ const THEMES = {
   },
 } as const;
 
-export default function QRLandingClient({ contact, leadCaptureActive = false }: { contact: QRContact; leadCaptureActive?: boolean }) {
+export default function QRLandingClient({ contact, leadCaptureActive = false, supportEmail = null }: { contact: QRContact; leadCaptureActive?: boolean; supportEmail?: string | null }) {
   const { lang, tr, toggleLang } = useLang();
   const [shared, setShared] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
@@ -454,16 +454,26 @@ export default function QRLandingClient({ contact, leadCaptureActive = false }: 
         })()}
       </div>
 
-      <a
-        href="https://qr-card.ch"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-600 transition-colors"
-      >
-        <span>Powered by</span>
-        <QrCode className="w-4 h-4 text-blue-600" />
-        <span className="font-bold text-slate-900">qr-card.ch</span>
-      </a>
+      <div className="flex flex-col items-center gap-1">
+        <a
+          href="https://qr-card.ch"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          <span>Powered by</span>
+          <QrCode className="w-4 h-4 text-blue-600" />
+          <span className="font-bold text-slate-900">qr-card.ch</span>
+        </a>
+        {supportEmail && (
+          <p className="text-xs text-slate-400">
+            Fragen / Questions?{" "}
+            <a href={`mailto:${supportEmail}`} className="text-blue-600 hover:underline font-medium">
+              {supportEmail}
+            </a>
+          </p>
+        )}
+      </div>
     </div>
 
     {/* Lead Capture Modal */}

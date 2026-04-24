@@ -91,7 +91,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
         </div>
         <div>
           <h1 className="text-base font-bold font-headline leading-tight text-slate-900 tracking-tight">
-            {brandName || "QR Orchestrator"}
+            {brandName || "qr-card.ch"}
           </h1>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mt-0.5">
             {tr.sidebar_enterprise}
