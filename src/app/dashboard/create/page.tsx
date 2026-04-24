@@ -74,8 +74,10 @@ export default function CreatePage() {
   const [folderOpen, setFolderOpen] = useState(false);
 
   const [orgDefaults, setOrgDefaults] = useState<{ company?: string; logoUrl?: string }>({});
+  const [supportEmail, setSupportEmail] = useState<string | undefined>(undefined);
 
   useEffect(() => {
+    fetch("/api/platform/support-email").then((r) => r.json()).then(({ supportEmail: s }) => { if (s) setSupportEmail(s); }).catch(() => {});
     getUserProfile().then(async (profile) => {
       if (!profile) return;
       // Load folders
@@ -274,6 +276,7 @@ export default function CreatePage() {
             submitLabel="Finish & Generate"
             loading={submitting}
             hideActions
+            supportEmail={supportEmail}
             onFormChange={(data) => setFormData(data)}
             initial={orgDefaults}
           />

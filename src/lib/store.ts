@@ -123,11 +123,20 @@ export async function getUserProfile(): Promise<UserProfile | null> {
   // Every org owner and their team can manage users — role === 'admin' check on the page controls actual access
   const canManageUsers = true;
 
-  // Get support email — from own profile if owner, from owner's profile if team member
-  let supportEmail: string | undefined = (data.support_email as string) || undefined;
-  if (ownerId !== user.id) {
-    const { data: ownerData } = await supabase.from("profiles").select("support_email").eq("user_id", ownerId).single();
-    supportEmail = (ownerData?.support_email as string) || undefined;
+  // Support email is platform-wide — always read from the platform admin's
+  // profile so changing it once updates every error message across the app.
+  // Platform admin editing their own row reads their own value.
+  let supportEmail: string | undefined;
+  if (isPlatformAdmin) {
+    supportEmail = (data.support_email as string) || undefined;
+  } else {
+    const { data: platform } = await supabase
+      .from("profiles")
+      .select("support_email")
+      .eq("is_platform_admin", true)
+      .limit(1)
+      .maybeSingle();
+    supportEmail = (platform?.support_email as string) || undefined;
   }
 
   return {

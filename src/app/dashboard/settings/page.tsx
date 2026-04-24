@@ -1246,13 +1246,15 @@ export default function SettingsPage() {
             {deleteError && (
               <div className="mb-4">
                 <p className="text-xs text-red-500 whitespace-pre-wrap break-words">{deleteError}</p>
-                <a
-                  href="mailto:info@qr-card.ch?subject=Account%20deletion%20error&body=Hi%2C%20I%20encountered%20an%20error%20while%20trying%20to%20delete%20my%20account%3A%0A%0A"
-                  className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold text-blue-600 hover:underline"
-                >
-                  <span className="material-symbols-outlined text-[14px]">mail</span>
-                  Contact support: info@qr-card.ch
-                </a>
+                {supportEmail && (
+                  <a
+                    href={`mailto:${supportEmail}?subject=Account%20deletion%20error&body=Hi%2C%20I%20encountered%20an%20error%20while%20trying%20to%20delete%20my%20account%3A%0A%0A`}
+                    className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold text-blue-600 hover:underline"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">mail</span>
+                    Contact support: {supportEmail}
+                  </a>
+                )}
               </div>
             )}
             <div className="flex gap-3">
