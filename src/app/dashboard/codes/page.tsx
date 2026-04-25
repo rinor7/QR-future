@@ -1044,7 +1044,7 @@ export default function CodesPage() {
                             <button onClick={() => { navigator.clipboard.writeText(getQRUrl(contact.id)); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                               <span className="material-symbols-outlined text-[17px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
                             </button>
-                            <a href={`/qr/${contact.id}`} target="_blank" title="Open page" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <a href={getQRUrl(contact.id)} target="_blank" title="Open page" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                               <span className="material-symbols-outlined text-[17px]">open_in_new</span>
                             </a>
                             <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">

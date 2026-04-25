@@ -279,7 +279,7 @@ export default function EditPage() {
               <p className="text-xs text-gray-400 font-mono break-all mb-4">/qr/{id}</p>
               <div className="space-y-2">
                 <a
-                  href={`/qr/${id}`}
+                  href={getQRUrl(id)}
                   target="_blank"
                   className="flex items-center justify-center gap-2 w-full border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                 >
