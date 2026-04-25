@@ -69,6 +69,14 @@ export default function SettingsPage() {
   const [brandSaved, setBrandSaved] = useState(false);
   const [brandLogoUploading, setBrandLogoUploading] = useState(false);
 
+  // Custom domain
+  const [customDomain, setCustomDomain] = useState<string | null>(null);
+  const [customDomainInput, setCustomDomainInput] = useState("");
+  const [customDomainVerified, setCustomDomainVerified] = useState(false);
+  const [customDomainSaving, setCustomDomainSaving] = useState(false);
+  const [customDomainError, setCustomDomainError] = useState<string | null>(null);
+  const [customDomainCopied, setCustomDomainCopied] = useState<string | null>(null);
+
   // Account contact info (single values)
   const [acctPhone, setAcctPhone] = useState("");
   const [acctEmail, setAcctEmail] = useState("");
@@ -221,7 +229,35 @@ export default function SettingsPage() {
     fetch("/api/templates").then((r) => r.json()).then((data) => {
       if (Array.isArray(data)) setTemplates(data);
     }).catch(() => {});
+    // Load custom domain status
+    loadCustomDomain();
   }, [router]);
+
+  async function loadCustomDomain() {
+    try {
+      const res = await fetch("/api/custom-domain");
+      if (!res.ok) return;
+      const data = await res.json();
+      setCustomDomain(data.domain ?? null);
+      setCustomDomainVerified(!!data.verified);
+      if (data.domain && data.verified) {
+        localStorage.setItem("qr_custom_domain", data.domain);
+      } else {
+        localStorage.removeItem("qr_custom_domain");
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Auto-poll status while domain is saved but not yet verified
+  useEffect(() => {
+    if (!customDomain || customDomainVerified) return;
+    const interval = setInterval(() => {
+      loadCustomDomain();
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [customDomain, customDomainVerified]);
 
   async function handleSaveBranding(e: React.FormEvent) {
     e.preventDefault();
@@ -240,6 +276,64 @@ export default function SettingsPage() {
       window.dispatchEvent(new CustomEvent("brand-updated"));
     }
     setBrandSaving(false);
+  }
+
+  async function handleSaveCustomDomain(e: React.FormEvent) {
+    e.preventDefault();
+    setCustomDomainError(null);
+    const raw = customDomainInput.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
+    if (!raw) return;
+    const domainRegex = /^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$/i;
+    if (!domainRegex.test(raw)) {
+      setCustomDomainError("Please enter a valid domain (e.g. card.yourcompany.com)");
+      return;
+    }
+    setCustomDomainSaving(true);
+    try {
+      const res = await fetch("/api/custom-domain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain: raw }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCustomDomainError(data.error || "Failed to save domain");
+      } else {
+        setCustomDomain(raw);
+        setCustomDomainInput("");
+        setCustomDomainVerified(false);
+        // Refresh status from server
+        await loadCustomDomain();
+      }
+    } catch {
+      setCustomDomainError("Network error. Please try again.");
+    }
+    setCustomDomainSaving(false);
+  }
+
+  async function handleRemoveCustomDomain() {
+    if (!confirm("Remove this custom domain? Your QR cards will switch back to the default URL.")) return;
+    setCustomDomainSaving(true);
+    setCustomDomainError(null);
+    try {
+      await fetch("/api/custom-domain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain: "" }),
+      });
+      setCustomDomain(null);
+      setCustomDomainVerified(false);
+      localStorage.removeItem("qr_custom_domain");
+    } catch {
+      setCustomDomainError("Failed to remove domain");
+    }
+    setCustomDomainSaving(false);
+  }
+
+  function copyDnsValue(value: string) {
+    navigator.clipboard.writeText(value);
+    setCustomDomainCopied(value);
+    setTimeout(() => setCustomDomainCopied(null), 2000);
   }
 
   async function handleBrandLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -991,23 +1085,153 @@ export default function SettingsPage() {
                 </form>
               </div>
 
-              {/* Custom Domain — Coming Soon */}
+              {/* Custom Domain */}
               <div>
                 <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-5">
                   <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">domain</span>
                   Custom Domain
-                  <span className="text-[10px] font-black uppercase tracking-widest text-purple-600 bg-purple-50 dark:bg-purple-900/20 px-2.5 py-1 rounded-full ml-1">Coming Soon</span>
                 </h4>
-                <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-6 flex flex-col items-center text-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-slate-400 text-[24px]">language</span>
+
+                {!customDomain ? (
+                  <form onSubmit={handleSaveCustomDomain} className="space-y-4">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Serve your QR cards from your own domain (e.g. <span className="font-mono text-slate-700 dark:text-slate-300">card.yourcompany.com</span>) instead of the default URL.
+                    </p>
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your domain</label>
+                      <input
+                        type="text"
+                        value={customDomainInput}
+                        onChange={(e) => setCustomDomainInput(e.target.value)}
+                        placeholder="card.yourcompany.com"
+                        className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 font-mono"
+                      />
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        We recommend a subdomain like <span className="font-mono">card.</span> or <span className="font-mono">qr.</span> — this won&apos;t affect your main website.
+                      </p>
+                    </div>
+                    {customDomainError && (
+                      <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/10 px-3 py-2 rounded-lg">{customDomainError}</p>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={customDomainSaving || !customDomainInput.trim()}
+                      className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60"
+                    >
+                      {customDomainSaving ? "Saving…" : "Add Domain"}
+                    </button>
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Status header */}
+                    <div className="flex items-center justify-between gap-3 p-4 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700/50">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="material-symbols-outlined text-slate-400 shrink-0">language</span>
+                        <div className="min-w-0">
+                          <p className="font-mono text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{customDomain}</p>
+                          {customDomainVerified ? (
+                            <p className="text-xs text-green-600 flex items-center gap-1 mt-0.5">
+                              <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                              Verified — your QR cards now use this domain
+                            </p>
+                          ) : (
+                            <p className="text-xs text-amber-600 flex items-center gap-1 mt-0.5">
+                              <span className="material-symbols-outlined text-[14px] animate-spin">sync</span>
+                              Waiting for DNS — checking every few seconds…
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveCustomDomain}
+                        disabled={customDomainSaving}
+                        className="text-xs text-red-500 hover:underline shrink-0 disabled:opacity-60"
+                      >
+                        Remove
+                      </button>
+                    </div>
+
+                    {/* DNS instructions — only show if not verified yet */}
+                    {!customDomainVerified && (() => {
+                      const parts = customDomain.split(".");
+                      const isApex = parts.length === 2;
+                      const recordType = isApex ? "A" : "CNAME";
+                      const recordName = isApex ? "@" : parts[0];
+                      const recordValue = isApex ? "76.76.21.21" : "cname.vercel-dns.com";
+                      return (
+                        <div className="rounded-xl border-2 border-blue-200 dark:border-blue-900/30 bg-blue-50/40 dark:bg-blue-900/10 p-5 space-y-4">
+                          <div className="flex items-start gap-3">
+                            <span className="material-symbols-outlined text-blue-600 text-[20px] shrink-0">tips_and_updates</span>
+                            <div>
+                              <p className="font-semibold text-sm text-slate-900 dark:text-slate-100">Add this DNS record at your provider</p>
+                              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                                Log in to your DNS provider (Hostinger, GoDaddy, Cloudflare, Namecheap, etc.), open DNS settings for <span className="font-mono">{parts.slice(-2).join(".")}</span>, and add a new record with these exact values:
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1d27]">
+                            <table className="w-full text-sm">
+                              <thead className="bg-slate-100 dark:bg-[#242736] text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                <tr>
+                                  <th className="text-left px-4 py-2 font-semibold">Field</th>
+                                  <th className="text-left px-4 py-2 font-semibold">Value</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                <tr>
+                                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400">Type</td>
+                                  <td className="px-4 py-3 font-mono font-semibold text-slate-900 dark:text-slate-100">{recordType}</td>
+                                </tr>
+                                <tr>
+                                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400">Name {isApex ? "(or Host)" : "(or Host / Subdomain)"}</td>
+                                  <td className="px-4 py-3">
+                                    <button type="button" onClick={() => copyDnsValue(recordName)} className="font-mono font-semibold text-slate-900 dark:text-slate-100 hover:text-blue-600 inline-flex items-center gap-1.5">
+                                      {recordName}
+                                      <span className="material-symbols-outlined text-[14px] text-slate-400">{customDomainCopied === recordName ? "check" : "content_copy"}</span>
+                                    </button>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400">Value {isApex ? "(or Points to)" : "(or Target)"}</td>
+                                  <td className="px-4 py-3">
+                                    <button type="button" onClick={() => copyDnsValue(recordValue)} className="font-mono font-semibold text-slate-900 dark:text-slate-100 hover:text-blue-600 inline-flex items-center gap-1.5 break-all text-left">
+                                      {recordValue}
+                                      <span className="material-symbols-outlined text-[14px] text-slate-400 shrink-0">{customDomainCopied === recordValue ? "check" : "content_copy"}</span>
+                                    </button>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400">TTL</td>
+                                  <td className="px-4 py-3 font-mono text-slate-700 dark:text-slate-300">Auto (or 3600)</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+
+                          <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
+                            <p className="font-semibold text-slate-700 dark:text-slate-300">After adding the record:</p>
+                            <ul className="space-y-1.5 pl-1">
+                              <li className="flex gap-2"><span className="text-blue-600 font-bold">1.</span> Save the record at your provider.</li>
+                              <li className="flex gap-2"><span className="text-blue-600 font-bold">2.</span> This page checks automatically every few seconds.</li>
+                              <li className="flex gap-2"><span className="text-blue-600 font-bold">3.</span> Verification usually completes in 1–10 minutes (sometimes up to an hour). The SSL certificate is set up automatically — no extra steps needed.</li>
+                            </ul>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => loadCustomDomain()}
+                            className="text-xs font-semibold text-blue-600 hover:underline inline-flex items-center gap-1"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">refresh</span>
+                            Check now
+                          </button>
+                        </div>
+                      );
+                    })()}
                   </div>
-                  <div>
-                    <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Serve QR cards from your own domain</p>
-                    <p className="text-xs text-slate-400 mt-1">e.g. <span className="font-mono">card.yourcompany.com</span> instead of the default URL</p>
-                  </div>
-                  <p className="text-xs text-slate-400">This feature is under development and will be available soon.</p>
-                </div>
+                )}
               </div>
             </div>
           </section>
