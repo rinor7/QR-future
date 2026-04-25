@@ -56,6 +56,54 @@ function FolderPickerNode({
   );
 }
 
+// ── Bulk folder picker (multi-select with checkboxes) ──
+function BulkFolderPickerNode({
+  node,
+  selected,
+  onToggle,
+  depth,
+}: {
+  node: FolderWithStats;
+  selected: Set<string>;
+  onToggle: (node: FolderWithStats) => void;
+  depth: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const hasChildren = node.children.length > 0;
+  const isChecked = selected.has(node.id);
+
+  return (
+    <div>
+      <div
+        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors"
+        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+      >
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+          className={`w-4 h-4 flex items-center justify-center shrink-0 text-slate-400 ${!hasChildren ? "invisible" : ""}`}
+        >
+          {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        </button>
+        <input
+          type="checkbox"
+          checked={isChecked}
+          onChange={() => onToggle(node)}
+          className="w-4 h-4 accent-red-500 shrink-0"
+        />
+        <FolderIcon className="w-4 h-4 shrink-0 text-blue-400" />
+        <span className="flex-1 text-sm truncate text-slate-700 dark:text-slate-300">{node.name}</span>
+        {node.qrCount > 0 && (
+          <span className="text-[10px] font-semibold text-slate-400 shrink-0">{node.qrCount} QR</span>
+        )}
+      </div>
+      {expanded && node.children.map((child) => (
+        <BulkFolderPickerNode key={child.id} node={child} selected={selected} onToggle={onToggle} depth={depth + 1} />
+      ))}
+    </div>
+  );
+}
+
 function FolderPicker({
   folders,
   currentFolderId,
@@ -259,9 +307,14 @@ export default function CodesPage() {
   // Delete folder modal
   const [deleteFolderModal, setDeleteFolderModal] = useState<FolderWithStats | null>(null);
   const [deletingFolder, setDeletingFolder] = useState(false);
-  // Delete-all modal: scope is current folder (subtree) or null (entire org)
-  const [deleteAllModal, setDeleteAllModal] = useState<{ scope: FolderWithStats | null } | null>(null);
-  const [deletingAll, setDeletingAll] = useState(false);
+  // Bulk-delete modal (combines: all QRs, all folders, pick specific folders)
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDelAllQRs, setBulkDelAllQRs] = useState(false);
+  const [bulkDelAllFolders, setBulkDelAllFolders] = useState(false);
+  const [bulkPickFolders, setBulkPickFolders] = useState<Set<string>>(new Set());
+  const [bulkDelContents, setBulkDelContents] = useState(true);
+  const [bulkPickerOpen, setBulkPickerOpen] = useState(false);
+  const [deletingBulk, setDeletingBulk] = useState(false);
   // Folder-tree navigation modal
   const [folderTreeOpen, setFolderTreeOpen] = useState(false);
   // Departed-creator history modal + lookup map (email → departure metadata)
@@ -530,36 +583,140 @@ export default function CodesPage() {
     }
   }
 
-  function getDeleteAllTargetIds(scope: FolderWithStats | null): string[] {
-    if (!scope) {
-      return contacts.map((c) => c.id);
+  // Flatten the folder tree into a list (used by the picker + bulk-delete count)
+  function flattenFolders(nodes: FolderWithStats[]): FolderWithStats[] {
+    const out: FolderWithStats[] = [];
+    function walk(n: FolderWithStats) {
+      out.push(n);
+      n.children.forEach(walk);
     }
-    const idSet = new Set(subtreeIds(scope));
-    return contacts
-      .filter((c) => {
-        const fid = contactFolders[c.id];
-        return fid && idSet.has(fid);
-      })
-      .map((c) => c.id);
+    nodes.forEach(walk);
+    return out;
   }
 
-  async function handleDeleteAll(scope: FolderWithStats | null) {
-    setDeletingAll(true);
+  // Resolve which folder ids the bulk operation targets (entire subtree of any picked folder)
+  function getBulkFolderIds(): string[] {
+    if (bulkDelAllFolders) {
+      return flattenFolders(folderTree).map((n) => n.id);
+    }
+    const all = flattenFolders(folderTree);
+    const idSet = new Set<string>();
+    all.forEach((n) => {
+      if (bulkPickFolders.has(n.id)) {
+        subtreeIds(n).forEach((id) => idSet.add(id));
+      }
+    });
+    return Array.from(idSet);
+  }
+
+  function getBulkQRTargetIds(): string[] {
+    if (bulkDelAllQRs) return contacts.map((c) => c.id);
+    if (bulkDelContents) {
+      const folderIds = new Set(getBulkFolderIds());
+      return contacts
+        .filter((c) => {
+          const fid = contactFolders[c.id];
+          return fid && folderIds.has(fid);
+        })
+        .map((c) => c.id);
+    }
+    return [];
+  }
+
+  function openBulkDelete() {
+    setBulkDelAllQRs(false);
+    setBulkDelAllFolders(false);
+    setBulkPickFolders(new Set());
+    setBulkDelContents(true);
+    setBulkPickerOpen(false);
+    setBulkDeleteOpen(true);
+  }
+
+  function toggleBulkPickFolder(node: FolderWithStats) {
+    setBulkPickFolders((prev) => {
+      const next = new Set(prev);
+      const ids = subtreeIds(node);
+      const allSelected = ids.every((id) => next.has(id));
+      if (allSelected) {
+        ids.forEach((id) => next.delete(id));
+      } else {
+        ids.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }
+
+  async function handleBulkDelete() {
+    setDeletingBulk(true);
     try {
-      const targetIds = getDeleteAllTargetIds(scope);
-      for (const id of targetIds) {
+      const folderIds = getBulkFolderIds();
+      const qrIdsToDelete = new Set<string>();
+
+      if (bulkDelAllQRs) {
+        contacts.forEach((c) => qrIdsToDelete.add(c.id));
+      } else if (folderIds.length > 0 && bulkDelContents) {
+        const folderIdSet = new Set(folderIds);
+        contacts.forEach((c) => {
+          const fid = contactFolders[c.id];
+          if (fid && folderIdSet.has(fid)) qrIdsToDelete.add(c.id);
+        });
+      }
+
+      // Delete QR codes
+      for (const id of Array.from(qrIdsToDelete)) {
         await deleteContact(id);
       }
-      const targetSet = new Set(targetIds);
-      setContacts((prev) => prev.filter((c) => !targetSet.has(c.id)));
-      setContactFolders((prev) => {
-        const next = { ...prev };
-        targetIds.forEach((id) => { delete next[id]; });
-        return next;
-      });
-      setDeleteAllModal(null);
+
+      // Handle folders: if not deleting their QRs, move QRs out first
+      if (folderIds.length > 0) {
+        if (!bulkDelAllQRs && !bulkDelContents) {
+          await moveContactsOutOfFolders(folderIds, orgId);
+        }
+        await clearProfilesFromFolders(folderIds);
+        // Delete from leaves up — flatten + reverse-sort by depth
+        const allNodes = flattenFolders(folderTree);
+        const targeted = allNodes.filter((n) => folderIds.includes(n.id));
+        // Use deleteFolderSubtree on roots within selection so child loop works
+        const targetedSet = new Set(folderIds);
+        const rootsInSelection = targeted.filter((n) => !n.parent_id || !targetedSet.has(n.parent_id));
+        for (const root of rootsInSelection) {
+          await deleteFolderSubtree(root);
+        }
+      }
+
+      // Update local state
+      if (qrIdsToDelete.size > 0) {
+        setContacts((prev) => prev.filter((c) => !qrIdsToDelete.has(c.id)));
+        setContactFolders((prev) => {
+          const next = { ...prev };
+          qrIdsToDelete.forEach((id) => { delete next[id]; });
+          return next;
+        });
+      }
+      if (folderIds.length > 0) {
+        // If QRs survived but their folder was deleted, set folder to null locally
+        if (!bulkDelAllQRs && !bulkDelContents) {
+          const folderIdSet = new Set(folderIds);
+          setContactFolders((prev) => {
+            const next = { ...prev };
+            Object.keys(next).forEach((cid) => {
+              const fid = next[cid];
+              if (fid && folderIdSet.has(fid)) next[cid] = null;
+            });
+            return next;
+          });
+        }
+        const updated = await getAllFolders(orgId);
+        setFolderTree(buildTree(updated));
+        // If we were inside a deleted folder, navigate out
+        if (currentFolderId && folderIds.includes(currentFolderId)) {
+          setCurrentFolderId(null);
+        }
+      }
+
+      setBulkDeleteOpen(false);
     } finally {
-      setDeletingAll(false);
+      setDeletingBulk(false);
     }
   }
 
@@ -930,14 +1087,14 @@ export default function CodesPage() {
                 {currentFolder ? `${tr.codes_qrs_in_folder_prefix} ${currentFolder.name.toUpperCase()}` : tr.codes_recent_section}
               </h3>
               <div className="flex items-center gap-1">
-                {(isAdmin || isOwner) && getDeleteAllTargetIds(currentFolder).length > 0 && (
+                {(isAdmin || isOwner) && (contacts.length > 0 || flattenFolders(folderTree).length > 0) && (
                   <button
-                    onClick={() => setDeleteAllModal({ scope: currentFolder })}
-                    title={tr.codes_delete_all_btn}
+                    onClick={openBulkDelete}
+                    title="Bulk delete"
                     className="flex items-center gap-1.5 px-3 h-10 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-xs font-bold mr-2"
                   >
                     <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
-                    <span className="hidden sm:inline">{tr.codes_delete_all_btn}</span>
+                    <span className="hidden sm:inline">Bulk Delete</span>
                   </button>
                 )}
                 <button
@@ -1326,45 +1483,146 @@ export default function CodesPage() {
         </div>
       )}
 
-      {/* ── Delete-all modal ── */}
-      {deleteAllModal && (() => {
-        const scope = deleteAllModal.scope;
-        const count = getDeleteAllTargetIds(scope).length;
+      {/* ── Bulk delete modal ── */}
+      {bulkDeleteOpen && (() => {
+        const totalQRCount = contacts.length;
+        const totalFolderCount = flattenFolders(folderTree).length;
+        const targetedFolderIds = getBulkFolderIds();
+        const targetedQRIds = getBulkQRTargetIds();
+        const hasFolderSelection = bulkDelAllFolders || bulkPickFolders.size > 0;
+        const hasAnySelection = bulkDelAllQRs || hasFolderSelection;
+        // When "All QR codes" is checked, the contents toggle is moot (QRs are going regardless)
+        const contentsToggleDisabled = bulkDelAllQRs;
+        const effectiveDelContents = bulkDelAllQRs ? true : bulkDelContents;
+
         return (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-[0px_20px_40px_rgba(25,28,30,0.18)] max-w-md w-full p-6">
+            <div className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-[0px_20px_40px_rgba(25,28,30,0.18)] max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full mx-auto mb-4">
                 <span className="material-symbols-outlined text-red-500">delete_sweep</span>
               </div>
-              <h2 className="font-headline text-lg font-bold text-slate-900 dark:text-slate-100 text-center mb-2">
-                {scope ? tr.codes_delete_all_folder_title : tr.codes_delete_all_root_title}
-              </h2>
-              {scope && (
-                <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-1">
-                  {scope.name}
-                </p>
+              <h2 className="font-headline text-lg font-bold text-slate-900 dark:text-slate-100 text-center mb-1">Bulk Delete</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-5">Choose what you want to remove. This cannot be undone.</p>
+
+              {/* All QR codes */}
+              <label className={`flex items-start gap-3 px-4 py-3 rounded-xl border ${bulkDelAllQRs ? "border-red-300 bg-red-50/40 dark:bg-red-900/10" : "border-slate-200 dark:border-slate-700"} cursor-pointer mb-3`}>
+                <input
+                  type="checkbox"
+                  checked={bulkDelAllQRs}
+                  onChange={(e) => setBulkDelAllQRs(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-red-500"
+                />
+                <div className="flex-1">
+                  <div className="font-semibold text-sm text-slate-900 dark:text-slate-100">All QR codes ({totalQRCount})</div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Permanently delete every QR code in your account.</p>
+                </div>
+              </label>
+
+              {/* All folders */}
+              <label className={`flex items-start gap-3 px-4 py-3 rounded-xl border ${bulkDelAllFolders ? "border-red-300 bg-red-50/40 dark:bg-red-900/10" : "border-slate-200 dark:border-slate-700"} cursor-pointer mb-2`}>
+                <input
+                  type="checkbox"
+                  checked={bulkDelAllFolders}
+                  onChange={(e) => {
+                    setBulkDelAllFolders(e.target.checked);
+                    if (e.target.checked) {
+                      setBulkPickFolders(new Set());
+                      setBulkPickerOpen(false);
+                    }
+                  }}
+                  disabled={totalFolderCount === 0}
+                  className="mt-0.5 w-4 h-4 accent-red-500 disabled:opacity-40"
+                />
+                <div className="flex-1">
+                  <div className={`font-semibold text-sm ${totalFolderCount === 0 ? "text-slate-400" : "text-slate-900 dark:text-slate-100"}`}>All folders ({totalFolderCount})</div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{totalFolderCount === 0 ? "No folders to delete." : "Delete every folder, including subfolders."}</p>
+                </div>
+              </label>
+
+              {/* Pick specific folders toggle */}
+              {totalFolderCount > 0 && !bulkDelAllFolders && (
+                <button
+                  type="button"
+                  onClick={() => setBulkPickerOpen((v) => !v)}
+                  className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors mb-3"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">checklist</span>
+                    Or pick specific folders {bulkPickFolders.size > 0 && <span className="text-red-500 font-semibold">({bulkPickFolders.size})</span>}
+                  </span>
+                  <span className="material-symbols-outlined text-[18px]">{bulkPickerOpen ? "expand_less" : "expand_more"}</span>
+                </button>
               )}
-              <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-3">
-                {scope ? tr.codes_delete_all_folder_body : tr.codes_delete_all_root_body}
-              </p>
-              <p className="text-xs text-red-600 dark:text-red-400 text-center bg-red-50 dark:bg-red-900/20 rounded-xl px-3 py-2 mb-5">
-                {tr.codes_delete_all_count} <span className="font-bold">{count} {count === 1 ? tr.codes_qr_singular : tr.codes_qr_plural}</span>
-              </p>
+
+              {/* Folder picker tree */}
+              {bulkPickerOpen && !bulkDelAllFolders && (
+                <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-2 mb-3 max-h-56 overflow-y-auto">
+                  {folderTree.map((node) => (
+                    <BulkFolderPickerNode
+                      key={node.id}
+                      node={node}
+                      selected={bulkPickFolders}
+                      onToggle={toggleBulkPickFolder}
+                      depth={0}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Contents sub-toggle (only when folders are being deleted) */}
+              {hasFolderSelection && (
+                <label className={`flex items-start gap-3 px-4 py-3 rounded-xl bg-slate-50 dark:bg-[#242736] mb-4 ${contentsToggleDisabled ? "opacity-60" : ""}`}>
+                  <input
+                    type="checkbox"
+                    checked={effectiveDelContents}
+                    disabled={contentsToggleDisabled}
+                    onChange={(e) => setBulkDelContents(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 accent-red-500"
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm text-slate-900 dark:text-slate-100">Also delete QR codes inside these folders</div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      {contentsToggleDisabled
+                        ? "All QR codes are already being deleted."
+                        : effectiveDelContents
+                          ? "QR codes inside selected folders will be permanently deleted."
+                          : "QR codes inside selected folders will be moved to the root before the folder is deleted."}
+                    </p>
+                  </div>
+                </label>
+              )}
+
+              {/* Summary */}
+              {hasAnySelection && (
+                <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl px-3 py-2 mb-5">
+                  Will delete:{" "}
+                  <span className="font-bold">
+                    {targetedQRIds.length} QR code{targetedQRIds.length === 1 ? "" : "s"}
+                  </span>
+                  {targetedFolderIds.length > 0 && (
+                    <>
+                      {" + "}
+                      <span className="font-bold">{targetedFolderIds.length} folder{targetedFolderIds.length === 1 ? "" : "s"}</span>
+                    </>
+                  )}
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <button
-                  disabled={deletingAll}
-                  onClick={() => setDeleteAllModal(null)}
+                  disabled={deletingBulk}
+                  onClick={() => setBulkDeleteOpen(false)}
                   className="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
                 >
-                  {tr.codes_delete_all_cancel}
+                  Cancel
                 </button>
                 <button
-                  disabled={deletingAll}
-                  onClick={() => handleDeleteAll(scope)}
+                  disabled={deletingBulk || !hasAnySelection}
+                  onClick={handleBulkDelete}
                   className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl font-semibold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {deletingAll && <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                  {tr.codes_delete_all_confirm}
+                  {deletingBulk && <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                  Delete
                 </button>
               </div>
             </div>
