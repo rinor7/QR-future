@@ -13,6 +13,7 @@ import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
 import { getAllFolders, buildTree, assignQrToFolder, createFolder, subtreeIds, moveContactsOutOfFolders, clearProfilesFromFolders, deleteFolderSubtree, type FolderWithStats } from "@/lib/folders";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import { getQRUrl } from "@/lib/qr-url";
 
 // ── Folder picker tree (recursive) ───────────────────────────────────────────
 function FolderPickerNode({
@@ -1040,7 +1041,7 @@ export default function CodesPage() {
                             <Link href={`/dashboard/analytics/${contact.id}`} title="Analytics" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
                               <span className="material-symbols-outlined text-[17px]">analytics</span>
                             </Link>
-                            <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <button onClick={() => { navigator.clipboard.writeText(getQRUrl(contact.id)); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                               <span className="material-symbols-outlined text-[17px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
                             </button>
                             <a href={`/qr/${contact.id}`} target="_blank" title="Open page" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
@@ -1064,7 +1065,7 @@ export default function CodesPage() {
                         {/* Right QR panel — dark */}
                         <div className="w-[130px] shrink-0 flex items-center justify-center p-4" style={{ background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)" }}>
                           <div id={`qr-${contact.id}`} className="p-2 bg-white rounded-lg shadow-lg group-hover:scale-105 transition-transform duration-300">
-                            <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={90} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
+                            <QRCodeDisplay value={getQRUrl(contact.id)} size={90} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
                           </div>
                         </div>
                       </div>
@@ -1079,7 +1080,7 @@ export default function CodesPage() {
                       >
                         {/* QR thumb */}
                         <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 flex items-center justify-center p-1 bg-slate-900">
-                          <QRCodeDisplay value={`${typeof window !== "undefined" ? window.location.origin : ""}/qr/${contact.id}`} size={40} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
+                          <QRCodeDisplay value={getQRUrl(contact.id)} size={40} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
                         </div>
                         {/* Name + meta */}
                         <div className="flex-1 min-w-0">
@@ -1125,7 +1126,7 @@ export default function CodesPage() {
                           <Link href={`/dashboard/analytics/${contact.id}`} title="Analytics" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-purple-600 hover:bg-purple-50 transition-colors">
                             <span className="material-symbols-outlined text-[17px]">analytics</span>
                           </Link>
-                          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/qr/${contact.id}`); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
+                          <button onClick={() => { navigator.clipboard.writeText(getQRUrl(contact.id)); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
                             <span className="material-symbols-outlined text-[17px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
                           </button>
                           <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">

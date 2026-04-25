@@ -7,6 +7,7 @@ import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { getUserProfile } from "@/lib/store";
 import { useLang } from "@/lib/language";
+import { getQRUrl } from "@/lib/qr-url";
 
 type Lead = {
   id: string;
@@ -29,7 +30,7 @@ type PreviewCard = {
 
 function QRPreviewModal({ card, onClose }: { card: PreviewCard; onClose: () => void }) {
   const { tr } = useLang();
-  const cardUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/qr/${card.contact_id}`;
+  const cardUrl = getQRUrl(card.contact_id);
   const label = card.qr_label || card.contact_name || card.contact_id;
 
   return (

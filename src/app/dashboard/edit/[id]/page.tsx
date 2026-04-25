@@ -10,6 +10,7 @@ import { ExternalLink, Copy, Check, Download, FolderOpen, Folder as FolderIcon, 
 import { useLang } from "@/lib/language";
 import { getAllFolders, buildTree, assignQrToFolder, type FolderWithStats } from "@/lib/folders";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import { getQRUrl } from "@/lib/qr-url";
 
 function FolderPickerNode({ node, selected, onSelect, depth }: { node: FolderWithStats; selected: string | null; onSelect: (id: string) => void; depth: number }) {
   const [expanded, setExpanded] = useState(false);
@@ -82,15 +83,8 @@ export default function EditPage() {
     });
   }, [id, router]);
 
-  function getQRUrl() {
-    // Use custom domain if set for this org
-    const storedDomain = typeof window !== "undefined" ? localStorage.getItem("qr_custom_domain") : null;
-    const base = storedDomain ? `https://${storedDomain}` : window.location.origin;
-    return `${base}/qr/${id}`;
-  }
-
   function handleCopy() {
-    navigator.clipboard.writeText(getQRUrl());
+    navigator.clipboard.writeText(getQRUrl(id));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -270,7 +264,7 @@ export default function EditPage() {
               </h3>
               <div id="qr-preview" className="flex justify-center mb-4 rounded-xl overflow-hidden" style={{ backgroundColor: previewQRStyle.qrBgColor }}>
                 <QRCodeDisplay
-                  value={getQRUrl()}
+                  value={getQRUrl(id)}
                   size={220}
                   logoUrl={previewLogoUrl}
                   showLogo={!!previewLogoUrl}
