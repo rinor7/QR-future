@@ -28,7 +28,6 @@ interface PlanConfig { plan: Plan; price: number; features: string[]; }
 const COMPARE_ROWS = [
   { label: "Dynamic QR Lifetime", sub: "Edit destination URLs anytime", free: false, star: true, premium: true, platinum: true },
   { label: "Data Retention", sub: "Historical analytics storage", free: "30 Days", star: "1 Year", premium: "Unlimited", platinum: "Unlimited" },
-  { label: "API Webhooks", sub: "Real-time event integration", free: false, star: true, premium: true, platinum: true },
   { label: "White-label Domains", sub: "Custom short-link URLs", free: false, star: false, premium: true, platinum: true },
 ];
 
