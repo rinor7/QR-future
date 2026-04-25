@@ -126,19 +126,32 @@ export async function GET() {
 
   if (vercelToken && vercelProjectId) {
     try {
-      const res = await fetch(
+      // 1. Ownership verified on the project (no pending challenges)
+      const projRes = await fetch(
         `https://api.vercel.com/v9/projects/${vercelProjectId}/domains/${profile.custom_domain}`,
         { headers: { Authorization: `Bearer ${vercelToken}` } }
       );
-      if (res.ok) {
-        const data = await res.json();
-        verified = data.verified === true;
-        if (verified !== profile.custom_domain_verified) {
-          await supabase
-            .from("profiles")
-            .update({ custom_domain_verified: verified })
-            .eq("user_id", ownerId);
+      const ownershipOk = projRes.ok && (await projRes.json()).verified === true;
+
+      // 2. DNS actually pointing at Vercel (not misconfigured)
+      let dnsOk = false;
+      if (ownershipOk) {
+        const cfgRes = await fetch(
+          `https://api.vercel.com/v6/domains/${profile.custom_domain}/config`,
+          { headers: { Authorization: `Bearer ${vercelToken}` } }
+        );
+        if (cfgRes.ok) {
+          const cfg = await cfgRes.json();
+          dnsOk = cfg.misconfigured === false;
         }
+      }
+
+      verified = ownershipOk && dnsOk;
+      if (verified !== profile.custom_domain_verified) {
+        await supabase
+          .from("profiles")
+          .update({ custom_domain_verified: verified })
+          .eq("user_id", ownerId);
       }
     } catch {
       // Ignore
