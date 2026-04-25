@@ -6,7 +6,7 @@ import { getUserProfile } from "@/lib/store";
 import { ClientAccount, Plan, PLAN_LABELS } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Trash2, Users, AlertTriangle, Eye, Lock } from "lucide-react";
+import { Trash2, Users, AlertTriangle, Eye, Lock, Mail, X, Copy, Check } from "lucide-react";
 
 const PLAN_COLORS: Record<Plan, string> = {
   free: "bg-gray-100 text-gray-600",
@@ -24,6 +24,12 @@ export default function ClientsPage() {
   const [deleteTarget, setDeleteTarget] = useState<ClientAccount | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
+
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [remindOpen, setRemindOpen] = useState(false);
+  const [remindSubject, setRemindSubject] = useState("");
+  const [remindBody, setRemindBody] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -70,6 +76,54 @@ export default function ClientsPage() {
     return daysSince > INACTIVITY_DAYS;
   });
 
+  function daysInactive(c: ClientAccount): number | null {
+    if (!c.lastActivityAt) return null;
+    return Math.floor((Date.now() - new Date(c.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  function toggleSelect(userId: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === inactiveClients.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(inactiveClients.map((c) => c.userId)));
+  }
+
+  function openReminderModal() {
+    setRemindSubject(tr.clients_remind_subject_default);
+    setRemindBody(tr.clients_remind_body_default);
+    setRemindOpen(true);
+  }
+
+  function fillPlaceholders(template: string, c: ClientAccount): string {
+    const days = daysInactive(c);
+    return template
+      .replace(/\{email\}/g, c.email)
+      .replace(/\{days\}/g, days === null ? "0" : String(days))
+      .replace(/\{last_active\}/g, c.lastActivityAt ? new Date(c.lastActivityAt).toLocaleDateString() : tr.clients_remind_never);
+  }
+
+  function openMailto(c: ClientAccount) {
+    const days = daysInactive(c);
+    const body = days === null ? tr.clients_remind_body_never : remindBody;
+    const href = `mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent(fillPlaceholders(remindSubject, c))}&body=${encodeURIComponent(fillPlaceholders(body, c))}`;
+    window.location.href = href;
+  }
+
+  async function copyAllAddresses() {
+    const selected = inactiveClients.filter((c) => selectedIds.has(c.userId));
+    const list = (selected.length ? selected : inactiveClients).map((c) => c.email).join(", ");
+    await navigator.clipboard.writeText(list);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
   // Stats
   const planCounts = clients.reduce<Record<Plan, number>>(
     (acc, c) => { acc[c.plan] = (acc[c.plan] ?? 0) + 1; return acc; },
@@ -111,27 +165,57 @@ export default function ClientsPage() {
       {/* Inactivity notification */}
       {inactiveClients.length > 0 && (
         <div className="bg-amber-50 dark:bg-amber-900/15 border border-amber-200 dark:border-amber-700/40 rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-300 shrink-0" />
-            <h2 className="text-sm font-semibold text-amber-800 dark:text-amber-200">{tr.clients_inactive_title} ({inactiveClients.length})</h2>
+          <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-300 shrink-0" />
+              <h2 className="text-sm font-semibold text-amber-800 dark:text-amber-200">{tr.clients_inactive_title} ({inactiveClients.length})</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleSelectAll}
+                className="text-xs font-medium text-amber-700 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/30 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                {tr.clients_remind_select_all} ({selectedIds.size}/{inactiveClients.length})
+              </button>
+              <button
+                onClick={openReminderModal}
+                disabled={selectedIds.size === 0}
+                className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                {tr.clients_remind_selected}
+              </button>
+            </div>
           </div>
           <p className="text-xs text-amber-700 dark:text-amber-300/90 mb-4">{tr.clients_inactive_body}</p>
           <div className="flex flex-col gap-2">
-            {inactiveClients.map((c) => (
-              <div key={c.userId} className="flex items-center justify-between bg-white dark:bg-[#1a1d27] rounded-xl border border-amber-100 dark:border-amber-700/30 px-4 py-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold shrink-0">
-                    {c.email[0].toUpperCase()}
+            {inactiveClients.map((c) => {
+              const checked = selectedIds.has(c.userId);
+              return (
+                <label
+                  key={c.userId}
+                  className={`flex items-center justify-between bg-white dark:bg-[#1a1d27] rounded-xl border px-4 py-2.5 cursor-pointer transition-colors ${checked ? "border-amber-400 dark:border-amber-500/60" : "border-amber-100 dark:border-amber-700/30 hover:border-amber-200"}`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleSelect(c.userId)}
+                      className="w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500 shrink-0"
+                    />
+                    <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold shrink-0">
+                      {c.email[0].toUpperCase()}
+                    </div>
+                    <span className="text-sm text-gray-800 dark:text-slate-200 font-medium truncate">{c.email}</span>
                   </div>
-                  <span className="text-sm text-gray-800 dark:text-slate-200 font-medium">{c.email}</span>
-                </div>
-                <span className="text-xs text-gray-400 dark:text-slate-500">
-                  {c.lastActivityAt
-                    ? `${tr.clients_last_active}: ${new Date(c.lastActivityAt).toLocaleDateString()}`
-                    : tr.clients_never_active}
-                </span>
-              </div>
-            ))}
+                  <span className="text-xs text-gray-400 dark:text-slate-500 shrink-0 ml-3">
+                    {c.lastActivityAt
+                      ? `${tr.clients_last_active}: ${new Date(c.lastActivityAt).toLocaleDateString()}`
+                      : tr.clients_never_active}
+                  </span>
+                </label>
+              );
+            })}
           </div>
         </div>
       )}
@@ -274,6 +358,111 @@ export default function ClientsPage() {
                 className="px-5 py-3 rounded-xl text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#242736] transition-colors"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reminder email modal */}
+      {remindOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#1a1d27] rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-[#1a1d27] border-b border-slate-100 dark:border-[#242736] px-8 py-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                  <Mail className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{tr.clients_remind_modal_title}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{tr.clients_remind_modal_hint}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setRemindOpen(false)}
+                className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-[#242736] transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="px-8 py-6 space-y-5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
+                  {tr.clients_remind_subject_label}
+                </label>
+                <input
+                  type="text"
+                  value={remindSubject}
+                  onChange={(e) => setRemindSubject(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-[#2a2e3e] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 text-slate-900 dark:text-slate-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
+                  {tr.clients_remind_body_label}
+                </label>
+                <textarea
+                  value={remindBody}
+                  onChange={(e) => setRemindBody(e.target.value)}
+                  rows={10}
+                  className="w-full bg-slate-50 dark:bg-[#242736] border border-slate-200 dark:border-[#2a2e3e] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 text-slate-900 dark:text-slate-100 font-mono leading-relaxed resize-y"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    {tr.clients_remind_recipients} ({selectedIds.size})
+                  </label>
+                  <button
+                    onClick={copyAllAddresses}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#242736] px-2.5 py-1.5 rounded-lg transition-colors"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? tr.clients_remind_copied : tr.clients_remind_copy_all}
+                  </button>
+                </div>
+                <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
+                  {inactiveClients.filter((c) => selectedIds.has(c.userId)).map((c) => {
+                    const d = daysInactive(c);
+                    return (
+                      <div
+                        key={c.userId}
+                        className="flex items-center justify-between gap-3 bg-slate-50 dark:bg-[#242736] rounded-xl px-4 py-2.5 border border-slate-100 dark:border-[#2a2e3e]"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold shrink-0">
+                            {c.email[0].toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm text-slate-800 dark:text-slate-200 font-medium truncate">{c.email}</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-500">
+                              {d === null ? tr.clients_remind_never : `${d} ${tr.clients_remind_days_inactive}`}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => openMailto(c)}
+                          className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-colors"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          {tr.clients_remind_open_email}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white dark:bg-[#1a1d27] border-t border-slate-100 dark:border-[#242736] px-8 py-4 flex justify-end">
+              <button
+                onClick={() => setRemindOpen(false)}
+                className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#242736] transition-colors"
+              >
+                {tr.clients_remind_close}
               </button>
             </div>
           </div>
