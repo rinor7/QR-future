@@ -120,6 +120,98 @@ function FolderPicker({
   );
 }
 
+// ── Full folder-tree navigation modal ─────────────────────────────────────────
+function FolderTreeNavNode({
+  node,
+  qrCount,
+  onNavigate,
+  depth,
+}: {
+  node: FolderWithStats;
+  qrCount: number;
+  onNavigate: (id: string) => void;
+  depth: number;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const hasChildren = node.children.length > 0;
+
+  return (
+    <div>
+      <div
+        className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 group"
+        style={{ paddingLeft: `${depth * 18 + 12}px` }}
+        onClick={() => onNavigate(node.id)}
+      >
+        <button
+          onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+          className={`w-4 h-4 flex items-center justify-center shrink-0 text-slate-400 ${!hasChildren ? "invisible" : ""}`}
+        >
+          {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        </button>
+        <FolderIcon className="w-4 h-4 shrink-0 text-blue-500" />
+        <span className="flex-1 text-sm truncate text-slate-700 dark:text-slate-200 group-hover:text-blue-600 font-medium">
+          {node.name}
+        </span>
+        <span className="text-xs text-slate-400 shrink-0 px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800">
+          {qrCount}
+        </span>
+      </div>
+      {expanded && node.children.map((child) => {
+        // Each node's qrCount is the rolled-up subtree count from buildTree
+        return (
+          <FolderTreeNavNode
+            key={child.id}
+            node={child}
+            qrCount={child.qrCount}
+            onNavigate={onNavigate}
+            depth={depth + 1}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function FolderTreeModal({
+  tree,
+  onNavigate,
+  onClose,
+  title,
+  closeLabel,
+}: {
+  tree: FolderWithStats[];
+  onNavigate: (id: string) => void;
+  onClose: () => void;
+  title: string;
+  closeLabel: string;
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-[0px_20px_40px_rgba(25,28,30,0.18)] w-full max-w-md flex flex-col max-h-[80vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/60 dark:border-slate-700/40">
+          <h2 className="font-headline font-bold text-slate-900 dark:text-slate-100 text-sm">{title}</h2>
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="p-3 overflow-y-auto">
+          {tree.map((node) => (
+            <FolderTreeNavNode key={node.id} node={node} qrCount={node.qrCount} onNavigate={onNavigate} depth={0} />
+          ))}
+        </div>
+        <div className="px-4 pb-4 pt-2 border-t border-slate-200/60 dark:border-slate-700/40">
+          <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            {closeLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function CodesPage() {
   const { tr } = useLang();
@@ -169,6 +261,11 @@ export default function CodesPage() {
   // Delete-all modal: scope is current folder (subtree) or null (entire org)
   const [deleteAllModal, setDeleteAllModal] = useState<{ scope: FolderWithStats | null } | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
+  // Folder-tree navigation modal
+  const [folderTreeOpen, setFolderTreeOpen] = useState(false);
+  // Departed-creator history modal + lookup map (email → departure metadata)
+  const [departedMap, setDepartedMap] = useState<Record<string, { departedAt: string; name: string; role: string | null }>>({});
+  const [departedModal, setDepartedModal] = useState<QRContact | null>(null);
   const PAGE_SIZE = 12;
 
   // New folder creation
@@ -190,6 +287,26 @@ export default function CodesPage() {
         }).catch(() => {});
         // Load team members for admin/owner filter
         if (profile.role === "admin" || profile.userId === profile.ownerId) {
+          getSupabaseBrowser()
+            .from("org_notifications")
+            .select("metadata, created_at")
+            .eq("owner_id", profile.ownerId)
+            .eq("type", "user_deleted")
+            .order("created_at", { ascending: false })
+            .then(({ data }) => {
+              if (!data) return;
+              const map: Record<string, { departedAt: string; name: string; role: string | null }> = {};
+              data.forEach((n: { metadata: { email?: string; name?: string; role?: string } | null; created_at: string }) => {
+                const email = n.metadata?.email;
+                if (!email || map[email]) return;
+                map[email] = {
+                  departedAt: n.created_at,
+                  name: n.metadata?.name ?? "",
+                  role: n.metadata?.role ?? null,
+                };
+              });
+              setDepartedMap(map);
+            });
           getSupabaseBrowser()
             .from("profiles")
             .select("user_id, email, first_name, last_name")
@@ -257,9 +374,29 @@ export default function CodesPage() {
   const currentFolder = currentFolderId ? findNode(displayTree, currentFolderId) : null;
   const breadcrumb = currentFolderId ? (buildPath(displayTree, currentFolderId) ?? []) : [];
 
-  const visibleFolders = currentFolderId
+  const visibleFoldersAll = currentFolderId
     ? (currentFolder?.children ?? [])
     : displayTree;
+
+  function contactMatchesUserFilter(c: QRContact): boolean {
+    if (filterByUser === "all") return true;
+    if (filterByUser === "__departed__") return c.originalCreatorDeleted === true;
+    return c.createdBy === filterByUser;
+  }
+
+  function folderHasMatchingContacts(node: FolderWithStats): boolean {
+    const idSet = new Set(subtreeIds(node));
+    return contacts.some((c) => {
+      const fid = contactFolders[c.id];
+      return fid && idSet.has(fid) && contactMatchesUserFilter(c);
+    });
+  }
+
+  const visibleFolders = filterByUser === "all"
+    ? visibleFoldersAll
+    : visibleFoldersAll.filter(folderHasMatchingContacts);
+
+  const hasDepartedCards = contacts.some((c) => c.originalCreatorDeleted === true);
 
   function countInFolder(folderId: string): number {
     return Object.values(contactFolders).filter((v) => v === folderId).length;
@@ -324,7 +461,7 @@ export default function CodesPage() {
         statusFilter === "all" ||
         (statusFilter === "active" && c.isActive !== false) ||
         (statusFilter === "paused" && c.isActive === false);
-      const matchesUser = filterByUser === "all" || c.createdBy === filterByUser;
+      const matchesUser = contactMatchesUserFilter(c);
       if (!matchesSearch || !matchesStatus || !matchesUser) return false;
       if (search.trim()) return true;
       if (currentFolderId) return contactFolders[c.id] === currentFolderId;
@@ -652,7 +789,7 @@ export default function CodesPage() {
           <option value="oldest">{tr.sort_oldest}</option>
           <option value="name">{tr.sort_name}</option>
         </select>
-        {isAdmin && teamMembers.length > 1 && (
+        {isAdmin && (teamMembers.length > 1 || hasDepartedCards) && (
           <select
             value={filterByUser}
             onChange={(e) => setFilterByUser(e.target.value)}
@@ -662,6 +799,12 @@ export default function CodesPage() {
             {teamMembers.map((m) => (
               <option key={m.email} value={m.email}>{m.name}</option>
             ))}
+            {hasDepartedCards && (
+              <>
+                <option disabled value="__divider__">{tr.codes_departed_divider}</option>
+                <option value="__departed__">{tr.codes_departed_members}</option>
+              </>
+            )}
           </select>
         )}
         {canCreateFolder && (
@@ -703,7 +846,7 @@ export default function CodesPage() {
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-headline text-xs font-extrabold uppercase tracking-widest text-outline">{tr.codes_folders_section}</h3>
-                <button className="text-primary text-sm font-semibold hover:underline">{tr.codes_view_all_folders}</button>
+                <button onClick={() => setFolderTreeOpen(true)} className="text-primary text-sm font-semibold hover:underline">{tr.codes_view_all_folders}</button>
               </div>
               <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {visibleFolders.map((folder) => {
@@ -875,10 +1018,14 @@ export default function CodesPage() {
                                   <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Created by</span>
                                   <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{memberMap[contact.createdBy] || contact.createdBy}</span>
                                   {contact.originalCreatorDeleted && (
-                                    <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 rounded-full" title="This user deleted their account">
+                                    <button
+                                      onClick={() => setDepartedModal(contact)}
+                                      title={tr.departed_badge_tooltip}
+                                      className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors cursor-pointer"
+                                    >
                                       <span className="material-symbols-outlined text-[10px]">person_off</span>
                                       departed
-                                    </span>
+                                    </button>
                                   )}
                                 </div>
                               )}
@@ -956,10 +1103,14 @@ export default function CodesPage() {
                               <span className="material-symbols-outlined text-xs">person</span>
                               {memberMap[contact.createdBy] || contact.createdBy}
                               {contact.originalCreatorDeleted && (
-                                <span className="ml-1 inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-700 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 rounded-full" title="This user deleted their account">
+                                <button
+                                  onClick={() => setDepartedModal(contact)}
+                                  title={tr.departed_badge_tooltip}
+                                  className="ml-1 inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-700 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors cursor-pointer"
+                                >
                                   <span className="material-symbols-outlined text-[9px]">person_off</span>
                                   departed
-                                </span>
+                                </button>
                               )}
                             </span>
                           )}
@@ -1031,6 +1182,86 @@ export default function CodesPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* ── Departed creator history modal ── */}
+      {departedModal && (() => {
+        const c = departedModal;
+        const email = c.createdBy ?? "";
+        const info = email ? departedMap[email] : undefined;
+        const displayName = info?.name || memberMap[email] || email || tr.departed_modal_unknown;
+        const departedAt = info?.departedAt ? new Date(info.departedAt).toLocaleString("de-DE") : tr.departed_modal_unknown;
+        return (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setDepartedModal(null)}>
+            <div
+              className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-[0px_20px_40px_rgba(25,28,30,0.18)] max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-center w-12 h-12 bg-amber-100 dark:bg-amber-900/20 rounded-full mx-auto mb-4">
+                <span className="material-symbols-outlined text-amber-500">person_off</span>
+              </div>
+              <h2 className="font-headline text-lg font-bold text-slate-900 dark:text-slate-100 text-center mb-2">
+                {tr.departed_modal_title}
+              </h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-5">
+                {tr.departed_modal_subtitle}
+              </p>
+              <div className="space-y-2.5 mb-5">
+                <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+                  <span className="material-symbols-outlined text-slate-400 mt-0.5 text-[20px]">person</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">{tr.departed_modal_creator}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{displayName}</p>
+                    {email && info?.name && <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{email}</p>}
+                  </div>
+                </div>
+                {info?.role && (
+                  <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+                    <span className="material-symbols-outlined text-slate-400 mt-0.5 text-[20px]">badge</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">{tr.departed_modal_role}</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 capitalize">{info.role}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+                  <span className="material-symbols-outlined text-slate-400 mt-0.5 text-[20px]">add_circle</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">{tr.departed_modal_card_created}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{new Date(c.createdAt).toLocaleString("de-DE")}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-900/20">
+                  <span className="material-symbols-outlined text-amber-500 mt-0.5 text-[20px]">person_off</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-amber-700 dark:text-amber-400 uppercase font-bold tracking-wider mb-0.5">{tr.departed_modal_left}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{departedAt}</p>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setDepartedModal(null)}
+                className="w-full py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                {tr.departed_modal_close}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Folder tree navigation modal ── */}
+      {folderTreeOpen && (
+        <FolderTreeModal
+          tree={displayTree}
+          title={tr.codes_view_all_folders}
+          closeLabel={tr.codes_folder_tree_close}
+          onClose={() => setFolderTreeOpen(false)}
+          onNavigate={(id) => {
+            setCurrentFolderId(id);
+            setFolderTreeOpen(false);
+          }}
+        />
       )}
 
       {/* ── Folder picker modal ── */}

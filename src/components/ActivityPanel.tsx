@@ -78,13 +78,23 @@ function timeAgo(ts: string): string {
   return `${d}d ago`;
 }
 
-function describeScan(item: ActivityItem): string {
-  const loc = [item.city, item.country].filter(Boolean).join(", ");
-  const device = item.device_type ? item.device_type.charAt(0).toUpperCase() + item.device_type.slice(1) : "";
-  if (device && loc) return `Scanned on ${device} from ${loc}`;
-  if (loc) return `Scanned from ${loc}`;
-  if (device) return `Scanned on ${device}`;
-  return "Scanned";
+function formatLocation(item: ActivityItem): string {
+  return [item.city, item.country].filter(Boolean).join(", ");
+}
+
+function formatDevice(item: ActivityItem): string {
+  if (!item.device_type) return "";
+  return item.device_type.charAt(0).toUpperCase() + item.device_type.slice(1);
+}
+
+function formatExactTime(ts: string): string {
+  const d = new Date(ts);
+  return d.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function ActivityRow({ item, isNew }: { item: DisplayItem; isNew: boolean }) {
@@ -99,22 +109,24 @@ function ActivityRow({ item, isNew }: { item: DisplayItem; isNew: boolean }) {
     };
     const icon = iconMap[kind] ?? "notifications";
     return (
-      <div className="flex items-start gap-3 px-4 py-4 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 dark:border-amber-500">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-amber-100 dark:bg-amber-800/40 text-amber-700 dark:text-amber-300">
-          <span className="material-symbols-outlined text-[18px]">{icon}</span>
+      <div className="flex items-start gap-3.5 px-5 py-5 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 dark:border-amber-500">
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-amber-100 dark:bg-amber-800/40 text-amber-700 dark:text-amber-300">
+          <span className="material-symbols-outlined text-[22px]">{icon}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <p className="text-sm font-bold text-amber-900 dark:text-amber-100 truncate">{item.message ?? item.qr_label}</p>
-            {isNew && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />}
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-[15px] font-bold text-amber-900 dark:text-amber-100 truncate leading-snug">{item.message ?? item.qr_label}</p>
+            {isNew && <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />}
           </div>
           {kind === "user_deleted" && (
-            <p className="text-xs text-amber-700 dark:text-amber-300/80 truncate mt-0.5">
-              Their QR cards stay with the organisation.
+            <p className="text-xs text-amber-700 dark:text-amber-300/80 leading-relaxed">
+              Their QR cards stay with the organisation under the admin account.
             </p>
           )}
+          <p className="text-[11px] text-amber-600 dark:text-amber-400/70 mt-2 font-medium">
+            {formatExactTime(item.ts)} · {timeAgo(item.ts)}
+          </p>
         </div>
-        <span className="text-[10px] text-amber-600 dark:text-amber-400/70 shrink-0 mt-1">{timeAgo(item.ts)}</span>
       </div>
     );
   }
@@ -134,33 +146,54 @@ function ActivityRow({ item, isNew }: { item: DisplayItem; isNew: boolean }) {
     ? "contact_mail"
     : EVENT_ICONS[item.event_type ?? ""] ?? "touch_app";
 
-  const detail = isScan
-    ? (item.count && item.count > 1 ? `${item.count} scans · ${describeScan(item)}` : describeScan(item))
+  const headline = isScan
+    ? (item.count && item.count > 1 ? `${item.count} scans` : "QR scanned")
     : isLead
-    ? `New lead${item.lead_name ? ` from ${item.lead_name}` : ""}`
+    ? (item.lead_name ? `New lead: ${item.lead_name}` : "New lead")
     : (EVENT_LABELS[item.event_type ?? ""] ?? item.event_type ?? "Interaction");
+
+  const location = formatLocation(item);
+  const device = formatDevice(item);
 
   return (
     <Link
       href={`/dashboard/analytics/${item.qr_id}`}
-      className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-[#1e2130] transition-colors group"
+      className="flex items-start gap-3.5 px-5 py-5 hover:bg-slate-50 dark:hover:bg-[#1e2130] transition-colors group"
     >
       {/* Icon */}
-      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${iconBg}`}>
-        <span className="material-symbols-outlined text-[16px]">{icon}</span>
+      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}>
+        <span className="material-symbols-outlined text-[20px]">{icon}</span>
       </div>
 
-      {/* Text — card name is the headline, event is the detail */}
+      {/* Text — three-line layout: headline, card name, meta */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{item.qr_label}</p>
-          {isNew && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />}
+        <div className="flex items-center gap-2 mb-0.5">
+          <p className="text-[15px] font-bold text-slate-900 dark:text-slate-100 truncate leading-snug">{headline}</p>
+          {isNew && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />}
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{detail}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300 truncate mb-1.5 group-hover:text-blue-600 transition-colors">
+          {item.qr_label}
+        </p>
+        {(location || device) && (
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400 mb-1">
+            {location && (
+              <span className="inline-flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">location_on</span>
+                {location}
+              </span>
+            )}
+            {device && (
+              <span className="inline-flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">{device.toLowerCase() === "mobile" ? "smartphone" : device.toLowerCase() === "tablet" ? "tablet" : "computer"}</span>
+                {device}
+              </span>
+            )}
+          </div>
+        )}
+        <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+          {formatExactTime(item.ts)} · {timeAgo(item.ts)}
+        </p>
       </div>
-
-      {/* Time */}
-      <span className="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 mt-1">{timeAgo(item.ts)}</span>
     </Link>
   );
 }
