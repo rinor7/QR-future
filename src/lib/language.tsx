@@ -250,7 +250,7 @@ export const t = {
     clients_remind_copy_all: "Alle Adressen kopieren",
     clients_remind_copied: "Kopiert!",
     clients_remind_close: "Schliessen",
-    clients_remind_subject_default: "Wir vermissen dich bei QR Platform",
+    clients_remind_subject_default: "Wir vermissen dich bei qr-card.ch",
     clients_remind_body_default: "Hallo,\n\nwir haben bemerkt, dass du {days} Tage lang nicht in QR Platform aktiv warst (zuletzt am {last_active}).\n\nDeine QR Codes warten auf dich — logge dich ein, um neue Scans zu sehen, Inhalte zu aktualisieren oder neue QR Codes zu erstellen.\n\nBei Fragen sind wir gerne für dich da. Einfach auf diese E-Mail antworten.\n\nBis bald!",
     clients_remind_body_never: "Hallo,\n\nwir haben bemerkt, dass du dein Konto bei QR Platform noch nicht aktiv genutzt hast.\n\nMelde dich an und erstelle deinen ersten QR Code — bei Fragen antworte einfach auf diese E-Mail.\n\nBis bald!",
     // Client detail page
@@ -928,7 +928,7 @@ export const t = {
     clients_remind_copy_all: "Copy all addresses",
     clients_remind_copied: "Copied!",
     clients_remind_close: "Close",
-    clients_remind_subject_default: "We miss you at QR Platform",
+    clients_remind_subject_default: "We miss you at qr-card.ch",
     clients_remind_body_default: "Hi,\n\nwe noticed you haven't been active on QR Platform for {days} days (last seen {last_active}).\n\nYour QR codes are waiting for you — sign in to check new scans, update content, or build new codes.\n\nIf anything's in the way, just reply to this email and we'll help.\n\nSee you soon!",
     clients_remind_body_never: "Hi,\n\nwe noticed you haven't used your QR Platform account yet.\n\nSign in and create your first QR code — if anything's in the way, just reply to this email.\n\nSee you soon!",
     // Client detail page
