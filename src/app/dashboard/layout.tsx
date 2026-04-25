@@ -19,6 +19,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const saved = localStorage.getItem("qr-dark-mode") === "true";
     setDarkMode(saved);
     if (saved) document.documentElement.classList.add("dark");
+    // Seed custom domain into localStorage so every QR URL builder picks it up
+    fetch("/api/custom-domain")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.domain && data?.verified) {
+          localStorage.setItem("qr_custom_domain", data.domain);
+        } else {
+          localStorage.removeItem("qr_custom_domain");
+        }
+      })
+      .catch(() => {});
     return () => {
       document.documentElement.classList.remove("dark");
     };

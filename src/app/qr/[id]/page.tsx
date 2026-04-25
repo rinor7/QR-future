@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import QRLandingClient from "./QRLandingClient";
 
@@ -85,5 +86,7 @@ export default async function QRLandingPage({ params }: { params: { id: string }
     qrGradientColor: (row.qr_gradient_color as string) ?? "#2563eb",
   };
 
-  return <QRLandingClient contact={contact} leadCaptureActive={contact.leadCaptureEnabled} supportEmail={supportEmail} />;
+  const isCustomDomain = !!headers().get("x-custom-domain");
+
+  return <QRLandingClient contact={contact} leadCaptureActive={contact.leadCaptureEnabled} supportEmail={supportEmail} isCustomDomain={isCustomDomain} />;
 }
