@@ -11,7 +11,7 @@ import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
-import { getAllFolders, buildTree, assignQrToFolder, createFolder, subtreeIds, type FolderWithStats } from "@/lib/folders";
+import { getAllFolders, buildTree, assignQrToFolder, createFolder, subtreeIds, moveContactsOutOfFolders, clearProfilesFromFolders, deleteFolderSubtree, type FolderWithStats } from "@/lib/folders";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 // ── Folder picker tree (recursive) ───────────────────────────────────────────
@@ -163,6 +163,12 @@ export default function CodesPage() {
   const [togglingFolder, setTogglingFolder] = useState<string | null>(null);
   // Pause confirmation modal: { id, currentlyActive, isFolder, folderNode }
   const [pauseModal, setPauseModal] = useState<{ id: string; currentlyActive: boolean; isFolder: boolean; folderNode?: FolderWithStats } | null>(null);
+  // Delete folder modal
+  const [deleteFolderModal, setDeleteFolderModal] = useState<FolderWithStats | null>(null);
+  const [deletingFolder, setDeletingFolder] = useState(false);
+  // Delete-all modal: scope is current folder (subtree) or null (entire org)
+  const [deleteAllModal, setDeleteAllModal] = useState<{ scope: FolderWithStats | null } | null>(null);
+  const [deletingAll, setDeletingAll] = useState(false);
   const PAGE_SIZE = 12;
 
   // New folder creation
@@ -322,9 +328,7 @@ export default function CodesPage() {
       if (!matchesSearch || !matchesStatus || !matchesUser) return false;
       if (search.trim()) return true;
       if (currentFolderId) return contactFolders[c.id] === currentFolderId;
-      // Admin/owner root: show every card across all folders (flat view)
-      if (isOwner || isAdmin) return true;
-      // Non-admin root: show only unassigned + auto-Root
+      // Root view: show only uncategorized cards (no folder, or in the auto "Root" folder)
       const fid = contactFolders[c.id];
       if (!fid) return true;
       const assignedFolder = findNode(folderTree, fid);
@@ -385,6 +389,86 @@ export default function CodesPage() {
       }));
     } finally {
       setTogglingFolder(null);
+    }
+  }
+
+  function getDeleteAllTargetIds(scope: FolderWithStats | null): string[] {
+    if (!scope) {
+      return contacts.map((c) => c.id);
+    }
+    const idSet = new Set(subtreeIds(scope));
+    return contacts
+      .filter((c) => {
+        const fid = contactFolders[c.id];
+        return fid && idSet.has(fid);
+      })
+      .map((c) => c.id);
+  }
+
+  async function handleDeleteAll(scope: FolderWithStats | null) {
+    setDeletingAll(true);
+    try {
+      const targetIds = getDeleteAllTargetIds(scope);
+      for (const id of targetIds) {
+        await deleteContact(id);
+      }
+      const targetSet = new Set(targetIds);
+      setContacts((prev) => prev.filter((c) => !targetSet.has(c.id)));
+      setContactFolders((prev) => {
+        const next = { ...prev };
+        targetIds.forEach((id) => { delete next[id]; });
+        return next;
+      });
+      setDeleteAllModal(null);
+    } finally {
+      setDeletingAll(false);
+    }
+  }
+
+  async function handleDeleteFolder(node: FolderWithStats, mode: "move" | "delete") {
+    setDeletingFolder(true);
+    try {
+      const ids = subtreeIds(node);
+      const idSet = new Set(ids);
+      const subtreeContactIds = contacts
+        .filter((c) => {
+          const fid = contactFolders[c.id];
+          return fid && idSet.has(fid);
+        })
+        .map((c) => c.id);
+
+      if (mode === "delete") {
+        for (const id of subtreeContactIds) {
+          await deleteContact(id);
+        }
+        setContacts((prev) => prev.filter((c) => !subtreeContactIds.includes(c.id)));
+        setContactFolders((prev) => {
+          const next = { ...prev };
+          subtreeContactIds.forEach((id) => { delete next[id]; });
+          return next;
+        });
+      } else {
+        await moveContactsOutOfFolders(ids, orgId);
+        setContactFolders((prev) => {
+          const next = { ...prev };
+          subtreeContactIds.forEach((id) => { next[id] = null; });
+          return next;
+        });
+      }
+
+      await clearProfilesFromFolders(ids);
+      await deleteFolderSubtree(node);
+
+      const updated = await getAllFolders(orgId);
+      setFolderTree(buildTree(updated));
+
+      // If we were inside the deleted folder (or one of its descendants), navigate out
+      if (currentFolderId && idSet.has(currentFolderId)) {
+        setCurrentFolderId(node.parent_id);
+      }
+      setDeleteFolderModal(null);
+    } finally {
+      setDeletingFolder(false);
     }
   }
 
@@ -652,17 +736,28 @@ export default function CodesPage() {
                       {(() => {
                         const folderHasActive = isFolderActive(folder);
                         return (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setPauseModal({ id: folder.id, currentlyActive: folderHasActive, isFolder: true, folderNode: folder }); }}
-                            disabled={togglingFolder === folder.id}
-                            title={folderHasActive ? tr.codes_pause_folder : tr.codes_activate_folder}
-                            className={`absolute top-2 right-2 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg transition-all disabled:opacity-30 hover:bg-white/20 ${folderHasActive ? "text-white" : "text-green-200"}`}
-                          >
-                            {togglingFolder === folder.id
-                              ? <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
-                              : <span className="material-symbols-outlined text-[16px]">{folderHasActive ? "pause_circle" : "play_circle"}</span>
-                            }
-                          </button>
+                          <>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setPauseModal({ id: folder.id, currentlyActive: folderHasActive, isFolder: true, folderNode: folder }); }}
+                              disabled={togglingFolder === folder.id}
+                              title={folderHasActive ? tr.codes_pause_folder : tr.codes_activate_folder}
+                              className={`absolute top-2 right-10 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg transition-all disabled:opacity-30 hover:bg-white/20 ${folderHasActive ? "text-white" : "text-green-200"}`}
+                            >
+                              {togglingFolder === folder.id
+                                ? <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+                                : <span className="material-symbols-outlined text-[16px]">{folderHasActive ? "pause_circle" : "play_circle"}</span>
+                              }
+                            </button>
+                            {(isAdmin || isOwner) && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setDeleteFolderModal(folder); }}
+                                title={tr.codes_delete_folder}
+                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg transition-all text-white hover:bg-white/20"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                              </button>
+                            )}
+                          </>
                         );
                       })()}
                     </div>
@@ -690,7 +785,17 @@ export default function CodesPage() {
               <h3 className="font-headline text-xs font-extrabold uppercase tracking-widest text-outline">
                 {currentFolder ? `${tr.codes_qrs_in_folder_prefix} ${currentFolder.name.toUpperCase()}` : tr.codes_recent_section}
               </h3>
-              <div className="flex gap-1">
+              <div className="flex items-center gap-1">
+                {(isAdmin || isOwner) && getDeleteAllTargetIds(currentFolder).length > 0 && (
+                  <button
+                    onClick={() => setDeleteAllModal({ scope: currentFolder })}
+                    title={tr.codes_delete_all_btn}
+                    className="flex items-center gap-1.5 px-3 h-10 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-xs font-bold mr-2"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
+                    <span className="hidden sm:inline">{tr.codes_delete_all_btn}</span>
+                  </button>
+                )}
                 <button
                   onClick={() => setViewMode("grid")}
                   className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-gray-200 dark:bg-[#2a2e3e] text-blue-600" : "text-slate-400 hover:bg-gray-100 dark:hover:bg-[#242736]"}`}
@@ -954,17 +1059,15 @@ export default function CodesPage() {
             </div>
             <h2 className="font-bold text-lg text-slate-900 dark:text-slate-100 text-center mb-2">
               {pauseModal.currentlyActive
-                ? (pauseModal.isFolder ? "Pause entire folder?" : "Pause this QR Code?")
-                : (pauseModal.isFolder ? "Activate entire folder?" : "Activate this QR Code?")}
+                ? (pauseModal.isFolder ? tr.pause_modal_pause_folder : tr.pause_modal_pause_qr)
+                : (pauseModal.isFolder ? tr.pause_modal_activate_folder : tr.pause_modal_activate_qr)}
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-2">
-              {pauseModal.currentlyActive
-                ? "Anyone who scans this QR code will be redirected to the homepage instead of your contact page."
-                : "The QR code will become active again and visitors will see your contact page."}
+              {pauseModal.currentlyActive ? tr.pause_modal_pause_body : tr.pause_modal_activate_body}
             </p>
             {pauseModal.currentlyActive && (
               <p className="text-xs text-amber-600 dark:text-amber-400 text-center bg-amber-50 dark:bg-amber-900/20 rounded-xl px-3 py-2 mb-4">
-                Paused QR codes redirect to <span className="font-semibold">qr-card.ch</span>
+                {tr.pause_modal_redirect_note_prefix} <span className="font-semibold">qr-card.ch</span>
               </p>
             )}
             <div className="flex gap-3 mt-4">
@@ -972,7 +1075,7 @@ export default function CodesPage() {
                 onClick={() => setPauseModal(null)}
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
-                Cancel
+                {tr.pause_modal_cancel}
               </button>
               <button
                 onClick={() => {
@@ -984,9 +1087,70 @@ export default function CodesPage() {
                 }}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors ${pauseModal.currentlyActive ? "bg-amber-500 hover:bg-amber-600" : "bg-green-500 hover:bg-green-600"}`}
               >
-                {pauseModal.currentlyActive ? "Yes, Pause" : "Yes, Activate"}
+                {pauseModal.currentlyActive ? tr.pause_modal_confirm_pause : tr.pause_modal_confirm_activate}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete folder modal ── */}
+      {deleteFolderModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-[0px_20px_40px_rgba(25,28,30,0.18)] max-w-md w-full p-6">
+            <div className="flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full mx-auto mb-4">
+              <span className="material-symbols-outlined text-red-500">folder_delete</span>
+            </div>
+            <h2 className="font-headline text-lg font-bold text-slate-900 dark:text-slate-100 text-center mb-1">
+              {tr.codes_delete_folder_title}
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-1">
+              {deleteFolderModal.name}
+            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-5">
+              {tr.codes_delete_folder_subtitle}
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                disabled={deletingFolder}
+                onClick={() => handleDeleteFolder(deleteFolderModal, "move")}
+                className="text-left px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary hover:bg-blue-50/40 dark:hover:bg-blue-900/10 transition-colors disabled:opacity-50"
+              >
+                <div className="flex items-center gap-2 font-semibold text-sm text-slate-900 dark:text-slate-100">
+                  <span className="material-symbols-outlined text-base text-primary">drive_file_move</span>
+                  {tr.codes_delete_folder_move}
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  {tr.codes_delete_folder_move_desc}
+                </p>
+              </button>
+              <button
+                disabled={deletingFolder}
+                onClick={() => handleDeleteFolder(deleteFolderModal, "delete")}
+                className="text-left px-4 py-3 rounded-xl border border-red-200 dark:border-red-900/40 hover:border-red-500 hover:bg-red-50/60 dark:hover:bg-red-900/10 transition-colors disabled:opacity-50"
+              >
+                <div className="flex items-center gap-2 font-semibold text-sm text-red-600 dark:text-red-400">
+                  <span className="material-symbols-outlined text-base">delete_forever</span>
+                  {tr.codes_delete_folder_purge}
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  {tr.codes_delete_folder_purge_desc}
+                </p>
+              </button>
+              <button
+                disabled={deletingFolder}
+                onClick={() => setDeleteFolderModal(null)}
+                className="py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+              >
+                {tr.codes_delete_folder_cancel}
+              </button>
+            </div>
+            {deletingFolder && (
+              <div className="flex items-center justify-center gap-2 text-xs text-slate-500 mt-3">
+                <span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                ...
+              </div>
+            )}
           </div>
         </div>
       )}

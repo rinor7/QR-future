@@ -101,6 +101,36 @@ export async function deleteFolderRpc(folderId: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+export async function moveContactsOutOfFolders(folderIds: string[], organizationId: string): Promise<void> {
+  if (folderIds.length === 0) return;
+  const supabase = getSupabaseBrowser();
+  const { error } = await supabase
+    .from("contacts")
+    .update({ folder_id: null, updated_at: new Date().toISOString() })
+    .eq("user_id", organizationId)
+    .in("folder_id", folderIds);
+  if (error) throw new Error(error.message);
+}
+
+export async function clearProfilesFromFolders(folderIds: string[]): Promise<void> {
+  if (folderIds.length === 0) return;
+  const supabase = getSupabaseBrowser();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ folder_id: null })
+    .in("folder_id", folderIds);
+  if (error) throw new Error(error.message);
+}
+
+// Recursively delete a folder subtree bottom-up (deepest first).
+// Caller must have already cleared QR + profile assignments.
+export async function deleteFolderSubtree(node: FolderWithStats): Promise<void> {
+  for (const child of node.children) {
+    await deleteFolderSubtree(child);
+  }
+  await deleteFolderRpc(node.id);
+}
+
 export async function moveFolderRpc(
   folderId: string,
   newParentId: string | null
