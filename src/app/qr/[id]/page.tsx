@@ -87,7 +87,14 @@ export default async function QRLandingPage({ params }: { params: { id: string }
     qrGradientColor: (row.qr_gradient_color as string) ?? "#2563eb",
   };
 
-  const isCustomDomain = !!headers().get("x-custom-domain");
+  const host = headers().get("host")?.split(":")[0] ?? "";
+  const OWN_HOSTS = new Set([
+    "localhost",
+    "qr-card.ch",
+    "www.qr-card.ch",
+    ...(process.env.NEXT_PUBLIC_APP_URL ? [new URL(process.env.NEXT_PUBLIC_APP_URL).hostname] : []),
+  ]);
+  const isCustomDomain = !!host && !OWN_HOSTS.has(host) && !host.endsWith(".vercel.app");
 
   return <QRLandingClient contact={contact} leadCaptureActive={contact.leadCaptureEnabled} supportEmail={supportEmail} isCustomDomain={isCustomDomain} />;
 }

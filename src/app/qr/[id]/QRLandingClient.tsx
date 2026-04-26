@@ -221,8 +221,8 @@ export default function QRLandingClient({ contact, leadCaptureActive = false, su
       contact.company ? `ORG:${contact.company}` : "",
       ...(contact.phones?.length ? contact.phones.filter((p) => p.number).map((p) => `TEL;TYPE=CELL:${p.number}`) : contact.phone ? [`TEL;TYPE=CELL:${contact.phone}`] : []),
       ...(contact.emails?.length ? contact.emails.filter((e) => e.email).map((e) => `EMAIL:${e.email}`) : contact.email ? [`EMAIL:${contact.email}`] : []),
-      contact.website ? `URL:${contact.website}` : "",
-      (contact.street || contact.city) ? `ADR:;;${contact.street} ${contact.streetNr};${contact.city};;${contact.plz};Switzerland` : "",
+      ...(contact.websites?.length ? contact.websites.filter((w) => w.url).map((w) => `URL:${normalizeUrl(w.url)}`) : contact.website && !contact.website.startsWith("[") ? [`URL:${contact.website}`] : []),
+      (contact.street || contact.city) ? `ADR:;;${contact.street} ${contact.streetNr};${contact.city};;${contact.plz};${contact.country || ""}` : "",
       "END:VCARD",
     ]
       .filter(Boolean)
