@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import ActivityPanel from "@/components/ActivityPanel";
 import { getUserProfile } from "@/lib/store";
+import { QRUrlProvider } from "@/lib/qr-url";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -19,17 +20,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const saved = localStorage.getItem("qr-dark-mode") === "true";
     setDarkMode(saved);
     if (saved) document.documentElement.classList.add("dark");
-    // Seed custom domain into localStorage so every QR URL builder picks it up
-    fetch("/api/custom-domain")
-      .then((r) => r.ok ? r.json() : null)
-      .then((data) => {
-        if (data?.domain && data?.verified) {
-          localStorage.setItem("qr_custom_domain", data.domain);
-        } else {
-          localStorage.removeItem("qr_custom_domain");
-        }
-      })
-      .catch(() => {});
     return () => {
       document.documentElement.classList.remove("dark");
     };
@@ -44,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <>
+    <QRUrlProvider>
       {/* Platform Owner banner — makes it obvious which account is active */}
       {isPlatformAdmin && (
         <div className="sticky top-0 z-[60] w-full px-4 py-1.5 text-center text-[11px] font-bold tracking-wider uppercase text-white shadow-sm"
@@ -120,6 +110,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onClose={() => setActivityOpen(false)}
         onUnreadChange={setActivityCount}
       />
-    </>
+    </QRUrlProvider>
   );
 }

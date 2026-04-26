@@ -26,11 +26,11 @@ async function getPlanConfigs() {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
-    const { data } = await supabase.from("plan_config").select("plan, price, features");
+    const { data } = await supabase.from("plan_config").select("plan, price, features, features_en");
     if (!data) return null;
     return PLAN_ORDER
       .map((p) => data.find((d) => d.plan === p))
-      .filter(Boolean) as { plan: string; price: number; features: string[] }[];
+      .filter(Boolean) as { plan: string; price: number; features: string[]; features_en: string[] }[];
   } catch {
     return null;
   }

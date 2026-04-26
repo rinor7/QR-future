@@ -13,7 +13,7 @@ import { useLang } from "@/lib/language";
 import { useRole } from "@/lib/useRole";
 import { getAllFolders, buildTree, assignQrToFolder, createFolder, subtreeIds, moveContactsOutOfFolders, clearProfilesFromFolders, deleteFolderSubtree, type FolderWithStats } from "@/lib/folders";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
-import { getQRUrl } from "@/lib/qr-url";
+import { useQRUrl } from "@/lib/qr-url";
 
 // ── Folder picker tree (recursive) ───────────────────────────────────────────
 function FolderPickerNode({
@@ -264,6 +264,7 @@ function FolderTreeModal({
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function CodesPage() {
   const { tr } = useLang();
+  const buildQRUrl = useQRUrl();
   const { isAdmin } = useRole();
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1198,10 +1199,10 @@ export default function CodesPage() {
                             <Link href={`/dashboard/analytics/${contact.id}`} title="Analytics" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
                               <span className="material-symbols-outlined text-[17px]">analytics</span>
                             </Link>
-                            <button onClick={() => { navigator.clipboard.writeText(getQRUrl(contact.id)); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <button onClick={() => { navigator.clipboard.writeText(buildQRUrl(contact.id)); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                               <span className="material-symbols-outlined text-[17px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
                             </button>
-                            <a href={getQRUrl(contact.id)} target="_blank" title="Open page" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <a href={buildQRUrl(contact.id)} target="_blank" title="Open page" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                               <span className="material-symbols-outlined text-[17px]">open_in_new</span>
                             </a>
                             <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
@@ -1222,7 +1223,7 @@ export default function CodesPage() {
                         {/* Right QR panel — dark */}
                         <div className="w-[130px] shrink-0 flex items-center justify-center p-4" style={{ background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)" }}>
                           <div id={`qr-${contact.id}`} className="p-2 bg-white rounded-lg shadow-lg group-hover:scale-105 transition-transform duration-300">
-                            <QRCodeDisplay value={getQRUrl(contact.id)} size={90} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
+                            <QRCodeDisplay value={buildQRUrl(contact.id)} size={90} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
                           </div>
                         </div>
                       </div>
@@ -1237,7 +1238,7 @@ export default function CodesPage() {
                       >
                         {/* QR thumb */}
                         <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 flex items-center justify-center p-1 bg-slate-900">
-                          <QRCodeDisplay value={getQRUrl(contact.id)} size={40} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
+                          <QRCodeDisplay value={buildQRUrl(contact.id)} size={40} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
                         </div>
                         {/* Name + meta */}
                         <div className="flex-1 min-w-0">
@@ -1283,7 +1284,7 @@ export default function CodesPage() {
                           <Link href={`/dashboard/analytics/${contact.id}`} title="Analytics" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-purple-600 hover:bg-purple-50 transition-colors">
                             <span className="material-symbols-outlined text-[17px]">analytics</span>
                           </Link>
-                          <button onClick={() => { navigator.clipboard.writeText(getQRUrl(contact.id)); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
+                          <button onClick={() => { navigator.clipboard.writeText(buildQRUrl(contact.id)); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
                             <span className="material-symbols-outlined text-[17px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
                           </button>
                           <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
@@ -1452,7 +1453,9 @@ export default function CodesPage() {
                 : (pauseModal.isFolder ? tr.pause_modal_activate_folder : tr.pause_modal_activate_qr)}
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-2">
-              {pauseModal.currentlyActive ? tr.pause_modal_pause_body : tr.pause_modal_activate_body}
+              {pauseModal.currentlyActive
+                ? (pauseModal.isFolder ? tr.pause_modal_pause_body_folder : tr.pause_modal_pause_body)
+                : (pauseModal.isFolder ? tr.pause_modal_activate_body_folder : tr.pause_modal_activate_body)}
             </p>
             {pauseModal.currentlyActive && (
               <p className="text-xs text-amber-600 dark:text-amber-400 text-center bg-amber-50 dark:bg-amber-900/20 rounded-xl px-3 py-2 mb-4">

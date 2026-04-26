@@ -8,7 +8,7 @@ import { getAllContacts, deleteContact, getUserProfile } from "@/lib/store";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
-import { getQRUrl } from "@/lib/qr-url";
+import { useQRUrl } from "@/lib/qr-url";
 
 const EVENT_ICONS: Record<string, string> = {
   click_phone: "call", click_email: "mail", click_website: "language",
@@ -31,6 +31,7 @@ interface StatsData {
 
 export default function DashboardPage() {
   const { tr } = useLang();
+  const buildQRUrl = useQRUrl();
   const router = useRouter();
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -270,7 +271,7 @@ export default function DashboardPage() {
               {recentContacts.map((contact) => (
                 <Link key={contact.id} href={`/dashboard/edit/${contact.id}`} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors">
                   <div className="w-14 h-14 bg-white dark:bg-white border border-slate-200 rounded-xl shrink-0 flex items-center justify-center p-1">
-                    <QRCodeDisplay value={getQRUrl(contact.id)} size={48} />
+                    <QRCodeDisplay value={buildQRUrl(contact.id)} size={48} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{`${contact.firstName} ${contact.lastName}`.trim() || "—"}</p>

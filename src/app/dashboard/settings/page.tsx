@@ -9,6 +9,7 @@ import { Plan, PLAN_LABELS, PLAN_LIMITS } from "@/lib/types";
 import { useLang } from "@/lib/language";
 import TemplateEditorModal, { QRTemplate } from "@/components/TemplateEditorModal";
 import QRCode from "react-qr-code";
+import { setCustomDomain as broadcastCustomDomain } from "@/lib/qr-url";
 
 export default function SettingsPage() {
   const { tr, lang, toggleLang } = useLang();
@@ -241,9 +242,9 @@ export default function SettingsPage() {
       setCustomDomain(data.domain ?? null);
       setCustomDomainVerified(!!data.verified);
       if (data.domain && data.verified) {
-        localStorage.setItem("qr_custom_domain", data.domain);
+        broadcastCustomDomain(data.domain);
       } else {
-        localStorage.removeItem("qr_custom_domain");
+        broadcastCustomDomain(null);
       }
     } catch {
       // ignore
@@ -323,7 +324,7 @@ export default function SettingsPage() {
       });
       setCustomDomain(null);
       setCustomDomainVerified(false);
-      localStorage.removeItem("qr_custom_domain");
+      broadcastCustomDomain(null);
     } catch {
       setCustomDomainError("Failed to remove domain");
     }
@@ -1019,23 +1020,33 @@ export default function SettingsPage() {
         {/* Branding / White Label (owner or admin only, not platform admin) */}
         {(isOwner || userRole === "admin") && !isPlatformAdmin && (
           <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
-            <div className="flex items-center gap-4 mb-8">
+            <div className="flex items-center gap-4 mb-6">
               <div className="bg-purple-500/10 p-3 rounded-xl text-purple-600">
                 <span className="material-symbols-outlined">style</span>
               </div>
               <div>
                 <h3 className="text-2xl font-bold font-headline">Branding</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">White-label the platform and set up your custom domain</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Make this dashboard and your QR card links look like your own brand</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            {/* What Branding does */}
+            <div className="rounded-xl bg-slate-50 dark:bg-[#1e2130] border border-slate-200 dark:border-slate-700/50 p-4 mb-8 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Two settings live here:
+              <ul className="mt-2 space-y-1.5 list-disc pl-5">
+                <li><span className="font-semibold text-slate-900 dark:text-slate-100">White Label</span> changes how this dashboard looks for your team — name, logo, accent color in the sidebar.</li>
+                <li><span className="font-semibold text-slate-900 dark:text-slate-100">Custom Domain</span> changes the URL printed on every QR card so customers see <span className="font-mono">card.yourcompany.com</span> instead of <span className="font-mono">qr-card.ch</span>.</li>
+              </ul>
+            </div>
+
+            <div className="space-y-10">
               {/* White Label */}
               <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-5">
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-2">
                   <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">palette</span>
                   White Label
                 </h4>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">Replaces the qr-card.ch name and logo in the sidebar — only your team sees this. Customers scanning QR codes are not affected.</p>
                 <form onSubmit={handleSaveBranding} className="space-y-4">
                   <div className="space-y-2">
                     <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Brand Name</label>
@@ -1085,18 +1096,22 @@ export default function SettingsPage() {
                 </form>
               </div>
 
-              {/* Custom Domain */}
-              <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-5">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">domain</span>
-                  Custom Domain
-                </h4>
+              {/* Custom Domain — visually emphasized */}
+              <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/60 to-white dark:from-blue-900/10 dark:to-[#1a1d27] p-6">
+                <div className="flex items-start gap-4 mb-5">
+                  <div className="w-10 h-10 shrink-0 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-200 dark:shadow-blue-900/40">
+                    <span className="material-symbols-outlined text-[20px]">domain</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-slate-900 dark:text-slate-100 text-lg">Custom Domain</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                      Serve every QR card from <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">card.yourcompany.com</span> instead of <span className="font-mono">qr-card.ch</span>. Customers see your brand in the URL — and existing QR codes update automatically. No reprinting needed.
+                    </p>
+                  </div>
+                </div>
 
                 {!customDomain ? (
                   <form onSubmit={handleSaveCustomDomain} className="space-y-4">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Serve your QR cards from your own domain (e.g. <span className="font-mono text-slate-700 dark:text-slate-300">card.yourcompany.com</span>) instead of the default URL.
-                    </p>
                     <div className="space-y-2">
                       <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your domain</label>
                       <input
@@ -1104,7 +1119,7 @@ export default function SettingsPage() {
                         value={customDomainInput}
                         onChange={(e) => setCustomDomainInput(e.target.value)}
                         placeholder="card.yourcompany.com"
-                        className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 font-mono"
+                        className="w-full bg-white dark:bg-[#242736] border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 font-mono"
                       />
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         We recommend a subdomain like <span className="font-mono">card.</span> or <span className="font-mono">qr.</span> — this won&apos;t affect your main website.

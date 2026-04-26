@@ -26,7 +26,8 @@ const PLAN_BADGES: Record<Plan, string> = {
 interface PlanConfig {
   plan: Plan;
   price: number;
-  features: string[];
+  features: string[];     // German
+  features_en: string[];  // English
 }
 
 export default function PlanSettingsPage() {
@@ -48,8 +49,11 @@ export default function PlanSettingsPage() {
       .then((r) => r.json())
       .then(({ plans }) => {
         if (plans) {
-          // Enforce max features on load
-          setConfigs(plans.map((p: PlanConfig) => ({ ...p, features: p.features.slice(0, MAX_FEATURES) })));
+          setConfigs(plans.map((p: PlanConfig) => ({
+            ...p,
+            features: (p.features ?? []).slice(0, MAX_FEATURES),
+            features_en: (p.features_en ?? p.features ?? []).slice(0, MAX_FEATURES),
+          })));
         }
       })
       .finally(() => setLoading(false));
@@ -57,7 +61,7 @@ export default function PlanSettingsPage() {
 
   function startEdit(config: PlanConfig) {
     setEditing(config.plan);
-    setDraft({ ...config, features: [...config.features] });
+    setDraft({ ...config, features: [...config.features], features_en: [...config.features_en] });
   }
 
   function cancelEdit() {
@@ -70,21 +74,28 @@ export default function PlanSettingsPage() {
     setDraft({ ...draft, price: parseFloat(value) || 0 });
   }
 
-  function setDraftFeature(index: number, value: string) {
+  function setDraftFeature(lang: "de" | "en", index: number, value: string) {
     if (!draft) return;
-    const features = [...draft.features];
-    features[index] = value;
-    setDraft({ ...draft, features });
+    const key = lang === "de" ? "features" : "features_en";
+    const next = [...draft[key]];
+    next[index] = value;
+    setDraft({ ...draft, [key]: next });
   }
 
   function addDraftFeature() {
-    if (!draft || draft.features.length >= MAX_FEATURES) return;
-    setDraft({ ...draft, features: [...draft.features, ""] });
+    if (!draft) return;
+    const len = Math.max(draft.features.length, draft.features_en.length);
+    if (len >= MAX_FEATURES) return;
+    setDraft({ ...draft, features: [...draft.features, ""], features_en: [...draft.features_en, ""] });
   }
 
   function removeDraftFeature(index: number) {
     if (!draft) return;
-    setDraft({ ...draft, features: draft.features.filter((_, i) => i !== index) });
+    setDraft({
+      ...draft,
+      features: draft.features.filter((_, i) => i !== index),
+      features_en: draft.features_en.filter((_, i) => i !== index),
+    });
   }
 
   function requestSave() {
@@ -102,12 +113,14 @@ export default function PlanSettingsPage() {
     if (!draft) return;
     setStripeWarning(false);
     setSaving(true);
+    const features = draft.features.filter(Boolean);
+    const features_en = draft.features_en.filter(Boolean);
     await fetch("/api/admin/plan-config", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: draft.plan, price: draft.price, features: draft.features.filter(Boolean) }),
+      body: JSON.stringify({ plan: draft.plan, price: draft.price, features, features_en }),
     });
-    setConfigs((prev) => prev.map((c) => c.plan === draft.plan ? { ...draft, features: draft.features.filter(Boolean) } : c));
+    setConfigs((prev) => prev.map((c) => c.plan === draft.plan ? { ...draft, features, features_en } : c));
     setSaving(false);
     setSaved(draft.plan);
     setEditing(null);
@@ -191,22 +204,37 @@ export default function PlanSettingsPage() {
                 <div className="space-y-2">
                   {isEditing ? (
                     <>
-                      {(draft?.features ?? []).map((f, i) => (
-                        <div key={i} className="flex items-center gap-1.5">
-                          <Check className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                          <input
-                            type="text"
-                            value={f}
-                            onChange={(e) => setDraftFeature(i, e.target.value)}
-                            placeholder={tr.plan_settings_feature_placeholder}
-                            className="flex-1 text-xs bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-[#242736] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                          <button onClick={() => removeDraftFeature(i)} className="text-gray-300 hover:text-red-400 transition-colors">
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+                      {Array.from({ length: Math.max(draft?.features.length ?? 0, draft?.features_en.length ?? 0) }).map((_, i) => (
+                        <div key={i} className="space-y-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[9px] font-bold text-gray-400 w-5">DE</span>
+                            <Check className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                            <input
+                              type="text"
+                              value={draft?.features[i] ?? ""}
+                              onChange={(e) => setDraftFeature("de", i, e.target.value)}
+                              placeholder="z.B. Unbegrenzte QR Codes"
+                              className="flex-1 text-xs bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-[#242736] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <button onClick={() => removeDraftFeature(i)} className="text-gray-300 hover:text-red-400 transition-colors">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[9px] font-bold text-gray-400 w-5">EN</span>
+                            <Check className="w-3.5 h-3.5 text-green-500 shrink-0 opacity-0" />
+                            <input
+                              type="text"
+                              value={draft?.features_en[i] ?? ""}
+                              onChange={(e) => setDraftFeature("en", i, e.target.value)}
+                              placeholder="e.g. Unlimited QR codes"
+                              className="flex-1 text-xs bg-white dark:bg-[#1a1d27] border border-gray-200 dark:border-[#242736] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <span className="w-3.5 h-3.5" />
+                          </div>
                         </div>
                       ))}
-                      {(draft?.features.length ?? 0) < MAX_FEATURES && (
+                      {Math.max(draft?.features.length ?? 0, draft?.features_en.length ?? 0) < MAX_FEATURES && (
                         <button
                           onClick={addDraftFeature}
                           className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 transition-colors mt-1"

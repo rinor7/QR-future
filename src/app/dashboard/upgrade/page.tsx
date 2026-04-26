@@ -23,7 +23,7 @@ const PLAN_META: Record<Plan, PlanMeta> = {
   platinum: { priceId: "price_1TBkPb1MPl7fNPWeD7FeszuB",  gradient: "linear-gradient(135deg, #6b21a8 0%, #9333ea 100%)", badgeBg: "rgba(107,33,168,0.1)",  badgeText: "#6b21a8", accentColor: "#9333ea" },
 };
 
-interface PlanConfig { plan: Plan; price: number; features: string[]; }
+interface PlanConfig { plan: Plan; price: number; features: string[]; features_en: string[]; }
 
 const COMPARE_ROWS = [
   { label: "Dynamic QR Lifetime", sub: "Edit destination URLs anytime", free: false, star: true, premium: true, platinum: true },
@@ -33,7 +33,7 @@ const COMPARE_ROWS = [
 
 export default function UpgradePage() {
   const router = useRouter();
-  const { tr } = useLang();
+  const { tr, lang } = useLang();
   const [currentPlan, setCurrentPlan] = useState<Plan>("free");
   const [loading, setLoading] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -179,7 +179,10 @@ export default function UpgradePage() {
                 </div>
               </div>
               <ul className="space-y-4 mb-10 flex-1">
-                {(config.features.length > 0 ? config.features : [tr.upgrade_no_expiry]).map((f, i) => (
+                {(() => {
+                  const localized = lang === "en" ? (config.features_en?.length ? config.features_en : config.features) : (config.features?.length ? config.features : config.features_en);
+                  return (localized && localized.length > 0 ? localized : [tr.upgrade_no_expiry]);
+                })().map((f, i) => (
                   <li key={i} className={`flex items-center gap-3 text-sm ${isCurrent ? "font-semibold text-slate-900 dark:text-slate-100" : "text-slate-500 dark:text-slate-400"}`}>
                     <span className="material-symbols-outlined text-blue-600 text-lg" style={isCurrent ? { fontVariationSettings: "'FILL' 1" } : {}}>check_circle</span>
                     <span>{f}</span>

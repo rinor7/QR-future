@@ -36,6 +36,7 @@ import { getUserProfile } from "@/lib/store";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
+import { useQRUrl } from "@/lib/qr-url";
 
 const FOLDER_TYPES: FolderType[] = [
   "company", "subsidiary", "location", "department", "team", "custom",
@@ -370,18 +371,17 @@ function FolderNode({
 // ── QR code row in folder panel ───────────────────────────────────────────────
 function FolderQRItem({
   contact,
-  baseUrl,
   allFolders,
   currentFolderId,
   onMoved,
 }: {
   contact: { id: string; name: string; company: string; logo_url: string };
-  baseUrl: string;
   allFolders: FolderWithStats[];
   currentFolderId: string;
   onMoved: () => void;
 }) {
   const { tr } = useLang();
+  const buildQRUrl = useQRUrl();
   const [moving, setMoving] = useState(false);
   const [showMove, setShowMove] = useState(false);
 
@@ -406,7 +406,7 @@ function FolderQRItem({
     }
   }
 
-  const qrUrl = `${baseUrl}/qr/${contact.id}`;
+  const qrUrl = buildQRUrl(contact.id);
 
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 group transition-colors">
@@ -465,11 +465,6 @@ export default function FoldersPage() {
   // QR codes for the selected folder
   const [folderContacts, setFolderContacts] = useState<{ id: string; name: string; company: string; logo_url: string }[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
-  const [baseUrl, setBaseUrl] = useState("");
-
-  useEffect(() => {
-    setBaseUrl(window.location.origin);
-  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -637,7 +632,6 @@ export default function FoldersPage() {
                       <FolderQRItem
                         key={c.id}
                         contact={c}
-                        baseUrl={baseUrl}
                         allFolders={tree}
                         currentFolderId={selectedId!}
                         onMoved={() => {

@@ -13,13 +13,16 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("plan_config")
-    .select("plan, price, features")
+    .select("plan, price, features, features_en")
     .order("plan");
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Return sorted by defined order
-  const sorted = PLAN_ORDER.map((p) => data?.find((r) => r.plan === p)).filter(Boolean);
+  // Return sorted by defined order; default features_en to features (existing data)
+  const sorted = PLAN_ORDER
+    .map((p) => data?.find((r) => r.plan === p))
+    .filter(Boolean)
+    .map((r) => ({ ...r, features_en: r!.features_en ?? r!.features ?? [] }));
   return NextResponse.json({ plans: sorted });
 }
 
@@ -49,7 +52,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { plan, price, features } = await req.json();
+  const { plan, price, features, features_en } = await req.json();
 
   if (!PLAN_ORDER.includes(plan)) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
@@ -57,7 +60,7 @@ export async function POST(req: NextRequest) {
 
   const { error } = await supabase
     .from("plan_config")
-    .upsert({ plan, price, features }, { onConflict: "plan" });
+    .upsert({ plan, price, features, features_en }, { onConflict: "plan" });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });

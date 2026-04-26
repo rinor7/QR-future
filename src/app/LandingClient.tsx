@@ -19,7 +19,7 @@ export default function LandingClient({
   plans,
   stats,
 }: {
-  plans: { plan: string; price: number; features: string[] }[] | null;
+  plans: { plan: string; price: number; features: string[]; features_en: string[] }[] | null;
   stats: { codes: number; scans: number; users: number } | null;
 }) {
   const { lang, tr, toggleLang } = useLang();
@@ -250,17 +250,23 @@ export default function LandingClient({
                     <span className="text-gray-400 text-sm">{tr.home_pricing_per_month}</span>
                   </div>
                   <ul className="space-y-2 mb-6 flex-1">
-                    {plan.features.length > 0 ? plan.features.map((f, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        {f}
-                      </li>
-                    )) : (
-                      <li className="flex items-center gap-2 text-sm text-gray-600">
-                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        {tr.home_pricing_no_expiry}
-                      </li>
-                    )}
+                    {(() => {
+                      const localized = lang === "en" ? (plan.features_en?.length ? plan.features_en : plan.features) : (plan.features?.length ? plan.features : plan.features_en);
+                      if (!localized || localized.length === 0) {
+                        return (
+                          <li className="flex items-center gap-2 text-sm text-gray-600">
+                            <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                            {tr.home_pricing_no_expiry}
+                          </li>
+                        );
+                      }
+                      return localized.map((f, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                          <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                          {f}
+                        </li>
+                      ));
+                    })()}
                   </ul>
                   <Link
                     href="/register"

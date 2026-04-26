@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { UserPlus, Mail, MessageSquare, Calendar, Search, Download, X, ExternalLink, Pencil, BarChart2, QrCode } from "lucide-react";
+import { UserPlus, Mail, MessageSquare, Calendar, Search, Download, X, ExternalLink, Pencil, BarChart2, QrCode, MapPin, Monitor } from "lucide-react";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { getUserProfile } from "@/lib/store";
 import { useLang } from "@/lib/language";
-import { getQRUrl } from "@/lib/qr-url";
+import { useQRUrl } from "@/lib/qr-url";
 
 type Lead = {
   id: string;
@@ -20,6 +20,10 @@ type Lead = {
   qr_label: string | null;
   contact_name: string | null;
   created_by: string | null;
+  country: string | null;
+  city: string | null;
+  device_type: string | null;
+  os: string | null;
 };
 
 type PreviewCard = {
@@ -30,7 +34,8 @@ type PreviewCard = {
 
 function QRPreviewModal({ card, onClose }: { card: PreviewCard; onClose: () => void }) {
   const { tr } = useLang();
-  const cardUrl = getQRUrl(card.contact_id);
+  const buildQRUrl = useQRUrl();
+  const cardUrl = buildQRUrl(card.contact_id);
   const label = card.qr_label || card.contact_name || card.contact_id;
 
   return (
@@ -150,14 +155,18 @@ export default function LeadsPage() {
   });
 
   function exportCSV() {
-    const rows = [["Name", "Email", "Comment", "QR Card", "Date"]];
+    const rows = [["Name", "Email", "Comment", "QR Card", "Date", "City", "Country", "Device", "OS"]];
     filtered.forEach((l) => {
       rows.push([
         l.name,
         l.email,
         l.comment ?? "",
         l.qr_label || l.contact_name || l.contact_id,
-        new Date(l.created_at).toISOString().slice(0, 10),
+        new Date(l.created_at).toISOString().replace("T", " ").slice(0, 16),
+        l.city ?? "",
+        l.country ?? "",
+        l.device_type ?? "",
+        l.os ?? "",
       ]);
     });
     const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -257,11 +266,23 @@ export default function LeadsPage() {
                       <p className="text-sm text-gray-600 dark:text-gray-300">{lead.comment}</p>
                     </div>
                   )}
-                  <div className="flex flex-wrap items-center gap-x-3 mt-1.5 text-xs text-gray-400">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-gray-400">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      {new Date(lead.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                      {new Date(lead.created_at).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </span>
+                    {(lead.city || lead.country) && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {[lead.city, lead.country].filter(Boolean).join(", ")}
+                      </span>
+                    )}
+                    {(lead.device_type || lead.os) && (
+                      <span className="flex items-center gap-1">
+                        <Monitor className="w-3 h-3" />
+                        {[lead.device_type, lead.os].filter(Boolean).join(" · ")}
+                      </span>
+                    )}
                     {isAdmin && lead.created_by && (
                       <span className="flex items-center gap-1">
                         <UserPlus className="w-3 h-3" />

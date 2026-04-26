@@ -473,10 +473,11 @@ export default function AnalyticsPage() {
           <div className="space-y-3">
             {(data.hotLeads ?? []).map((lead, i) => {
               const tierStyle = lead.tier === "high"
-                ? { pill: "text-red-600 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800", label: "High", dot: "bg-red-500" }
+                ? { pill: "text-red-600 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800", label: "High intent", dot: "bg-red-500" }
                 : lead.tier === "medium"
-                ? { pill: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800", label: "Medium", dot: "bg-amber-400" }
-                : { pill: "text-slate-500 bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600", label: "Low", dot: "bg-slate-400" };
+                ? { pill: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800", label: "Medium intent", dot: "bg-amber-400" }
+                : { pill: "text-slate-500 bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600", label: "Low intent", dot: "bg-slate-400" };
+              const tierExplain = "Based on number of scans and which actions the visitor took (calling, emailing, saving contact).";
               return (
               <div key={lead.visitorId} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-[#242736] border border-slate-100 dark:border-[#2a2e3e]">
                 {/* Rank */}
@@ -487,9 +488,9 @@ export default function AnalyticsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     {/* Score tier badge */}
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${tierStyle.pill}`}>
+                    <span title={tierExplain} className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full border cursor-help ${tierStyle.pill}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${tierStyle.dot}`} />
-                      {tierStyle.label} · {lead.score}pts
+                      {tierStyle.label}
                     </span>
                     {lead.isReturning && (
                       <span className="text-[10px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-900/30 px-1.5 py-0.5 rounded-full">Returning</span>

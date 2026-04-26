@@ -45,7 +45,7 @@ export async function GET() {
 
   const { data: leads } = await supabase
     .from("qr_leads")
-    .select("id, name, email, comment, consent, created_at, contact_id")
+    .select("id, name, email, comment, consent, created_at, contact_id, country, city, device_type, os")
     .in("contact_id", contactIds)
     .order("created_at", { ascending: false });
 
