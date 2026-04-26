@@ -73,7 +73,7 @@ export default function CreatePage() {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [folderOpen, setFolderOpen] = useState(false);
 
-  const [orgDefaults, setOrgDefaults] = useState<{ company?: string; logoUrl?: string }>({});
+  const [orgDefaults, setOrgDefaults] = useState<{ company?: string; logoUrl?: string; leadCaptureEnabled?: boolean }>({});
   const [supportEmail, setSupportEmail] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -93,13 +93,14 @@ export default function CreatePage() {
       const supabase = getSupabaseBrowser();
       const { data: prof } = await supabase
         .from("profiles")
-        .select("organization_name, brand_logo_url")
+        .select("organization_name, brand_logo_url, lead_capture_disabled")
         .eq("user_id", profile.ownerId)
         .single();
       if (prof) {
         setOrgDefaults({
           company: prof.organization_name ?? undefined,
           logoUrl: prof.brand_logo_url ?? undefined,
+          leadCaptureEnabled: !prof.lead_capture_disabled,
         });
       }
     });

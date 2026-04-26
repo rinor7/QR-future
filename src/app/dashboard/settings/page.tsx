@@ -43,10 +43,6 @@ export default function SettingsPage() {
 
   const [leadCaptureDisabled, setLeadCaptureDisabled] = useState(false);
   const [leadCaptureSaving, setLeadCaptureSaving] = useState(false);
-  const [webhookUrl, setWebhookUrl] = useState("");
-  const [webhookSaving, setWebhookSaving] = useState(false);
-  const [webhookSaved, setWebhookSaved] = useState(false);
-  const [webhookError, setWebhookError] = useState<string | null>(null);
 
   // Delete account
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -113,25 +109,6 @@ export default function SettingsPage() {
 
 
 
-  async function handleSaveWebhook(e: React.FormEvent) {
-    e.preventDefault();
-    setWebhookError(null);
-    setWebhookSaved(false);
-    if (webhookUrl && !webhookUrl.startsWith("https://")) {
-      setWebhookError("Webhook URL must start with https://");
-      return;
-    }
-    setWebhookSaving(true);
-    const supabase = getSupabaseBrowser();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from("profiles").update({ lead_webhook_url: webhookUrl || null }).eq("user_id", user.id);
-      setWebhookSaved(true);
-      setTimeout(() => setWebhookSaved(false), 3000);
-    }
-    setWebhookSaving(false);
-  }
-
   async function handleToggleLeadCapture(val: boolean) {
     setLeadCaptureDisabled(val);
     setLeadCaptureSaving(true);
@@ -169,11 +146,10 @@ export default function SettingsPage() {
         const supabaseInner = getSupabaseBrowser();
         const { data: { user: u } } = await supabaseInner.auth.getUser();
         if (u) {
-          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, lead_webhook_url, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id, organization_name, account_phone, account_email, account_website, account_phones, account_emails, account_websites, account_street, account_street_nr, account_plz, account_city, account_country, account_socials").eq("user_id", u.id).single();
+          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id, organization_name, account_phone, account_email, account_website, account_phones, account_emails, account_websites, account_street, account_street_nr, account_plz, account_city, account_country, account_socials").eq("user_id", u.id).single();
           if (prof) {
             setHasStripeSubscription(!!prof.stripe_customer_id);
             setLeadCaptureDisabled(!!prof.lead_capture_disabled);
-            setWebhookUrl(prof.lead_webhook_url ?? "");
             setBrandName(prof.brand_name ?? "");
             setBrandLogoUrl(prof.brand_logo_url ?? "");
             setBrandColor(prof.brand_primary_color ?? "#2563eb");
@@ -917,104 +893,6 @@ export default function SettingsPage() {
             )}
           </div>
         </section>
-        )}
-
-        {/* CRM / Export (owner or admin only, not platform admin) */}
-        {(isOwner || userRole === "admin") && !isPlatformAdmin && (
-          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
-            <div className="flex flex-wrap items-start gap-4 mb-8">
-              <div className="bg-teal-500/10 p-3 rounded-xl text-teal-600 shrink-0">
-                <span className="material-symbols-outlined">hub</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-2xl font-bold font-headline">{tr.settings_crm_export}</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{tr.settings_crm_subtitle}</p>
-              </div>
-              <a
-                href="/api/leads/export"
-                download
-                className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-sm w-full sm:w-auto"
-              >
-                <span className="material-symbols-outlined text-[18px]">download</span>
-                {tr.settings_export_all_leads}
-              </a>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Webhook / Zapier */}
-              <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-4">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">webhook</span>
-                  Webhook / Zapier
-                </h4>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                  When a new lead is captured, we will POST the lead data to this URL. Works with Zapier, Make, n8n, or any custom endpoint.
-                </p>
-                <form onSubmit={handleSaveWebhook} className="space-y-3">
-                  <input
-                    type="url"
-                    value={webhookUrl}
-                    onChange={(e) => setWebhookUrl(e.target.value)}
-                    placeholder="https://hooks.zapier.com/hooks/catch/..."
-                    className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 transition-all"
-                  />
-                  {webhookError && <p className="text-xs text-red-500">{webhookError}</p>}
-                  <div className="flex items-center gap-3">
-                    <button type="submit" disabled={webhookSaving} className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60">
-                      {webhookSaving ? "Saving…" : "Save Webhook"}
-                    </button>
-                    {webhookSaved && (
-                      <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
-                        <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                        Saved
-                      </span>
-                    )}
-                    {webhookUrl && !webhookSaving && (
-                      <button type="button" onClick={() => { setWebhookUrl(""); }} className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-100 transition-colors">
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                </form>
-                <div className="mt-4 p-3 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700/50">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Payload preview</p>
-                  <pre className="text-xs text-slate-600 dark:text-slate-400 font-mono overflow-x-auto whitespace-pre-wrap">{`{
-  "event": "lead.captured",
-  "timestamp": "2025-01-01T12:00:00Z",
-  "lead": { "name": "…", "email": "…", "company": "…" },
-  "source": { "qr_label": "…", "employee": "…" }
-}`}</pre>
-                </div>
-              </div>
-
-              {/* Lead Assignment info */}
-              <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-4">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">assignment_ind</span>
-                  Lead Assignment
-                </h4>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                  Every lead is automatically assigned to the employee whose QR code was scanned. The employee name and QR label are included in all exports and webhook payloads.
-                </p>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700/50">
-                    <span className="material-symbols-outlined text-[18px] text-teal-600 shrink-0 mt-0.5">qr_code</span>
-                    <div>
-                      <p className="text-sm font-semibold">QR → Employee → Lead</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Each QR code belongs to one employee. When someone scans it and submits their contact, the lead is tagged to that employee.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700/50">
-                    <span className="material-symbols-outlined text-[18px] text-blue-600 shrink-0 mt-0.5">analytics</span>
-                    <div>
-                      <p className="text-sm font-semibold">Per-QR Analytics</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">View and export leads per QR code from the Analytics page of each code.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
         )}
 
         {/* Branding / White Label (owner or admin only, not platform admin) */}

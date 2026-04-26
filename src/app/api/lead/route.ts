@@ -60,17 +60,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Lead capture not enabled" }, { status: 403 });
   }
 
-  // Check global org-level disable
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("lead_capture_disabled")
-    .eq("user_id", contact.user_id)
-    .single();
-
-  if (profile?.lead_capture_disabled) {
-    return NextResponse.json({ error: "Lead capture disabled" }, { status: 403 });
-  }
-
   const now = new Date().toISOString();
   const { error } = await supabase.from("qr_leads").insert({
     contact_id: contactId,
