@@ -839,6 +839,83 @@ export default function SettingsPage() {
           </section>
         )}
 
+        {/* Company Templates (owner or admin only, not platform admin) */}
+        {(isOwner || userRole === "admin") && !isPlatformAdmin && (
+          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-purple-500/10 p-3 rounded-xl text-purple-600">
+                  <span className="material-symbols-outlined">style</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold font-headline">Company Templates</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Pre-fill and lock fields when creating QR codes</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setEditingTemplate(null); setShowTemplateEditor(true); }}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm"
+              >
+                <span className="material-symbols-outlined text-[16px]">add</span>
+                New Template
+              </button>
+            </div>
+
+            {templates.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-slate-200 dark:border-[#242736] rounded-xl">
+                <span className="material-symbols-outlined text-[40px] text-slate-200 dark:text-slate-700 mb-3">style</span>
+                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No templates yet</p>
+                <p className="text-xs text-slate-400 mt-1 max-w-xs">Create a template to pre-fill and lock company fields when employees create QR codes</p>
+                <button
+                  onClick={() => { setEditingTemplate(null); setShowTemplateEditor(true); }}
+                  className="mt-4 px-4 py-2 text-sm font-semibold text-blue-600 border border-blue-200 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                >
+                  Create first template
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {templates.map((t) => (
+                  <div key={t.id} className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-[#242736] rounded-xl border border-slate-100 dark:border-[#2a2e3e]">
+                    <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: t.primary_color }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-slate-900 dark:text-slate-100">{t.name}</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {(t.locked_fields ?? []).length === 0 ? (
+                          <span className="text-xs text-slate-400">No locked fields</span>
+                        ) : (
+                          (t.locked_fields ?? []).slice(0, 6).map((f) => (
+                            <span key={f} className="text-[10px] font-medium text-orange-600 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-full">
+                              🔒 {f.replace(/_url$/, "").replace(/_/g, " ")}
+                            </span>
+                          ))
+                        )}
+                        {(t.locked_fields ?? []).length > 6 && (
+                          <span className="text-[10px] text-slate-400">+{t.locked_fields.length - 6} more</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => { setEditingTemplate(t); setShowTemplateEditor(true); }}
+                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">edit</span>
+                      </button>
+                      <button
+                        onClick={() => setTemplateToDelete(t)}
+                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         {/* Platform Preferences (12 cols) — hidden from platform owner */}
         {!isPlatformAdmin && (
         <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
@@ -1127,83 +1204,6 @@ export default function SettingsPage() {
                 )}
               </div>
             </div>
-          </section>
-        )}
-
-        {/* Company Templates (owner or admin only, not platform admin) */}
-        {(isOwner || userRole === "admin") && !isPlatformAdmin && (
-          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-4">
-                <div className="bg-purple-500/10 p-3 rounded-xl text-purple-600">
-                  <span className="material-symbols-outlined">style</span>
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold font-headline">Company Templates</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Pre-fill and lock fields when creating QR codes</p>
-                </div>
-              </div>
-              <button
-                onClick={() => { setEditingTemplate(null); setShowTemplateEditor(true); }}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm"
-              >
-                <span className="material-symbols-outlined text-[16px]">add</span>
-                New Template
-              </button>
-            </div>
-
-            {templates.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-slate-200 dark:border-[#242736] rounded-xl">
-                <span className="material-symbols-outlined text-[40px] text-slate-200 dark:text-slate-700 mb-3">style</span>
-                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No templates yet</p>
-                <p className="text-xs text-slate-400 mt-1 max-w-xs">Create a template to pre-fill and lock company fields when employees create QR codes</p>
-                <button
-                  onClick={() => { setEditingTemplate(null); setShowTemplateEditor(true); }}
-                  className="mt-4 px-4 py-2 text-sm font-semibold text-blue-600 border border-blue-200 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                >
-                  Create first template
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {templates.map((t) => (
-                  <div key={t.id} className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-[#242736] rounded-xl border border-slate-100 dark:border-[#2a2e3e]">
-                    <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: t.primary_color }} />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-slate-900 dark:text-slate-100">{t.name}</p>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {(t.locked_fields ?? []).length === 0 ? (
-                          <span className="text-xs text-slate-400">No locked fields</span>
-                        ) : (
-                          (t.locked_fields ?? []).slice(0, 6).map((f) => (
-                            <span key={f} className="text-[10px] font-medium text-orange-600 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-full">
-                              🔒 {f.replace(/_url$/, "").replace(/_/g, " ")}
-                            </span>
-                          ))
-                        )}
-                        {(t.locked_fields ?? []).length > 6 && (
-                          <span className="text-[10px] text-slate-400">+{t.locked_fields.length - 6} more</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => { setEditingTemplate(t); setShowTemplateEditor(true); }}
-                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">edit</span>
-                      </button>
-                      <button
-                        onClick={() => setTemplateToDelete(t)}
-                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">delete</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </section>
         )}
 
