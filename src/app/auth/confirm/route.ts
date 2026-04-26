@@ -34,7 +34,14 @@ export async function GET(request: NextRequest) {
       });
       return redirectRes;
     }
-    // Code was present but exchange failed (expired/already used)
+    // Exchange failed — for email-change links the code is sometimes already
+    // consumed by Supabase's verify endpoint before we see it, so check whether
+    // the user is still authenticated. If yes, the action already succeeded and
+    // we should just continue. If not, the link is genuinely broken/expired.
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      return NextResponse.redirect(`${origin}${next}`);
+    }
     return NextResponse.redirect(`${origin}/forgot-password?error=1`);
   }
 
