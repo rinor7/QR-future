@@ -125,12 +125,21 @@ export default function SettingsPage() {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.push("/login"); return; }
       setEmail(user.email ?? "");
-      // Self-heal: if profiles.email drifted from auth email (e.g. historical
-      // email changes that didn't mirror to profiles), sync it now.
+      // Self-heal: if profiles.email drifted from auth email (e.g. an email
+      // change just got confirmed), sync it now and log the transition.
       if (user.email) {
-        const { data: prof } = await supabase.from("profiles").select("email").eq("user_id", user.id).single();
+        const { data: prof } = await supabase.from("profiles").select("email, owner_id").eq("user_id", user.id).single();
         if (prof && prof.email !== user.email) {
+          const fromEmail = prof.email;
           await supabase.from("profiles").update({ email: user.email }).eq("user_id", user.id);
+          if (fromEmail) {
+            await supabase.from("org_notifications").insert({
+              owner_id: prof.owner_id ?? user.id,
+              type: "email_changed",
+              message: `${fromEmail} changed email to ${user.email}`,
+              metadata: { from: fromEmail, to: user.email, user_id: user.id },
+            });
+          }
         }
       }
     });
@@ -442,7 +451,6 @@ export default function SettingsPage() {
         setEmailLoading(false);
         return;
       }
-      setEmail(newEmail);
       setEmailSuccess(true);
       setNewEmail("");
     } else {

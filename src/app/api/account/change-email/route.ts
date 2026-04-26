@@ -14,7 +14,16 @@ export async function POST(req: Request) {
   const supabaseAuth = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
+    {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        },
+      },
+    }
   );
 
   const { data: { user } } = await supabaseAuth.auth.getUser();
@@ -25,13 +34,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, unchanged: true });
   }
 
-  const supabase = createClient(
+  const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
   // Block if another auth user already owns the new address
-  const { data: existing } = await supabase
+  const { data: existing } = await admin
     .from("profiles")
     .select("user_id")
     .ilike("email", newEmail)
@@ -41,28 +50,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Diese E-Mail ist bereits vergeben." }, { status: 409 });
   }
 
-  const { error: updateErr } = await supabase.auth.admin.updateUserById(user.id, {
-    email: newEmail,
-    email_confirm: true,
-  });
-  if (updateErr) {
-    return NextResponse.json({ error: updateErr.message }, { status: 400 });
+  // Standard confirmation flow — Supabase emails the new address with a confirm
+  // link. The change is NOT applied to auth.users.email until the user clicks it.
+  // We deliberately do NOT update profiles.email here; the self-heal in the
+  // settings page mirrors auth.users.email → profiles.email after confirmation.
+  const origin = req.headers.get("origin") ?? new URL(req.url).origin;
+  const { error } = await supabaseAuth.auth.updateUser(
+    { email: newEmail },
+    { emailRedirectTo: `${origin}/auth/confirm?next=/dashboard/settings` }
+  );
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  await supabase.from("profiles").update({ email: newEmail }).eq("user_id", user.id);
-
-  const { data: prof } = await supabase
-    .from("profiles")
-    .select("owner_id")
-    .eq("user_id", user.id)
-    .single();
-  const ownerIdForLog = prof?.owner_id ?? user.id;
-  await supabase.from("org_notifications").insert({
-    owner_id: ownerIdForLog,
-    type: "email_changed",
-    message: `${oldEmail} changed email to ${newEmail}`,
-    metadata: { from: oldEmail, to: newEmail, user_id: user.id },
-  });
-
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, pendingConfirmation: true });
 }
