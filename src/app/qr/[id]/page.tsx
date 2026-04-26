@@ -21,6 +21,7 @@ export default async function QRLandingPage({ params }: { params: { id: string }
     .from("contacts")
     .select("*")
     .eq("id", params.id)
+    .is("deleted_at", null)
     .single();
 
   if (!row) notFound();

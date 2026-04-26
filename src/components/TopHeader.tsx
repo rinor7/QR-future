@@ -49,10 +49,10 @@ export default function TopHeader({
         const role = p.isPlatformAdmin
           ? "Platform Admin"
           : p.userId === p.ownerId
-          ? "Owner"
+          ? tr.role_owner
           : p.role === "admin"
-          ? "Admin"
-          : "Writer";
+          ? tr.role_admin
+          : tr.role_writer;
         setUserRole(role);
       }
     });

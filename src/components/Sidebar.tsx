@@ -15,6 +15,7 @@ const USER_NAV: NavItem[] = [
   { href: "/dashboard/leads",   labelKey: "nav_leads",     icon: "contacts" },
   { href: "/dashboard/users",   labelKey: "nav_users",     icon: "group" },
   { href: "/dashboard/upgrade", labelKey: "nav_plans",     icon: "payments" },
+  { href: "/dashboard/trash",   labelKey: "nav_trash",     icon: "delete" },
   { href: "/dashboard/settings",labelKey: "nav_settings",  icon: "settings" },
 ];
 
@@ -66,6 +67,7 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
   const baseNav = isPlatformAdmin ? ADMIN_NAV : USER_NAV.filter((item) => {
     if (item.href === "/dashboard/users")   return isOwner || isAdmin;
     if (item.href === "/dashboard/upgrade") return isOwner;
+    if (item.href === "/dashboard/trash")   return isOwner;
     return true;
   });
 

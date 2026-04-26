@@ -102,11 +102,12 @@ export async function GET() {
     return NextResponse.json(items.slice(0, 50));
   }
 
-  // Get all contacts for this org
+  // Get all contacts for this org (excluding soft-deleted)
   const { data: contacts } = await supabase
     .from("contacts")
     .select("id, name, qr_label")
-    .eq("user_id", ownerId);
+    .eq("user_id", ownerId)
+    .is("deleted_at", null);
 
   const contactIds = (contacts ?? []).map((c) => c.id);
   if (contactIds.length === 0) return NextResponse.json([]);

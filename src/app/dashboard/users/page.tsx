@@ -222,6 +222,25 @@ export default function UsersPage() {
     setTimeout(() => setResendMsg(null), 3000);
   }
 
+  function handleExportCsv() {
+    const headers = ["First Name", "Last Name", "Email", "Role", "Status", "Joined"];
+    const rows = members.map((m) => {
+      const isOwnerRow = m.userId === ownerId || m.role === "owner";
+      const role = isOwnerRow ? tr.role_owner : m.role === "admin" ? tr.role_admin : tr.role_writer;
+      const status = m.confirmed === false ? "Pending" : "Active";
+      return [m.firstName ?? "", m.lastName ?? "", m.email ?? "", role, status, m.createdAt ? new Date(m.createdAt).toISOString() : ""];
+    });
+    const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
+    const csv = [headers, ...rows].map((r) => r.map(escape).join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `members-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const closeMenu = useCallback(() => { setOpenMenuId(null); setMenuAnchor(null); }, []);
 
   function toggleMenu(memberId: string, e: React.MouseEvent<HTMLButtonElement>) {
@@ -260,14 +279,14 @@ export default function UsersPage() {
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <a
-            href="/api/scan/export"
-            download="members.csv"
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] rounded-xl hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors shadow-sm"
+          <button
+            onClick={handleExportCsv}
+            disabled={members.length === 0}
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] rounded-xl hover:bg-slate-50 dark:hover:bg-[#242736] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="material-symbols-outlined text-[16px]">download</span>
             {tr.users_export_list}
-          </a>
+          </button>
           <button
             onClick={() => { setShowInviteModal(true); setInviteMsg(null); }}
             className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm"
@@ -337,10 +356,10 @@ export default function UsersPage() {
                   const avatarColor  = AVATAR_COLORS[(page * PAGE_SIZE + idx) % AVATAR_COLORS.length];
 
                   const roleMeta = isOwnerRow
-                    ? { label: "Owner",  cls: "text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20" }
+                    ? { label: tr.role_owner,  cls: "text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20" }
                     : m.role === "admin"
-                    ? { label: "Admin",  cls: "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20" }
-                    : { label: "Writer", cls: "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-[#242736]" };
+                    ? { label: tr.role_admin,  cls: "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20" }
+                    : { label: tr.role_writer, cls: "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-[#242736]" };
 
                   return (
                     <tr key={m.userId} className="border-b border-slate-50 dark:border-[#242736] last:border-0 hover:bg-slate-50/60 dark:hover:bg-[#242736]/40 transition-colors">
@@ -471,8 +490,8 @@ export default function UsersPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">Role Permissions</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">What each role can do on the platform.</p>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">{tr.role_perm_title}</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{tr.role_perm_subtitle}</p>
           </div>
         </div>
 
@@ -484,19 +503,19 @@ export default function UsersPage() {
                 <span className="material-symbols-outlined text-[16px] text-violet-600" style={{ fontVariationSettings: "'FILL' 1" }}>shield_person</span>
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Owner</h4>
-                <p className="text-[10px] text-slate-400">Account holder</p>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{tr.role_owner}</h4>
+                <p className="text-[10px] text-slate-400">{tr.role_perm_owner_subtitle}</p>
               </div>
             </div>
             <ul className="space-y-1.5">
               {[
-                "Create, edit & delete QR codes",
-                "View all analytics",
-                "Manage folders",
-                "Invite & remove members",
-                "Apply company templates",
-                "Manage settings & branding",
-                "Upgrade / manage plan",
+                tr.role_perm_create_edit_delete_restore,
+                tr.role_perm_view_analytics,
+                tr.role_perm_manage_folders,
+                tr.role_perm_invite_members,
+                tr.role_perm_apply_templates,
+                tr.role_perm_manage_settings,
+                tr.role_perm_manage_plan,
               ].map((item) => (
                 <li key={item} className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-400">
                   <span className="material-symbols-outlined text-[13px] text-emerald-500 mt-0.5 shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
@@ -513,19 +532,19 @@ export default function UsersPage() {
                 <span className="material-symbols-outlined text-[16px] text-blue-600" style={{ fontVariationSettings: "'FILL' 1" }}>security</span>
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Admin</h4>
-                <p className="text-[10px] text-slate-400">Team manager</p>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{tr.role_admin}</h4>
+                <p className="text-[10px] text-slate-400">{tr.role_perm_admin_subtitle}</p>
               </div>
             </div>
             <ul className="space-y-1.5">
               {[
-                ["Create, edit & delete QR codes", true],
-                ["View all analytics", true],
-                ["Manage folders", true],
-                ["Invite & remove members", true],
-                ["Apply company templates", true],
-                ["Manage settings & branding", true],
-                ["Upgrade / manage plan", false],
+                [tr.role_perm_create_edit_delete, true],
+                [tr.role_perm_view_analytics, true],
+                [tr.role_perm_manage_folders, true],
+                [tr.role_perm_invite_members, true],
+                [tr.role_perm_apply_templates, true],
+                [tr.role_perm_manage_settings, true],
+                [tr.role_perm_manage_plan, false],
               ].map(([item, allowed]) => (
                 <li key={item as string} className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-400">
                   <span className={`material-symbols-outlined text-[13px] mt-0.5 shrink-0 ${allowed ? "text-emerald-500" : "text-slate-300 dark:text-slate-600"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -537,26 +556,26 @@ export default function UsersPage() {
             </ul>
           </div>
 
-          {/* Writer */}
+          {/* Editor (DB role: writer) */}
           <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-[16px] text-teal-600" style={{ fontVariationSettings: "'FILL' 1" }}>edit_note</span>
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Writer</h4>
-                <p className="text-[10px] text-slate-400">Content editor</p>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{tr.role_writer}</h4>
+                <p className="text-[10px] text-slate-400">{tr.role_perm_writer_subtitle}</p>
               </div>
             </div>
             <ul className="space-y-1.5">
               {[
-                ["Create & edit QR codes", true],
-                ["View all analytics", true],
-                ["Manage folders", true],
-                ["Apply company templates", true],
-                ["Delete QR codes", false],
-                ["Invite or remove members", false],
-                ["Access settings & branding", false],
+                [tr.role_perm_create_edit, true],
+                [tr.role_perm_view_analytics, true],
+                [tr.role_perm_manage_folders, true],
+                [tr.role_perm_apply_templates, true],
+                [tr.role_perm_delete_qrs, false],
+                [tr.role_perm_invite_members_no, false],
+                [tr.role_perm_access_settings, false],
               ].map(([item, allowed]) => (
                 <li key={item as string} className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-400">
                   <span className={`material-symbols-outlined text-[13px] mt-0.5 shrink-0 ${allowed ? "text-emerald-500" : "text-slate-300 dark:text-slate-600"}`} style={{ fontVariationSettings: "'FILL' 1" }}>

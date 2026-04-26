@@ -25,6 +25,7 @@ export async function getAllFolders(organizationId: string): Promise<Folder[]> {
     .from("folders")
     .select("*")
     .eq("organization_id", organizationId)
+    .is("deleted_at", null)
     .order("name");
   if (error) throw new Error(error.message);
   return (data ?? []) as Folder[];
@@ -44,7 +45,8 @@ export async function getFolderStats(
       .from("contacts")
       .select("folder_id")
       .eq("user_id", organizationId)
-      .not("folder_id", "is", null),
+      .not("folder_id", "is", null)
+      .is("deleted_at", null),
   ]);
 
   const stats: Record<string, { users: number; qrs: number }> = {};
@@ -93,11 +95,43 @@ export async function updateFolder(
   return data as Folder;
 }
 
+// Soft-delete: mark as deleted_at. Restore is just clearing the timestamp.
 export async function deleteFolderRpc(folderId: string): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  const { error } = await supabase
+    .from("folders")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", folderId);
+  if (error) throw new Error(error.message);
+}
+
+// Permanent delete — used by Trash UI for "Delete Forever".
+export async function purgeFolderRpc(folderId: string): Promise<void> {
   const supabase = getSupabaseBrowser();
   const { error } = await supabase.rpc("delete_folder", {
     p_folder_id: folderId,
   });
+  if (error) throw new Error(error.message);
+}
+
+export async function getDeletedFolders(organizationId: string): Promise<Folder[]> {
+  const supabase = getSupabaseBrowser();
+  const { data, error } = await supabase
+    .from("folders")
+    .select("*")
+    .eq("organization_id", organizationId)
+    .not("deleted_at", "is", null)
+    .order("deleted_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Folder[];
+}
+
+export async function restoreFolder(folderId: string): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  const { error } = await supabase
+    .from("folders")
+    .update({ deleted_at: null })
+    .eq("id", folderId);
   if (error) throw new Error(error.message);
 }
 

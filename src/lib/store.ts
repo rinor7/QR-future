@@ -206,7 +206,8 @@ export async function getAllContacts(): Promise<QRContact[]> {
   let query = supabase
     .from("contacts")
     .select("*")
-    .eq("user_id", profile.ownerId);
+    .eq("user_id", profile.ownerId)
+    .is("deleted_at", null);
 
   // Writers only see QR codes they personally created
   if (profile.role === "writer") {
@@ -225,6 +226,7 @@ export async function getContact(id: string): Promise<QRContact | null> {
     .from("contacts")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .single();
 
   if (error) return null;
@@ -242,7 +244,8 @@ export async function getContactCount(): Promise<number> {
   const { count, error } = await supabase
     .from("contacts")
     .select("id", { count: "exact", head: true })
-    .eq("user_id", profile.ownerId);
+    .eq("user_id", profile.ownerId)
+    .is("deleted_at", null);
 
   if (error) return 0;
   return count ?? 0;
@@ -349,7 +352,46 @@ export async function setFolderContactsActive(folderIds: string[], organizationI
   if (error) throw new Error(error.message);
 }
 
+// Soft-delete: set deleted_at. Storage files are preserved so a restore returns
+// the QR card intact. Files are cleaned up only on permanent purge.
 export async function deleteContact(id: string): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  const { error } = await supabase
+    .from("contacts")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+// Owner-only: list soft-deleted QR codes for the org's Trash page.
+export async function getDeletedContacts(): Promise<(QRContact & { deletedAt: string })[]> {
+  const supabase = getSupabaseBrowser();
+  const profile = await getUserProfile();
+  if (!profile) return [];
+  const { data, error } = await supabase
+    .from("contacts")
+    .select("*")
+    .eq("user_id", profile.ownerId)
+    .not("deleted_at", "is", null)
+    .order("deleted_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({
+    ...toContact(row),
+    deletedAt: row.deleted_at as string,
+  }));
+}
+
+export async function restoreContact(id: string): Promise<void> {
+  const supabase = getSupabaseBrowser();
+  const { error } = await supabase
+    .from("contacts")
+    .update({ deleted_at: null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+// Permanent delete — actually removes the row + storage files. Used by Trash UI.
+export async function purgeContact(id: string): Promise<void> {
   const supabase = getSupabaseBrowser();
 
   const { data } = await supabase
