@@ -33,6 +33,7 @@ export default function SettingsPage() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSuccess, setEmailSuccess] = useState(false);
+  const [authBanner, setAuthBanner] = useState<string | null>(null);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -244,6 +245,21 @@ export default function SettingsPage() {
     }, 8000);
     return () => clearInterval(interval);
   }, [customDomain, customDomainVerified]);
+
+  // Pick up Supabase auth messages delivered via the URL fragment
+  // (e.g. "Confirmation link accepted. Please proceed to confirm link sent
+  // to the other email" during a "Secure email change" flow).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    if (!hash || hash.length < 2) return;
+    const params = new URLSearchParams(hash.slice(1));
+    const message = params.get("message") || params.get("error_description");
+    if (message) {
+      setAuthBanner(message);
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }, []);
 
   async function handleSaveBranding(e: React.FormEvent) {
     e.preventDefault();
@@ -557,6 +573,19 @@ export default function SettingsPage() {
         <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-headline">{tr.settings_title}</h2>
         <p className="text-slate-500 dark:text-slate-400 mt-2">{tr.settings_subtitle_full}</p>
       </div>
+
+      {authBanner && (
+        <div className="mb-6 flex items-start justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 px-4 py-3 text-sm text-blue-900 dark:text-blue-100">
+          <span>{authBanner}</span>
+          <button
+            type="button"
+            onClick={() => setAuthBanner(null)}
+            className="text-blue-700 dark:text-blue-300 hover:underline shrink-0"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Bento Grid */}
       <div className="grid grid-cols-12 gap-6">

@@ -34,8 +34,13 @@ export async function GET(request: NextRequest) {
       });
       return redirectRes;
     }
+    // Code was present but exchange failed (expired/already used)
+    return NextResponse.redirect(`${origin}/forgot-password?error=1`);
   }
 
-  // Code missing or exchange failed — send back to request new link
-  return NextResponse.redirect(`${origin}/forgot-password?error=1`);
+  // No code in the query string — Supabase often puts the result in the URL
+  // fragment instead (e.g. email-change "first link accepted, please click the
+  // other one" messages). Browsers preserve the fragment across redirects, so
+  // just send the user on to `next` and let the destination display it.
+  return NextResponse.redirect(`${origin}${next}`);
 }
