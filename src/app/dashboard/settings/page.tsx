@@ -431,18 +431,16 @@ export default function SettingsPage() {
     }
     // Update email only if changed
     if (newEmail && newEmail !== email) {
-      const { error } = await supabase.auth.updateUser({ email: newEmail });
-      if (error) { setEmailError(error.message); setEmailLoading(false); return; }
-      if (user) {
-        await supabase.from("profiles").update({ email: newEmail }).eq("user_id", user.id);
-        const { data: prof } = await supabase.from("profiles").select("owner_id").eq("user_id", user.id).single();
-        const ownerIdForLog = prof?.owner_id ?? user.id;
-        await supabase.from("org_notifications").insert({
-          owner_id: ownerIdForLog,
-          type: "email_changed",
-          message: `${email} changed email to ${newEmail}`,
-          metadata: { from: email, to: newEmail, user_id: user.id },
-        });
+      const res = await fetch("/api/account/change-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newEmail }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setEmailError(data?.error || "Failed to update email");
+        setEmailLoading(false);
+        return;
       }
       setEmail(newEmail);
       setEmailSuccess(true);
