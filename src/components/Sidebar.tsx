@@ -11,8 +11,9 @@ type NavItem = { href: string; labelKey: keyof ReturnType<typeof useLang>["tr"];
 
 const USER_NAV: NavItem[] = [
   { href: "/dashboard",         labelKey: "nav_dashboard", icon: "dashboard" },
-  { href: "/dashboard/codes",   labelKey: "nav_codes",     icon: "qr_code_2" },
-  { href: "/dashboard/leads",   labelKey: "nav_leads",     icon: "contacts" },
+  { href: "/dashboard/codes",     labelKey: "nav_codes",     icon: "qr_code_2" },
+  { href: "/dashboard/analytics", labelKey: "nav_analytics", icon: "monitoring" },
+  { href: "/dashboard/leads",     labelKey: "nav_leads",     icon: "contacts" },
   { href: "/dashboard/users",   labelKey: "nav_users",     icon: "group" },
   { href: "/dashboard/upgrade", labelKey: "nav_plans",     icon: "payments" },
   { href: "/dashboard/trash",   labelKey: "nav_trash",     icon: "delete" },

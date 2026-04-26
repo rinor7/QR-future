@@ -763,6 +763,21 @@ export default function SettingsPage() {
               </div>
             )}
           </form>
+          <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700/50">
+            <button
+              type="button"
+              onClick={async () => {
+                const supabase = getSupabaseBrowser();
+                await supabase.auth.signOut();
+                router.push("/login");
+                router.refresh();
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            >
+              <span className="material-symbols-outlined text-base">logout</span>
+              {tr.sign_out}
+            </button>
+          </div>
         </section>
 
         {/* Company Information (owner or admin only, not platform admin) */}
