@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/dashboard";
+  const purpose = searchParams.get("purpose");
 
   if (code) {
     const cookieStore = cookies();
@@ -25,24 +26,36 @@ export async function GET(request: NextRequest) {
     );
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      const redirectRes = NextResponse.redirect(`${origin}${next}`);
-      redirectRes.cookies.set("qr_login_ts", String(Math.floor(Date.now() / 1000)), {
-        path: "/",
-        maxAge: 28800,
-        sameSite: "lax",
-      });
+
+    // The action succeeded if the exchange worked, OR if it failed but the
+    // user still has a session (email-change links are often pre-consumed by
+    // Supabase's verify endpoint before reaching us).
+    let succeeded = !error;
+    if (error) {
+      const { data: { user } } = await supabase.auth.getUser();
+      succeeded = !!user;
+    }
+
+    if (!succeeded) {
+      return NextResponse.redirect(`${origin}/forgot-password?error=1`);
+    }
+
+    // For email changes: invalidate sessions on every device and force a fresh
+    // sign-in with the new address.
+    if (purpose === "email_change") {
+      await supabase.auth.signOut({ scope: "global" });
+      const redirectRes = NextResponse.redirect(`${origin}/login?email_changed=1`);
+      redirectRes.cookies.set("qr_login_ts", "", { path: "/", maxAge: 0 });
       return redirectRes;
     }
-    // Exchange failed — for email-change links the code is sometimes already
-    // consumed by Supabase's verify endpoint before we see it, so check whether
-    // the user is still authenticated. If yes, the action already succeeded and
-    // we should just continue. If not, the link is genuinely broken/expired.
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      return NextResponse.redirect(`${origin}${next}`);
-    }
-    return NextResponse.redirect(`${origin}/forgot-password?error=1`);
+
+    const redirectRes = NextResponse.redirect(`${origin}${next}`);
+    redirectRes.cookies.set("qr_login_ts", String(Math.floor(Date.now() / 1000)), {
+      path: "/",
+      maxAge: 28800,
+      sameSite: "lax",
+    });
+    return redirectRes;
   }
 
   // No code in the query string — Supabase often puts the result in the URL

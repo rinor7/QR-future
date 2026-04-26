@@ -22,6 +22,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const expired = searchParams.get("expired") === "1";
+  const emailChanged = searchParams.get("email_changed") === "1";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -164,6 +165,12 @@ function LoginForm() {
           {expired && (
             <div className="mb-4 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
               Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.
+            </div>
+          )}
+
+          {emailChanged && (
+            <div className="mb-4 text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
+              E-Mail-Adresse wurde aktualisiert. Bitte melden Sie sich mit der neuen E-Mail an. / Email address updated. Please sign in with your new email.
             </div>
           )}
 

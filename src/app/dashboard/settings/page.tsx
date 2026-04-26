@@ -29,10 +29,12 @@ export default function SettingsPage() {
   const [supportEmailSaved, setSupportEmailSaved] = useState(false);
   const [editingSupport, setEditingSupport] = useState(false);
 
+  const [fullName, setFullName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSuccess, setEmailSuccess] = useState(false);
+  const [accountSaved, setAccountSaved] = useState(false);
   const [authBanner, setAuthBanner] = useState<string | null>(null);
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -126,6 +128,8 @@ export default function SettingsPage() {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.push("/login"); return; }
       setEmail(user.email ?? "");
+      const meta = (user.user_metadata ?? {}) as { full_name?: string };
+      setFullName(meta.full_name ?? "");
       // Self-heal: if profiles.email drifted from auth email (e.g. an email
       // change just got confirmed), sync it now and log the transition.
       if (user.email) {
@@ -447,14 +451,14 @@ export default function SettingsPage() {
     e.preventDefault();
     setEmailError(null);
     setEmailSuccess(false);
+    setAccountSaved(false);
     setEmailLoading(true);
     const supabase = getSupabaseBrowser();
     const { data: { user } } = await supabase.auth.getUser();
-    // Save organization name
     if (user) {
       await supabase.from("profiles").update({ organization_name: organizationName || null }).eq("user_id", user.id);
     }
-    // Update email only if changed
+    await supabase.auth.updateUser({ data: { full_name: fullName || null } });
     if (newEmail && newEmail !== email) {
       const res = await fetch("/api/account/change-email", {
         method: "POST",
@@ -470,8 +474,8 @@ export default function SettingsPage() {
       setEmailSuccess(true);
       setNewEmail("");
     } else {
-      setEmailSuccess(true);
-      setTimeout(() => setEmailSuccess(false), 2500);
+      setAccountSaved(true);
+      setTimeout(() => setAccountSaved(false), 2500);
     }
     setEmailLoading(false);
   }
@@ -607,7 +611,7 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">{tr.settings_full_name}</label>
-                <input type="text" defaultValue="" placeholder={tr.settings_your_name_ph} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
+                <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={tr.settings_your_name_ph} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">{tr.settings_email_label}</label>
@@ -616,6 +620,7 @@ export default function SettingsPage() {
             </div>
             {emailError && <p className="text-xs text-red-500">{emailError}</p>}
             {emailSuccess && <p className="text-xs text-green-600">{tr.settings_email_success}</p>}
+            {accountSaved && <p className="text-xs text-green-600">{tr.settings_account_saved}</p>}
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 {isPlatformAdmin ? (

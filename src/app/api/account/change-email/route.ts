@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   const origin = req.headers.get("origin") ?? new URL(req.url).origin;
   const { error } = await supabaseAuth.auth.updateUser(
     { email: newEmail },
-    { emailRedirectTo: `${origin}/auth/confirm?next=/dashboard/settings` }
+    { emailRedirectTo: `${origin}/auth/confirm?next=/dashboard/settings&purpose=email_change` }
   );
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
