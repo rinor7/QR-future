@@ -1,10 +1,10 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import QRLandingClient from "./QRLandingClient";
+import CardUnavailable from "./CardUnavailable";
 
 // Use service-role client so RLS never blocks reading lead_capture_enabled
 function getServiceClient() {
@@ -24,8 +24,7 @@ export default async function QRLandingPage({ params }: { params: { id: string }
     .is("deleted_at", null)
     .single();
 
-  if (!row) notFound();
-  if (!row.is_active) redirect("https://qr-card.ch");
+  if (!row || !row.is_active) return <CardUnavailable />;
 
   // Owner-level lead-capture kill switch overrides the per-card flag.
   const ownerId = (row.user_id as string) ?? "";
