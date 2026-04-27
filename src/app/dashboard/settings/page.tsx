@@ -110,6 +110,41 @@ export default function SettingsPage() {
   const [mfaMembersAllowed, setMfaMembersAllowed] = useState(true);
   const [mfaMembersSaving, setMfaMembersSaving] = useState(false);
 
+  type LinkedIdentity = { provider: string; email: string | null };
+  const [identities, setIdentities] = useState<LinkedIdentity[]>([]);
+  const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
+  const [identityError, setIdentityError] = useState<string | null>(null);
+
+  async function loadIdentities() {
+    const supabase = getSupabaseBrowser();
+    const { data } = await supabase.auth.getUserIdentities();
+    const list = (data?.identities ?? []).map((i) => ({
+      provider: i.provider,
+      email: (i.identity_data?.email as string | undefined) ?? null,
+    }));
+    setIdentities(list);
+  }
+
+  async function handleUnlinkIdentity(provider: string) {
+    setIdentityError(null);
+    if (identities.length <= 1) {
+      setIdentityError(tr.settings_linked_last_method);
+      return;
+    }
+    const label = provider === "email" ? tr.settings_linked_email : provider.charAt(0).toUpperCase() + provider.slice(1);
+    if (!window.confirm(tr.settings_linked_confirm.replace("{provider}", label))) return;
+    setUnlinkingProvider(provider);
+    const supabase = getSupabaseBrowser();
+    const { error } = await supabase.rpc("unlink_user_identity", { p_provider: provider });
+    if (error) {
+      setIdentityError(error.message?.includes("cannot_unlink_last_method") ? tr.settings_linked_last_method : tr.settings_linked_error);
+      setUnlinkingProvider(null);
+      return;
+    }
+    await loadIdentities();
+    setUnlinkingProvider(null);
+  }
+
   async function handleToggleLeadCapture(val: boolean) {
     setLeadCaptureDisabled(val);
     setLeadCaptureSaving(true);
@@ -128,6 +163,7 @@ export default function SettingsPage() {
       setEmail(user.email ?? "");
       const meta = (user.user_metadata ?? {}) as { full_name?: string };
       setFullName(meta.full_name ?? "");
+      loadIdentities();
       // Self-heal: if profiles.email drifted from auth email (e.g. an email
       // change just got confirmed), sync it now and log the transition.
       if (user.email) {
@@ -749,6 +785,42 @@ export default function SettingsPage() {
                 </div>
               )}
             </div>
+            {/* Linked sign-in methods (OAuth providers + email/password) */}
+            {identities.length > 0 && (
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-700/50 space-y-3">
+                <div>
+                  <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{tr.settings_linked_logins}</span>
+                  <p className="text-xs text-slate-400 mt-0.5">{tr.settings_linked_logins_hint}</p>
+                </div>
+                <ul className="space-y-2">
+                  {identities.map((identity) => {
+                    const isEmail = identity.provider === "email";
+                    const label = isEmail ? tr.settings_linked_email : identity.provider.charAt(0).toUpperCase() + identity.provider.slice(1);
+                    const canRemove = identities.length > 1;
+                    const busy = unlinkingProvider === identity.provider;
+                    return (
+                      <li key={identity.provider} className="flex items-center justify-between gap-2 bg-slate-50 dark:bg-[#242736] rounded-xl px-3 py-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{label}</p>
+                          {identity.email && <p className="text-xs text-slate-400 truncate">{identity.email}</p>}
+                        </div>
+                        {canRemove && (
+                          <button
+                            type="button"
+                            onClick={() => handleUnlinkIdentity(identity.provider)}
+                            disabled={busy}
+                            className="shrink-0 text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-60 transition-colors"
+                          >
+                            {busy ? tr.settings_linked_disconnecting : tr.settings_linked_disconnect}
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+                {identityError && <p className="text-xs text-red-500">{identityError}</p>}
+              </div>
+            )}
             {/* Owner toggle: allow/disallow members from using 2FA */}
             {isOwner && !isPlatformAdmin && (
               <div className="pt-4 border-t border-slate-200 dark:border-slate-700/50">
