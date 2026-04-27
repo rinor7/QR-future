@@ -34,6 +34,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, unchanged: true });
   }
 
+  // Block OAuth-only users from changing email. Otherwise we'd be unable to
+  // unlink the original Google/etc. identity afterwards (it'd be the user's
+  // only sign-in path), and the old OAuth login would silently keep working.
+  const { data: hasPassword } = await supabaseAuth.rpc("current_user_has_password");
+  if (!hasPassword) {
+    return NextResponse.json(
+      { error: "set_password_required" },
+      { status: 400 }
+    );
+  }
+
   const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!

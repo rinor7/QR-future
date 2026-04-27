@@ -93,3 +93,25 @@ $$;
 
 revoke all on function public.cleanup_stale_oauth_identities() from public;
 grant execute on function public.cleanup_stale_oauth_identities() to authenticated;
+
+
+-- Tells the caller whether the current user has a password set on auth.users.
+-- Used to gate flows (e.g. email change) that would otherwise leave an
+-- OAuth-only user unable to be safely separated from their original provider.
+
+create or replace function public.current_user_has_password()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce(
+    (select encrypted_password is not null and encrypted_password <> ''
+       from auth.users where id = auth.uid()),
+    false
+  );
+$$;
+
+revoke all on function public.current_user_has_password() from public;
+grant execute on function public.current_user_has_password() to authenticated;

@@ -460,6 +460,8 @@ export const t = {
     settings_linked_confirm: "{provider} wirklich trennen? Sie können sich danach nicht mehr damit anmelden.",
     settings_linked_last_method: "Dies ist Ihre einzige Anmeldemethode. Legen Sie zuerst ein Passwort fest.",
     settings_linked_error: "Trennen fehlgeschlagen. Bitte erneut versuchen.",
+    settings_email_needs_password: "Sie haben sich mit Google angemeldet. Bitte legen Sie zuerst ein Passwort fest, bevor Sie Ihre E-Mail ändern.",
+    settings_set_password_cta: "Passwort festlegen",
     // Upgrade page
     upgrade_subscription_mgmt: "Abonnement-Verwaltung",
     upgrade_active_btn: "Aktiv",
@@ -1224,6 +1226,8 @@ export const t = {
     settings_linked_confirm: "Disconnect {provider}? You won't be able to sign in with it after this.",
     settings_linked_last_method: "This is your only sign-in method. Set a password first.",
     settings_linked_error: "Could not disconnect. Please try again.",
+    settings_email_needs_password: "You signed up with Google. Please set a password before changing your email.",
+    settings_set_password_cta: "Set password",
     // Upgrade page
     upgrade_subscription_mgmt: "Subscription Management",
     upgrade_active_btn: "Active",

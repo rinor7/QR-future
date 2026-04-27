@@ -114,6 +114,7 @@ export default function SettingsPage() {
   const [identities, setIdentities] = useState<LinkedIdentity[]>([]);
   const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
   const [identityError, setIdentityError] = useState<string | null>(null);
+  const [hasPassword, setHasPassword] = useState<boolean>(true);
 
   async function loadIdentities() {
     const supabase = getSupabaseBrowser();
@@ -123,6 +124,8 @@ export default function SettingsPage() {
       email: (i.identity_data?.email as string | undefined) ?? null,
     }));
     setIdentities(list);
+    const { data: pw } = await supabase.rpc("current_user_has_password");
+    setHasPassword(pw === true);
   }
 
   async function handleUnlinkIdentity(provider: string) {
@@ -501,7 +504,8 @@ export default function SettingsPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setEmailError(data?.error || "Failed to update email");
+        const code = data?.error;
+        setEmailError(code === "set_password_required" ? tr.settings_email_needs_password : code || "Failed to update email");
         setEmailLoading(false);
         return;
       }
@@ -657,9 +661,17 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm text-slate-500 dark:text-slate-400 font-semibold">{tr.settings_email_label}</label>
-                <input type="email" value={newEmail || email} onChange={(e) => setNewEmail(e.target.value)} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all" />
+                <input type="email" value={newEmail || email} onChange={(e) => setNewEmail(e.target.value)} disabled={!hasPassword} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-60 disabled:cursor-not-allowed" />
               </div>
             </div>
+            {!hasPassword && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-900/30 px-4 py-3">
+                <p className="text-xs text-amber-800 dark:text-amber-200">{tr.settings_email_needs_password}</p>
+                <Link href="/auth/set-password" className="shrink-0 text-xs font-bold bg-amber-600 text-white px-3 py-1.5 rounded-lg hover:bg-amber-700 transition-colors text-center">
+                  {tr.settings_set_password_cta}
+                </Link>
+              </div>
+            )}
             {emailError && <p className="text-xs text-red-500">{emailError}</p>}
             {emailSuccess && <p className="text-xs text-green-600">{tr.settings_email_success}</p>}
             {accountSaved && <p className="text-xs text-green-600">{tr.settings_account_saved}</p>}
