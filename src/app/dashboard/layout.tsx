@@ -33,12 +33,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     else document.documentElement.classList.remove("dark");
   }
 
+  const bannerHeight = isPlatformAdmin ? 28 : 0;
   return (
     <QRUrlProvider>
       {/* Platform Owner banner — makes it obvious which account is active */}
       {isPlatformAdmin && (
         <div className="sticky top-0 z-[60] w-full px-4 py-1.5 text-center text-[11px] font-bold tracking-wider uppercase text-white shadow-sm"
-             style={{ background: "linear-gradient(90deg, #7c3aed 0%, #a855f7 50%, #7c3aed 100%)" }}>
+             style={{ background: "linear-gradient(90deg, #7c3aed 0%, #a855f7 50%, #7c3aed 100%)", height: bannerHeight }}>
           <span className="inline-flex items-center gap-1.5">
             <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>shield_person</span>
             Platform Owner · qr-card.ch
@@ -85,7 +86,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         )}
 
         {/* Sidebar */}
-        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} topOffset={bannerHeight} />
 
         {/* Main column: header + content */}
         <div className="flex-1 flex flex-col min-w-0">
@@ -109,6 +110,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         open={activityOpen}
         onClose={() => setActivityOpen(false)}
         onUnreadChange={setActivityCount}
+        topOffset={bannerHeight}
       />
     </QRUrlProvider>
   );
