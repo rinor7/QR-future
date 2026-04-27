@@ -43,6 +43,25 @@ export async function GET(request: NextRequest) {
     // For email changes: invalidate sessions on every device and force a fresh
     // sign-in with the new address.
     if (purpose === "email_change") {
+      // Auto-unlink any OAuth identity whose email no longer matches the
+      // new account email. Without this, a user who switched from gmail to
+      // hotmail could still sign in via the original Google identity.
+      // The RPC refuses to remove the last sign-in method, so users with
+      // only an OAuth identity (no password) keep it.
+      const { data: { user } } = await supabase.auth.getUser();
+      const newEmail = (user?.email ?? "").toLowerCase();
+      if (newEmail) {
+        const { data: identityData } = await supabase.auth.getUserIdentities();
+        const stale = (identityData?.identities ?? []).filter((i) => {
+          if (i.provider === "email") return false;
+          const idEmail = ((i.identity_data?.email as string | undefined) ?? "").toLowerCase();
+          return idEmail !== newEmail;
+        });
+        for (const ident of stale) {
+          await supabase.rpc("unlink_user_identity", { p_provider: ident.provider });
+        }
+      }
+
       await supabase.auth.signOut({ scope: "global" });
       const redirectRes = NextResponse.redirect(`${origin}/login?email_changed=1`);
       redirectRes.cookies.set("qr_login_ts", "", { path: "/", maxAge: 0 });
