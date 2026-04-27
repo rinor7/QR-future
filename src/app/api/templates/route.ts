@@ -59,8 +59,13 @@ export async function POST(req: NextRequest) {
   );
 
   const { data: profile } = await supabase
-    .from("profiles").select("owner_id").eq("user_id", user.id).single();
+    .from("profiles").select("owner_id, role").eq("user_id", user.id).single();
   const ownerId = profile?.owner_id ?? user.id;
+  const isOwner = profile?.owner_id === user.id || !profile?.owner_id;
+  const isAdmin = profile?.role === "admin";
+  if (!isOwner && !isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const { data, error } = await supabase.from("qr_templates").insert({
     user_id: ownerId,

@@ -55,6 +55,7 @@ export default function EditPage() {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(searchParams.get("created") === "1");
   const [submitting, setSubmitting] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Folder state
@@ -80,6 +81,7 @@ export default function EditPage() {
     // Load folder tree
     getUserProfile().then((p) => {
       if (!p) return;
+      setIsOwner(p.userId === p.ownerId);
       getAllFolders(p.ownerId).then((folders) => setFolderTree(buildTree(folders)));
     });
   }, [id, router]);
@@ -249,6 +251,7 @@ export default function EditPage() {
             loading={submitting}
             error={error}
             supportEmail={supportEmail}
+            isOwner={isOwner}
             onFormChange={(f) => {
               setPreviewLogoUrl(f.showLogoInQr !== false ? f.logoUrl || undefined : undefined);
               setPreviewQRStyle({ qrDotStyle: f.qrDotStyle, qrCornerStyle: f.qrCornerStyle, qrDotColor: f.qrDotColor, qrBgColor: f.qrBgColor, qrGradient: f.qrGradient, qrGradientColor: f.qrGradientColor });

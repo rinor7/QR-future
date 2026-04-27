@@ -35,8 +35,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const { data: profile } = await supabase.from("profiles").select("owner_id").eq("user_id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select("owner_id, role").eq("user_id", user.id).single();
   const ownerId = profile?.owner_id ?? user.id;
+  const isOwner = profile?.owner_id === user.id || !profile?.owner_id;
+  const isAdmin = profile?.role === "admin";
+  if (!isOwner && !isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const { data, error } = await supabase.from("qr_templates").update({
     name: name.trim(),
@@ -82,8 +87,13 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   );
 
   const { data: profile } = await supabase
-    .from("profiles").select("owner_id").eq("user_id", user.id).single();
+    .from("profiles").select("owner_id, role").eq("user_id", user.id).single();
   const ownerId = profile?.owner_id ?? user.id;
+  const isOwner = profile?.owner_id === user.id || !profile?.owner_id;
+  const isAdmin = profile?.role === "admin";
+  if (!isOwner && !isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const { error } = await supabase
     .from("qr_templates")

@@ -44,8 +44,6 @@ export default function SettingsPage() {
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState(false);
 
-  const [leadCaptureDisabled, setLeadCaptureDisabled] = useState(false);
-  const [leadCaptureSaving, setLeadCaptureSaving] = useState(false);
 
   // Delete account
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -112,17 +110,6 @@ export default function SettingsPage() {
 
 
 
-  async function handleToggleLeadCapture(val: boolean) {
-    setLeadCaptureDisabled(val);
-    setLeadCaptureSaving(true);
-    const supabase = getSupabaseBrowser();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from("profiles").update({ lead_capture_disabled: val }).eq("user_id", user.id);
-    }
-    setLeadCaptureSaving(false);
-  }
-
   useEffect(() => {
     const supabase = getSupabaseBrowser();
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -160,10 +147,9 @@ export default function SettingsPage() {
         const supabaseInner = getSupabaseBrowser();
         const { data: { user: u } } = await supabaseInner.auth.getUser();
         if (u) {
-          const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id, organization_name, account_phone, account_email, account_website, account_phones, account_emails, account_websites, account_street, account_street_nr, account_plz, account_city, account_country, account_socials").eq("user_id", u.id).single();
+          const { data: prof } = await supabaseInner.from("profiles").select("brand_name, brand_logo_url, brand_primary_color, stripe_customer_id, organization_name, account_phone, account_email, account_website, account_phones, account_emails, account_websites, account_street, account_street_nr, account_plz, account_city, account_country, account_socials").eq("user_id", u.id).single();
           if (prof) {
             setHasStripeSubscription(!!prof.stripe_customer_id);
-            setLeadCaptureDisabled(!!prof.lead_capture_disabled);
             setBrandName(prof.brand_name ?? "");
             setBrandLogoUrl(prof.brand_logo_url ?? "");
             setBrandColor(prof.brand_primary_color ?? "#2563eb");
@@ -1006,31 +992,6 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
-            {/* Features */}
-            {(isOwner || userRole === "admin") && (
-              <div className="space-y-4">
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">feature_search</span>
-                  {tr.settings_features}
-                </h4>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#1e2130]">
-                    <div>
-                      <p className="text-sm font-medium">{tr.settings_lead_capture}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{tr.settings_lead_capture_hint}</p>
-                    </div>
-                    <button
-                      onClick={() => handleToggleLeadCapture(!leadCaptureDisabled)}
-                      disabled={leadCaptureSaving}
-                      className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ml-3 ${leadCaptureDisabled ? "bg-slate-200 dark:bg-slate-700" : "bg-blue-600"} disabled:opacity-60`}
-                      aria-label="Toggle lead capture"
-                    >
-                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${leadCaptureDisabled ? "left-1" : "translate-x-6"}`} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </section>
         )}

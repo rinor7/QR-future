@@ -73,13 +73,15 @@ export default function CreatePage() {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [folderOpen, setFolderOpen] = useState(false);
 
-  const [orgDefaults, setOrgDefaults] = useState<{ company?: string; logoUrl?: string; leadCaptureEnabled?: boolean }>({});
+  const [orgDefaults, setOrgDefaults] = useState<{ company?: string; logoUrl?: string }>({});
+  const [isOwner, setIsOwner] = useState(false);
   const [supportEmail, setSupportEmail] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     fetch("/api/platform/support-email").then((r) => r.json()).then(({ supportEmail: s }) => { if (s) setSupportEmail(s); }).catch(() => {});
     getUserProfile().then(async (profile) => {
       if (!profile) return;
+      setIsOwner(profile.userId === profile.ownerId);
       // Load folders
       getAllFolders(profile.ownerId).then((folders) => {
         const tree = buildTree(folders);
@@ -93,14 +95,13 @@ export default function CreatePage() {
       const supabase = getSupabaseBrowser();
       const { data: prof } = await supabase
         .from("profiles")
-        .select("organization_name, brand_logo_url, lead_capture_disabled")
+        .select("organization_name, brand_logo_url")
         .eq("user_id", profile.ownerId)
         .single();
       if (prof) {
         setOrgDefaults({
           company: prof.organization_name ?? undefined,
           logoUrl: prof.brand_logo_url ?? undefined,
-          leadCaptureEnabled: !prof.lead_capture_disabled,
         });
       }
     });
@@ -280,6 +281,7 @@ export default function CreatePage() {
             supportEmail={supportEmail}
             onFormChange={(data) => setFormData(data)}
             initial={orgDefaults}
+            isOwner={isOwner}
           />
 
           {/* ── Bottom action bar ─────────────────────────────────────── */}
