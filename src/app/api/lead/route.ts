@@ -60,6 +60,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Lead capture not enabled" }, { status: 403 });
   }
 
+  // Org-wide kill switch overrides the per-card flag
+  if (contact.user_id) {
+    const { data: ownerProf } = await supabase
+      .from("profiles")
+      .select("lead_capture_disabled")
+      .eq("user_id", contact.user_id)
+      .single();
+    if (ownerProf?.lead_capture_disabled) {
+      return NextResponse.json({ error: "Lead capture not enabled" }, { status: 403 });
+    }
+  }
+
   const now = new Date().toISOString();
   const baseRow = {
     contact_id: contactId,

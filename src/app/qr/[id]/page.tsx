@@ -27,6 +27,13 @@ export default async function QRLandingPage({ params }: { params: { id: string }
   if (!row) notFound();
   if (!row.is_active) redirect("https://qr-card.ch");
 
+  // Owner-level lead-capture kill switch overrides the per-card flag.
+  const ownerId = (row.user_id as string) ?? "";
+  const { data: ownerProfile } = ownerId
+    ? await supabase.from("profiles").select("lead_capture_disabled").eq("user_id", ownerId).single()
+    : { data: null };
+  const orgLeadCaptureDisabled = !!ownerProfile?.lead_capture_disabled;
+
   // Platform-wide support email — single source of truth, set by platform owner
   const { data: platform } = await supabase
     .from("profiles")
@@ -93,5 +100,6 @@ export default async function QRLandingPage({ params }: { params: { id: string }
   // on the main qr-card.ch domain.
   const isCustomDomain = !!headers().get("x-custom-domain");
 
-  return <QRLandingClient contact={contact} leadCaptureActive={contact.leadCaptureEnabled} supportEmail={supportEmail} isCustomDomain={isCustomDomain} />;
+  const leadCaptureActive = contact.leadCaptureEnabled && !orgLeadCaptureDisabled;
+  return <QRLandingClient contact={contact} leadCaptureActive={leadCaptureActive} supportEmail={supportEmail} isCustomDomain={isCustomDomain} />;
 }

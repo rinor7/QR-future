@@ -55,7 +55,7 @@ export default function EditPage() {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(searchParams.get("created") === "1");
   const [submitting, setSubmitting] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
+  const [orgLeadCaptureDisabled, setOrgLeadCaptureDisabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Folder state
@@ -79,10 +79,15 @@ export default function EditPage() {
     getSupabaseBrowser().from("contacts").select("folder_id").eq("id", id).single()
       .then(({ data }) => { if (data?.folder_id) setSelectedFolderId(data.folder_id); });
     // Load folder tree
-    getUserProfile().then((p) => {
+    getUserProfile().then(async (p) => {
       if (!p) return;
-      setIsOwner(p.userId === p.ownerId);
       getAllFolders(p.ownerId).then((folders) => setFolderTree(buildTree(folders)));
+      const { data: prof } = await getSupabaseBrowser()
+        .from("profiles")
+        .select("lead_capture_disabled")
+        .eq("user_id", p.ownerId)
+        .single();
+      setOrgLeadCaptureDisabled(!!prof?.lead_capture_disabled);
     });
   }, [id, router]);
 
@@ -251,7 +256,7 @@ export default function EditPage() {
             loading={submitting}
             error={error}
             supportEmail={supportEmail}
-            isOwner={isOwner}
+            orgLeadCaptureDisabled={orgLeadCaptureDisabled}
             onFormChange={(f) => {
               setPreviewLogoUrl(f.showLogoInQr !== false ? f.logoUrl || undefined : undefined);
               setPreviewQRStyle({ qrDotStyle: f.qrDotStyle, qrCornerStyle: f.qrCornerStyle, qrDotColor: f.qrDotColor, qrBgColor: f.qrBgColor, qrGradient: f.qrGradient, qrGradientColor: f.qrGradientColor });

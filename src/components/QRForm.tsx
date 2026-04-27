@@ -18,7 +18,7 @@ const DEFAULTS: CreateQRContact = {
   description: "",
   logoUrl: "",
   showLogoInQr: true,
-  leadCaptureEnabled: true,
+  leadCaptureEnabled: false,
   phone: "",
   phones: [],
   email: "",
@@ -106,10 +106,10 @@ interface Props {
   onFormChange?: (data: CreateQRContact) => void;
   hideActions?: boolean;
   formId?: string;
-  isOwner?: boolean;
+  orgLeadCaptureDisabled?: boolean;
 }
 
-export default function QRForm({ initial, onSubmit, submitLabel, saved, loading, error, supportEmail, onFormChange, hideActions, formId, isOwner = false }: Props) {
+export default function QRForm({ initial, onSubmit, submitLabel, saved, loading, error, supportEmail, onFormChange, hideActions, formId, orgLeadCaptureDisabled = false }: Props) {
   const router = useRouter();
   const { tr } = useLang();
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
@@ -607,34 +607,44 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
             </div>
           </div>
 
-          {/* Lead Capture toggle — only the org owner can change this. Other
-              roles (admin/writer) get the default-on behaviour and don't see
-              the toggle, so they can't accidentally turn lead capture off. */}
-          {isOwner && (
-            <div
-              onClick={isLocked("lead_capture_enabled") ? undefined : () => setForm((prev) => { const next = { ...prev, leadCaptureEnabled: !prev.leadCaptureEnabled }; onFormChange?.(next); return next; })}
-              className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
-                form.leadCaptureEnabled
-                  ? "bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-500 shadow-sm"
-                  : "bg-white dark:bg-[#242736] border-gray-200 dark:border-slate-700 hover:border-blue-300"
-              } ${isLocked("lead_capture_enabled") ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
-            >
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${form.leadCaptureEnabled ? "bg-blue-600 text-white" : "bg-blue-100 dark:bg-blue-900/40 text-blue-600"}`}>
-                  <span className="material-symbols-outlined text-[20px]">contact_mail</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Lead Capture</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Show a &ldquo;Leave contact&rdquo; button on this profile</p>
-                </div>
-              </div>
+          {/* Lead Capture toggle. If the org owner has disabled lead capture
+              org-wide in Settings, force this off and lock the toggle so it
+              can't be re-enabled per-card without re-enabling globally. */}
+          {(() => {
+            const lockedByTemplate = isLocked("lead_capture_enabled");
+            const lockedByOrg = orgLeadCaptureDisabled;
+            const locked = lockedByTemplate || lockedByOrg;
+            const effectiveOn = lockedByOrg ? false : form.leadCaptureEnabled;
+            return (
               <div
-                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ml-3 ${form.leadCaptureEnabled ? "bg-blue-600" : "bg-gray-300 dark:bg-slate-600"}`}
+                onClick={locked ? undefined : () => setForm((prev) => { const next = { ...prev, leadCaptureEnabled: !prev.leadCaptureEnabled }; onFormChange?.(next); return next; })}
+                className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
+                  effectiveOn
+                    ? "bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-500 shadow-sm"
+                    : "bg-white dark:bg-[#242736] border-gray-200 dark:border-slate-700 hover:border-blue-300"
+                } ${locked ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
               >
-                <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.leadCaptureEnabled ? "translate-x-[22px]" : "translate-x-0.5"}`} />
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${effectiveOn ? "bg-blue-600 text-white" : "bg-blue-100 dark:bg-blue-900/40 text-blue-600"}`}>
+                    <span className="material-symbols-outlined text-[20px]">contact_mail</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Lead Capture</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                      {lockedByOrg
+                        ? "Disabled org-wide in Settings — turn it on there to enable per-QR."
+                        : "Show a “Leave contact” button on this profile"}
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ml-3 ${effectiveOn ? "bg-blue-600" : "bg-gray-300 dark:bg-slate-600"}`}
+                >
+                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${effectiveOn ? "translate-x-[22px]" : "translate-x-0.5"}`} />
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Theme picker */}
           <div>
