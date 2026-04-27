@@ -1165,11 +1165,11 @@ export default function SettingsPage() {
                 ) : (
                   <div className="space-y-4">
                     {/* Status header */}
-                    <div className="flex items-center justify-between gap-3 p-4 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700/50">
-                      <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-gray-50 dark:bg-[#1e2130] rounded-xl border border-slate-200 dark:border-slate-700/50">
+                      <div className="flex items-start gap-3 min-w-0">
                         <span className="material-symbols-outlined text-slate-400 shrink-0">language</span>
                         <div className="min-w-0">
-                          <p className="font-mono text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{customDomain}</p>
+                          <p className="font-mono text-sm font-semibold text-slate-900 dark:text-slate-100 break-all">{customDomain}</p>
                           {customDomainVerified ? (
                             <p className="text-xs text-green-600 flex items-center gap-1 mt-0.5">
                               <span className="material-symbols-outlined text-[14px]">check_circle</span>
@@ -1187,7 +1187,7 @@ export default function SettingsPage() {
                         type="button"
                         onClick={handleRemoveCustomDomain}
                         disabled={customDomainSaving}
-                        className="text-xs text-red-500 hover:underline shrink-0 disabled:opacity-60"
+                        className="self-start sm:self-auto text-xs text-red-500 hover:underline shrink-0 disabled:opacity-60"
                       >
                         Remove
                       </button>
