@@ -7,8 +7,10 @@ import TopHeader from "@/components/TopHeader";
 import ActivityPanel from "@/components/ActivityPanel";
 import { getUserProfile } from "@/lib/store";
 import { QRUrlProvider } from "@/lib/qr-url";
+import { useLang } from "@/lib/language";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { lang, toggleLang } = useLang();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
@@ -55,7 +57,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <Menu className="w-5 h-5" />
           </button>
-          <span className="flex-1 font-bold text-slate-900 dark:text-slate-100" id="mobile-brand-name">qr-card.ch</span>
+          <span className="flex-1 font-bold text-slate-900 dark:text-slate-100 truncate" id="mobile-brand-name">qr-card.ch</span>
+          {/* Language toggle (mobile) */}
+          <button
+            onClick={toggleLang}
+            title={lang === "de" ? "Switch to English" : "Zu Deutsch wechseln"}
+            className="h-9 px-2.5 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors text-xs font-bold tracking-wide"
+          >
+            {lang === "de" ? "DE" : "EN"}
+          </button>
           {/* Activity toggle (mobile) */}
           <button
             onClick={() => setActivityOpen((v) => !v)}

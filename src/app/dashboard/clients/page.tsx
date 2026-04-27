@@ -212,7 +212,7 @@ export default function ClientsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm p-4 text-center">
           <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{clients.length}</p>
           <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{tr.clients_stat_total}</p>
@@ -287,7 +287,8 @@ export default function ClientsPage() {
 
       {/* Table */}
       <div className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-sm border border-gray-100 dark:border-[#242736] overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead>
             <tr className="border-b border-gray-100 dark:border-[#242736] text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">
               <th className="text-left px-6 py-3">{tr.clients_email}</th>
@@ -367,6 +368,7 @@ export default function ClientsPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Delete client confirmation modal */}

@@ -246,8 +246,8 @@ export default function EditPage() {
         );
       })()}
 
-      <div className="flex gap-8">
-        <div className="flex-1 min-w-0">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div className="flex-1 min-w-0 order-2 lg:order-1">
           <QRForm
             initial={contact}
             onSubmit={handleSubmit}
@@ -265,8 +265,8 @@ export default function EditPage() {
         </div>
 
         {/* QR Preview */}
-        <div className="w-[360px] shrink-0">
-          <div className="sticky top-8">
+        <div className="w-full lg:w-[360px] shrink-0 order-1 lg:order-2">
+          <div className="lg:sticky lg:top-8">
             <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
                 QR Code

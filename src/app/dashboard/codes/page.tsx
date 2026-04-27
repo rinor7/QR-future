@@ -1190,7 +1190,7 @@ export default function CodesPage() {
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-1 mt-5 pt-4 border-t border-slate-100 dark:border-[#242736]">
+                          <div className="flex flex-wrap items-center gap-1 mt-5 pt-4 border-t border-slate-100 dark:border-[#242736]">
                             {(
                               <Link href={`/dashboard/edit/${contact.id}`} title="Edit" className="w-8 h-8 flex items-center justify-center text-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
                                 <span className="material-symbols-outlined text-[17px]">edit</span>

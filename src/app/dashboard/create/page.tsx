@@ -155,8 +155,8 @@ export default function CreatePage() {
   return (
     <div className="flex flex-col min-h-screen bg-[#eef1f8] dark:bg-[#0f1117]">
       {/* ── Top navigation bar ─────────────────────────────────────────── */}
-      <div className="sticky top-0 z-30 bg-white dark:bg-[#131620] border-b border-slate-200 dark:border-[#1e2130] px-6 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-4">
+      <div className="sticky top-0 z-30 bg-white dark:bg-[#131620] border-b border-slate-200 dark:border-[#1e2130] px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3 shadow-sm">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <button
             type="button"
             onClick={() => router.back()}
@@ -164,16 +164,16 @@ export default function CreatePage() {
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           </button>
-          <div>
-            <div className="flex items-center gap-1.5 mb-0.5">
+          <div className="min-w-0">
+            <div className="hidden sm:flex items-center gap-1.5 mb-0.5">
               <button type="button" onClick={() => router.push("/dashboard/codes")} className="text-xs text-slate-400 hover:text-blue-600 transition-colors">QR Codes</button>
               <span className="material-symbols-outlined text-[12px] text-slate-300">chevron_right</span>
               <span className="text-xs text-blue-600 font-medium">New Dynamic Code</span>
             </div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">Configuration &amp; Details</h1>
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight truncate">Configuration &amp; Details</h1>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-3 shrink-0">
           <button
             type="button"
             onClick={() => router.back()}
@@ -286,14 +286,14 @@ export default function CreatePage() {
           />
 
           {/* ── Bottom action bar ─────────────────────────────────────── */}
-          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] px-6 py-5">
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-200 dark:border-[#242736] px-5 sm:px-6 py-5">
             {error && (
               <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm flex items-start gap-2.5">
                 <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5">error</span>
                 <span>{error}</span>
               </div>
             )}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={triggerSubmit}

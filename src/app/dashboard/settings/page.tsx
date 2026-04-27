@@ -601,7 +601,7 @@ export default function SettingsPage() {
       <div className="grid grid-cols-12 gap-6">
 
         {/* Account Information (8 cols) */}
-        <section className="col-span-12 lg:col-span-8 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+        <section className="col-span-12 lg:col-span-8 bg-white dark:bg-[#1a1d27] rounded-xl p-5 sm:p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-xl text-blue-600">
@@ -655,7 +655,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Security (4 cols) */}
-        <section className="col-span-12 lg:col-span-4 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+        <section className="col-span-12 lg:col-span-4 bg-white dark:bg-[#1a1d27] rounded-xl p-5 sm:p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
           <div className="flex items-center gap-4 mb-8">
             <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-xl text-slate-500 dark:text-slate-400">
               <span className="material-symbols-outlined">shield</span>
@@ -788,7 +788,7 @@ export default function SettingsPage() {
 
         {/* Company Information (owner or admin only, not platform admin) */}
         {(isOwner || userRole === "admin") && !isPlatformAdmin && (
-          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-5 sm:p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
             <div className="flex items-center gap-4 mb-8">
               <div className="bg-green-500/10 p-3 rounded-xl text-green-600">
                 <span className="material-symbols-outlined">contacts</span>
@@ -902,7 +902,7 @@ export default function SettingsPage() {
 
         {/* Company Templates (owner or admin only, not platform admin) */}
         {(isOwner || userRole === "admin") && !isPlatformAdmin && (
-          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-5 sm:p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
                 <div className="bg-purple-500/10 p-3 rounded-xl text-purple-600">
@@ -979,7 +979,7 @@ export default function SettingsPage() {
 
         {/* Platform Preferences (12 cols) — hidden from platform owner */}
         {!isPlatformAdmin && (
-        <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+        <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-5 sm:p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
           <div className="flex items-center gap-4 mb-10">
             <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-xl text-slate-600 dark:text-slate-400">
               <span className="material-symbols-outlined">tune</span>
@@ -1035,7 +1035,7 @@ export default function SettingsPage() {
 
         {/* Branding / White Label (owner or admin only, not platform admin) */}
         {(isOwner || userRole === "admin") && !isPlatformAdmin && (
-          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-5 sm:p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
             <div className="flex items-center gap-4 mb-6">
               <div className="bg-purple-500/10 p-3 rounded-xl text-purple-600">
                 <span className="material-symbols-outlined">style</span>
@@ -1280,7 +1280,7 @@ export default function SettingsPage() {
 
         {/* Platform Support Email (platform admin only) */}
         {isPlatformAdmin && (
-          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-5 sm:p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
             <h3 className="text-xl font-bold font-headline mb-2">{tr.settings_support_email_title ?? "Platform Contact Email"}</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{tr.settings_support_email_hint ?? "Shown to team members when a save error occurs."}</p>
             {supportEmailSaved && !editingSupport ? (

@@ -180,7 +180,8 @@ export default function ClientDetailPage() {
         {members.length === 0 ? (
           <p className="px-6 py-5 text-sm text-gray-400 dark:text-slate-500">{tr.client_detail_no_members}</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[480px]">
             <thead>
               <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide bg-gray-50">
                 <th className="text-left px-6 py-3">{tr.clients_email}</th>
@@ -204,6 +205,7 @@ export default function ClientDetailPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -221,7 +223,8 @@ export default function ClientDetailPage() {
             const paginated  = qrCodes.slice(qrPage * QR_PAGE_SIZE, (qrPage + 1) * QR_PAGE_SIZE);
             return (
               <>
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[560px]">
                   <thead>
                     <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide bg-gray-50">
                       <th className="text-left px-6 py-3">{tr.clients_label}</th>
@@ -257,6 +260,7 @@ export default function ClientDetailPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 dark:border-[#242736] text-xs text-gray-500 dark:text-slate-400">
                     <span>
