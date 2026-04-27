@@ -5,6 +5,7 @@ import { Menu } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import ActivityPanel from "@/components/ActivityPanel";
+import HelpButton from "@/components/HelpButton";
 import { getUserProfile } from "@/lib/store";
 import { QRUrlProvider } from "@/lib/qr-url";
 import { useLang } from "@/lib/language";
@@ -122,6 +123,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onUnreadChange={setActivityCount}
         topOffset={bannerHeight}
       />
+
+      {/* Help / Contact Platform Owner — hidden for the platform admin themselves */}
+      {!isPlatformAdmin && <HelpButton />}
     </QRUrlProvider>
   );
 }

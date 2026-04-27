@@ -154,7 +154,7 @@ export default function SettingsPage() {
         setUserRole(p.role);
         setSupportEmail(p.supportEmail ?? "");
         setSupportEmailSaved(!!p.supportEmail);
-        // Load lead capture + webhook settings
+        // Load lead capture + brand + account settings
         const supabaseInner = getSupabaseBrowser();
         const { data: { user: u } } = await supabaseInner.auth.getUser();
         if (u) {

@@ -25,11 +25,15 @@ const PLAN_META: Record<Plan, PlanMeta> = {
 
 interface PlanConfig { plan: Plan; price: number; features: string[]; features_en: string[]; }
 
-const COMPARE_ROWS = [
-  { label: "Dynamic QR Lifetime", sub: "Edit destination URLs anytime", free: false, star: true, premium: true, platinum: true },
-  { label: "Data Retention", sub: "Historical analytics storage", free: "30 Days", star: "1 Year", premium: "Unlimited", platinum: "Unlimited" },
-  { label: "White-label Domains", sub: "Custom short-link URLs", free: false, star: false, premium: true, platinum: true },
-];
+type CmpValue = boolean | string;
+interface CompareRow {
+  labelKey: string;
+  subKey: string;
+  free: CmpValue;
+  star: CmpValue;
+  premium: CmpValue;
+  platinum: CmpValue;
+}
 
 export default function UpgradePage() {
   const router = useRouter();
@@ -212,29 +216,31 @@ export default function UpgradePage() {
       {/* Comparison table */}
       <section className="max-w-5xl mx-auto mt-8 mb-12 overflow-x-auto">
         <h5 className="text-2xl sm:text-3xl font-bold font-headline text-center mb-8 sm:mb-16 text-slate-900 dark:text-slate-100">{tr.upgrade_compare_features}</h5>
-        <div className="space-y-0.5 min-w-[480px]">
-          <div className="grid grid-cols-5 py-4 px-6 items-center text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-[#242736]">
+        <div className="space-y-0.5 min-w-[640px]">
+          <div className="grid grid-cols-6 py-4 px-6 items-center text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-[#242736]">
             <div className="col-span-2">{tr.upgrade_core_feature}</div>
             <div className="text-center">{tr.upgrade_plan_free}</div>
             <div className="text-center text-blue-600">{tr.upgrade_plan_star}</div>
             <div className="text-center">{tr.upgrade_plan_premium}</div>
+            <div className="text-center text-purple-600">{tr.upgrade_plan_platinum}</div>
           </div>
-          {COMPARE_ROWS.map((row) => (
-            <div key={row.label} className="grid grid-cols-5 py-6 px-6 items-center hover:bg-gray-50 dark:hover:bg-[#1e2130] transition-colors rounded-xl">
+          {(buildCompareRows(tr) as CompareRow[]).map((row) => (
+            <div key={row.labelKey} className="grid grid-cols-6 py-5 px-6 items-center hover:bg-gray-50 dark:hover:bg-[#1e2130] transition-colors rounded-xl">
               <div className="col-span-2">
-                <p className="font-bold text-slate-900 dark:text-slate-100">{row.label}</p>
-                {row.sub && <p className="text-xs text-slate-400 mt-0.5">{row.sub}</p>}
+                <p className="font-bold text-slate-900 dark:text-slate-100">{tr[row.labelKey as keyof typeof tr] as string}</p>
+                {row.subKey && <p className="text-xs text-slate-400 mt-0.5">{tr[row.subKey as keyof typeof tr] as string}</p>}
               </div>
-              {(["free", "star", "premium"] as Plan[]).map((p) => {
-                const val = row[p as keyof typeof row];
+              {(["free", "star", "premium", "platinum"] as Plan[]).map((p) => {
+                const val = row[p];
+                const isHighlight = p === "star" || p === "platinum";
                 return (
                   <div key={p} className="flex justify-center">
                     {typeof val === "boolean" ? (
                       val
-                        ? <span className="material-symbols-outlined text-blue-600">check</span>
+                        ? <span className={`material-symbols-outlined ${p === "platinum" ? "text-purple-600" : "text-blue-600"}`}>check</span>
                         : <span className="material-symbols-outlined text-slate-300 dark:text-slate-600">close</span>
                     ) : (
-                      <span className={`text-sm font-medium ${p === "star" ? "font-bold text-blue-600" : "text-slate-700 dark:text-slate-300"}`}>{val as string}</span>
+                      <span className={`text-sm font-medium text-center ${isHighlight ? `font-bold ${p === "platinum" ? "text-purple-600" : "text-blue-600"}` : "text-slate-700 dark:text-slate-300"}`}>{val}</span>
                     )}
                   </div>
                 );
@@ -245,4 +251,22 @@ export default function UpgradePage() {
       </section>
     </div>
   );
+}
+
+function buildCompareRows(tr: ReturnType<typeof useLang>["tr"]): CompareRow[] {
+  return [
+    { labelKey: "cmp_qr_codes",       subKey: "cmp_qr_codes_sub",       free: "1",  star: "10",            premium: "100",                  platinum: tr.cmp_unlimited },
+    { labelKey: "cmp_team_members",   subKey: "cmp_team_members_sub",   free: "1",  star: "3",             premium: "10",                   platinum: tr.cmp_unlimited },
+    { labelKey: "cmp_dynamic_qr",     subKey: "cmp_dynamic_qr_sub",     free: true, star: true,            premium: true,                   platinum: true },
+    { labelKey: "cmp_custom_design",  subKey: "cmp_custom_design_sub",  free: true, star: true,            premium: true,                   platinum: true },
+    { labelKey: "cmp_lead_capture",   subKey: "cmp_lead_capture_sub",   free: true, star: true,            premium: true,                   platinum: true },
+    { labelKey: "cmp_analytics",      subKey: "cmp_analytics_sub",      free: true, star: true,            premium: true,                   platinum: true },
+    { labelKey: "cmp_folders",        subKey: "cmp_folders_sub",        free: true, star: true,            premium: true,                   platinum: true },
+    { labelKey: "cmp_bilingual",      subKey: "cmp_bilingual_sub",      free: true, star: true,            premium: true,                   platinum: true },
+    { labelKey: "cmp_csv_export",     subKey: "cmp_csv_export_sub",     free: true, star: true,            premium: true,                   platinum: true },
+    { labelKey: "cmp_templates",      subKey: "cmp_templates_sub",      free: false, star: true,           premium: true,                   platinum: true },
+    { labelKey: "cmp_custom_domain",  subKey: "cmp_custom_domain_sub",  free: false, star: false,          premium: true,                   platinum: true },
+    { labelKey: "cmp_webhook",        subKey: "cmp_webhook_sub",        free: false, star: false,          premium: true,                   platinum: true },
+    { labelKey: "cmp_support",        subKey: "cmp_support_sub",        free: tr.cmp_support_community, star: tr.cmp_support_email, premium: tr.cmp_support_priority, platinum: tr.cmp_support_dedicated },
+  ];
 }
