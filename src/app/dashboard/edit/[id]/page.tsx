@@ -191,8 +191,8 @@ export default function EditPage() {
       )}
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{tr.edit_title}</h1>
-        <p className="text-gray-500 mt-1">{`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">{tr.edit_title}</h1>
+        <p className="text-gray-500 dark:text-slate-400 mt-1">{`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</p>
       </div>
 
       {/* Folder picker */}

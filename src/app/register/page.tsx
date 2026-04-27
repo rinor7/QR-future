@@ -33,6 +33,11 @@ export default function RegisterPage() {
     const supabase = getSupabaseBrowser();
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) { setError(error.message); setLoading(false); return; }
+    fetch("/api/account/log-signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.trim().toLowerCase() }),
+    }).catch(() => {});
     setDone(true);
   }
 

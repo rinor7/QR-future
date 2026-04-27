@@ -26,7 +26,7 @@ const ADMIN_NAV: NavItem[] = [
   { href: "/dashboard/settings",      labelKey: "nav_settings",      icon: "settings" },
 ];
 
-export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
+export default function Sidebar({ open, onClose, topOffset = 0 }: { open?: boolean; onClose?: () => void; topOffset?: number }) {
   const pathname = usePathname();
   const { tr } = useLang();
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
@@ -74,10 +74,11 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
 
   return (
     <aside
+      style={{ top: topOffset, height: `calc(100vh - ${topOffset}px)` }}
       className={`
-        w-72 flex flex-col shrink-0 fixed top-0 left-0 h-screen z-50 bg-[#eef1f8] dark:bg-[#0f1117]
+        w-72 flex flex-col shrink-0 fixed left-0 z-50 bg-[#eef1f8] dark:bg-[#0f1117]
         transition-transform duration-300 ease-in-out
-        wide:sticky wide:top-0 wide:h-screen wide:translate-x-0 wide:overflow-y-auto
+        wide:sticky wide:translate-x-0 wide:overflow-y-auto
         ${open ? "translate-x-0" : "-translate-x-full"}
       `}
     >

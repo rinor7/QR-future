@@ -9,6 +9,7 @@ export const t = {
     // Sidebar
     nav_dashboard: "Dashboard",
     nav_codes: "QR Codes",
+    branding_color_clear: "Farbe entfernen",
     nav_analytics: "Analyse",
     analytics_overview_title: "Analyse-Übersicht",
     analytics_overview_subtitle: "Leistung Ihrer QR-Codes auf einen Blick",
@@ -262,7 +263,7 @@ export const t = {
     clients_plan_modal_confirm: "Ja, Plan ändern",
     clients_plan_modal_cancel: "Abbrechen",
     clients_inactive_title: "Inaktive Kunden",
-    clients_inactive_body: "Diese Kunden haben in den letzten 1 Tag(en) keine QR Codes erstellt oder bearbeitet.",
+    clients_inactive_body: "Diese Kunden haben in den letzten {days} Tagen keine QR Codes erstellt oder bearbeitet.",
     clients_last_active: "Zuletzt aktiv",
     clients_never_active: "Noch keine Aktivität",
     clients_view: "Anzeigen",
@@ -717,6 +718,7 @@ export const t = {
     // Sidebar
     nav_dashboard: "Dashboard",
     nav_codes: "QR Codes",
+    branding_color_clear: "Clear color",
     nav_analytics: "Analytics",
     analytics_overview_title: "Analytics Overview",
     analytics_overview_subtitle: "Performance of your QR codes at a glance",
@@ -970,7 +972,7 @@ export const t = {
     clients_plan_modal_confirm: "Yes, change plan",
     clients_plan_modal_cancel: "Cancel",
     clients_inactive_title: "Inactive clients",
-    clients_inactive_body: "These clients have not created or updated any QR codes in the last 1 day(s).",
+    clients_inactive_body: "These clients have not created or updated any QR codes in the last {days} days.",
     clients_last_active: "Last active",
     clients_never_active: "No activity yet",
     clients_view: "View",

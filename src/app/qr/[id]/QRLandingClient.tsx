@@ -213,6 +213,15 @@ export default function QRLandingClient({ contact, leadCaptureActive = false, su
   }
 
   function handleVCard() {
+    const COUNTRY_NAMES: Record<string, string> = {
+      ch: "Switzerland",
+      de: "Germany",
+      at: "Austria",
+      li: "Liechtenstein",
+      fr: "France",
+      lu: "Luxembourg",
+    };
+    const countryFull = contact.country ? (COUNTRY_NAMES[contact.country.toLowerCase()] ?? contact.country) : "";
     const vcard = [
       "BEGIN:VCARD",
       "VERSION:3.0",
@@ -222,7 +231,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false, su
       ...(contact.phones?.length ? contact.phones.filter((p) => p.number).map((p) => `TEL;TYPE=CELL:${p.number}`) : contact.phone ? [`TEL;TYPE=CELL:${contact.phone}`] : []),
       ...(contact.emails?.length ? contact.emails.filter((e) => e.email).map((e) => `EMAIL:${e.email}`) : contact.email ? [`EMAIL:${contact.email}`] : []),
       ...(contact.websites?.length ? contact.websites.filter((w) => w.url).map((w) => `URL:${normalizeUrl(w.url)}`) : contact.website && !contact.website.startsWith("[") ? [`URL:${contact.website}`] : []),
-      (contact.street || contact.city) ? `ADR:;;${contact.street} ${contact.streetNr};${contact.city};;${contact.plz};${contact.country || ""}` : "",
+      (contact.street || contact.city) ? `ADR:;;${contact.street} ${contact.streetNr};${contact.city};;${contact.plz};${countryFull}` : "",
       "END:VCARD",
     ]
       .filter(Boolean)
@@ -516,7 +525,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false, su
                   value={leadName}
                   onChange={(e) => setLeadName(e.target.value)}
                   placeholder={tr.landing_lead_name_ph}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2"
                   style={{ focusRingColor: color } as React.CSSProperties}
                 />
               </div>
@@ -528,7 +537,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false, su
                   value={leadEmail}
                   onChange={(e) => setLeadEmail(e.target.value)}
                   placeholder={tr.landing_lead_email_ph}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2"
                 />
               </div>
               <div>
@@ -538,7 +547,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false, su
                   onChange={(e) => setLeadComment(e.target.value)}
                   placeholder={tr.landing_lead_comment_ph}
                   rows={3}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 resize-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 resize-none"
                 />
               </div>
 

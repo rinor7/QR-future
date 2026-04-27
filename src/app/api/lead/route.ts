@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   }
 
   const now = new Date().toISOString();
-  const { error } = await supabase.from("qr_leads").insert({
+  const baseRow = {
     contact_id: contactId,
     visitor_id: visitorId ?? null,
     name: name.trim(),
@@ -69,11 +69,22 @@ export async function POST(req: NextRequest) {
     comment: comment?.trim() || null,
     consent: true,
     consented_at: now,
+  };
+  let { error } = await supabase.from("qr_leads").insert({
+    ...baseRow,
     country,
     city,
     device_type,
     os,
   });
+
+  // Geo/device columns were added in leads-geo-and-bilingual-plans-migration.sql.
+  // If the migration hasn't run yet, retry without those columns so leads still
+  // get captured.
+  if (error && /column .* does not exist|schema cache/i.test(error.message)) {
+    const fallback = await supabase.from("qr_leads").insert(baseRow);
+    error = fallback.error;
+  }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

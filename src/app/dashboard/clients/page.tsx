@@ -113,15 +113,11 @@ export default function ClientsPage() {
   }
 
   function buildPayload(targets: ClientAccount[]) {
-    return targets.map((c) => {
-      const days = daysInactive(c);
-      const tpl = days === null ? tr.clients_remind_body_never : remindBody;
-      return {
-        email: c.email,
-        subject: fillPlaceholders(remindSubject, c),
-        body: fillPlaceholders(tpl, c),
-      };
-    });
+    return targets.map((c) => ({
+      email: c.email,
+      subject: fillPlaceholders(remindSubject, c),
+      body: fillPlaceholders(remindBody, c),
+    }));
   }
 
   async function sendOne(c: ClientAccount) {
@@ -256,7 +252,7 @@ export default function ClientsPage() {
               </button>
             </div>
           </div>
-          <p className="text-xs text-amber-700 dark:text-amber-300/90 mb-4">{tr.clients_inactive_body}</p>
+          <p className="text-xs text-amber-700 dark:text-amber-300/90 mb-4">{tr.clients_inactive_body.replace("{days}", String(INACTIVITY_DAYS))}</p>
           <div className="flex flex-col gap-2">
             {inactiveClients.map((c) => {
               const checked = selectedIds.has(c.userId);

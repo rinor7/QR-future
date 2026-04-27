@@ -11,14 +11,30 @@ export async function GET() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const { data, error } = await supabase
-    .from("plan_config")
-    .select("plan, price, features, features_en")
-    .order("plan");
+  type Row = { plan: string; price: number; features: string[]; features_en?: string[] | null };
+  let data: Row[] | null = null;
+  let error: { message: string } | null = null;
+  {
+    const r = await supabase
+      .from("plan_config")
+      .select("plan, price, features, features_en")
+      .order("plan");
+    data = r.data as Row[] | null;
+    error = r.error;
+  }
+  // If the bilingual migration hasn't run yet, the features_en column won't
+  // exist — fall back to the German-only shape so the page still renders.
+  if (error) {
+    const fallback = await supabase
+      .from("plan_config")
+      .select("plan, price, features")
+      .order("plan");
+    data = fallback.data as Row[] | null;
+    error = fallback.error;
+  }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Return sorted by defined order; default features_en to features (existing data)
   const sorted = PLAN_ORDER
     .map((p) => data?.find((r) => r.plan === p))
     .filter(Boolean)

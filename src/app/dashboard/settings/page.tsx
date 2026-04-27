@@ -491,11 +491,19 @@ export default function SettingsPage() {
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: currentPassword });
     if (signInError) { setPwError(tr.settings_pw_error_wrong); setPwLoading(false); return; }
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) { setPwError(error.message); } else {
-      setPwSuccess(true);
-      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+    if (error) {
+      setPwError(error.message);
+      setPwLoading(false);
+      return;
     }
-    setPwLoading(false);
+    setPwSuccess(true);
+    setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+    // Invalidate every active session for this user, on every device, then
+    // force a fresh login. Avoids the post-rotation client-side crash and is
+    // the correct security default after a password change.
+    await supabase.auth.signOut({ scope: "global" });
+    router.push("/login?password_changed=1");
+    router.refresh();
   }
 
   async function handleStartMfa() {
@@ -1089,8 +1097,18 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Brand Color</label>
                     <div className="flex items-center gap-3 bg-gray-50 dark:bg-[#242736] rounded-xl px-4 py-3">
-                      <input type="color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)} className="w-8 h-8 rounded-md border-0 cursor-pointer bg-transparent shrink-0" />
-                      <span className="text-sm font-mono text-slate-900 dark:text-slate-100">{brandColor}</span>
+                      <input type="color" value={brandColor || "#2563eb"} onChange={(e) => setBrandColor(e.target.value)} className="w-8 h-8 rounded-md border-0 cursor-pointer bg-transparent shrink-0" />
+                      <span className="text-sm font-mono text-slate-900 dark:text-slate-100 flex-1">{brandColor || "—"}</span>
+                      {brandColor && (
+                        <button
+                          type="button"
+                          onClick={() => setBrandColor("")}
+                          className="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-red-600 transition-colors"
+                          title="Clear color"
+                        >
+                          {tr.branding_color_clear}
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3 pt-2">

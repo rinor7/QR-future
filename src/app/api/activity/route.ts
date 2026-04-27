@@ -76,28 +76,6 @@ export async function GET() {
       });
     });
 
-    // Derive signup / invite-accepted events from profiles.created_at for
-    // historical data (until we add explicit logging).
-    const { data: recentProfiles } = await supabase
-      .from("profiles")
-      .select("user_id, email, owner_id, created_at")
-      .order("created_at", { ascending: false })
-      .limit(50);
-    (recentProfiles ?? []).forEach((p, i) => {
-      const isOwner = p.user_id === p.owner_id;
-      items.push({
-        id: `profile-${p.user_id ?? i}`,
-        type: "notification",
-        qr_id: "",
-        qr_label: p.email ?? "",
-        notification_kind: isOwner ? "user_signed_up" : "invite_accepted",
-        message: isOwner
-          ? `New signup: ${p.email}`
-          : `${p.email} joined a team`,
-        ts: p.created_at,
-      });
-    });
-
     items.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
     return NextResponse.json(items.slice(0, 50));
   }

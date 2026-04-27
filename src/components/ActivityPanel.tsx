@@ -204,10 +204,12 @@ export default function ActivityPanel({
   open,
   onClose,
   onUnreadChange,
+  topOffset = 0,
 }: {
   open: boolean;
   onClose: () => void;
   onUnreadChange: (count: number) => void;
+  topOffset?: number;
 }) {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -270,8 +272,9 @@ export default function ActivityPanel({
 
       {/* Panel */}
       <aside
+        style={{ top: topOffset, height: `calc(100vh - ${topOffset}px)` }}
         className={`
-          fixed top-0 right-0 h-screen w-80 z-50 flex flex-col
+          fixed right-0 w-80 z-50 flex flex-col
           bg-white dark:bg-[#1a1d27] border-l border-slate-200 dark:border-[#242736]
           shadow-[-4px_0_24px_rgba(0,0,0,0.08)]
           transition-transform duration-300 ease-in-out

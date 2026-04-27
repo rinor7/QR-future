@@ -87,14 +87,11 @@ export default async function QRLandingPage({ params }: { params: { id: string }
     qrGradientColor: (row.qr_gradient_color as string) ?? "#2563eb",
   };
 
-  const host = headers().get("host")?.split(":")[0] ?? "";
-  const OWN_HOSTS = new Set([
-    "localhost",
-    "qr-card.ch",
-    "www.qr-card.ch",
-    ...(process.env.NEXT_PUBLIC_APP_URL ? [new URL(process.env.NEXT_PUBLIC_APP_URL).hostname] : []),
-  ]);
-  const isCustomDomain = !!host && !OWN_HOSTS.has(host) && !host.endsWith(".vercel.app");
+  // Middleware sets `x-custom-domain` only when the request hits a true custom
+  // domain. Trust that signal here — recomputing from the host header was
+  // unreliable behind Vercel's proxy and incorrectly hid the "Powered by" line
+  // on the main qr-card.ch domain.
+  const isCustomDomain = !!headers().get("x-custom-domain");
 
   return <QRLandingClient contact={contact} leadCaptureActive={contact.leadCaptureEnabled} supportEmail={supportEmail} isCustomDomain={isCustomDomain} />;
 }
