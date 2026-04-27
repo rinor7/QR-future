@@ -1237,8 +1237,8 @@ export default function CodesPage() {
                         className={`bg-white rounded-xl flex items-center gap-4 px-5 py-4 border border-slate-100 shadow-sm hover:shadow-md transition-all group ${dragContactId === contact.id ? "opacity-50" : ""} ${contact.isActive === false ? "opacity-60 grayscale-[30%]" : ""} cursor-grab active:cursor-grabbing`}
                       >
                         {/* QR thumb */}
-                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 flex items-center justify-center p-1 bg-slate-900">
-                          <QRCodeDisplay value={buildQRUrl(contact.id)} size={40} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
+                        <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 flex items-center justify-center p-1 bg-slate-900">
+                          <QRCodeDisplay value={buildQRUrl(contact.id)} size={56} logoUrl={contact.showLogoInQr ? contact.logoUrl : undefined} />
                         </div>
                         {/* Name + meta */}
                         <div className="flex-1 min-w-0">

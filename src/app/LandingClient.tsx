@@ -47,25 +47,25 @@ export default function LandingClient({
     <div className="min-h-screen bg-white text-gray-900">
       {/* Nav */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <QrCode className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg text-gray-900">QR Plattform</span>
+            <span className="font-bold text-lg text-gray-900 hidden sm:inline">QR Plattform</span>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
             <button
               onClick={toggleLang}
               title={lang === "de" ? "Switch to English" : "Zu Deutsch wechseln"}
-              className="h-9 px-3 flex items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 transition-colors text-xs font-bold tracking-wide"
+              className="h-9 px-2 sm:px-3 flex items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 transition-colors text-xs font-bold tracking-wide"
             >
               {lang === "de" ? "DE" : "EN"}
             </button>
-            <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+            <Link href="/login" className="hidden sm:inline text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-2">
               {tr.home_signin}
             </Link>
-            <Link href="/register" className="text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-colors">
+            <Link href="/register" className="text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
               {tr.home_start_free}
             </Link>
           </div>

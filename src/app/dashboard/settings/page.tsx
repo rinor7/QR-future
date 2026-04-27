@@ -602,14 +602,14 @@ export default function SettingsPage() {
 
         {/* Account Information (8 cols) */}
         <section className="col-span-12 lg:col-span-8 bg-white dark:bg-[#1a1d27] rounded-xl p-5 sm:p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-xl text-blue-600">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-xl text-blue-600 shrink-0">
                 <span className="material-symbols-outlined">person</span>
               </div>
               <h3 className="text-2xl font-bold font-headline">{tr.settings_account_info}</h3>
             </div>
-            <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">
+            <span className="self-start sm:self-auto bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase shrink-0">
               {isOwner ? tr.settings_role_owner : userRole === "admin" ? tr.settings_role_admin : tr.settings_role_member}
             </span>
           </div>
@@ -903,19 +903,19 @@ export default function SettingsPage() {
         {/* Company Templates (owner or admin only, not platform admin) */}
         {(isOwner || userRole === "admin") && !isPlatformAdmin && (
           <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-5 sm:p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-4">
-                <div className="bg-purple-500/10 p-3 rounded-xl text-purple-600">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="bg-purple-500/10 p-3 rounded-xl text-purple-600 shrink-0">
                   <span className="material-symbols-outlined">style</span>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="text-2xl font-bold font-headline">Company Templates</h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Pre-fill and lock fields when creating QR codes</p>
                 </div>
               </div>
               <button
                 onClick={() => { setEditingTemplate(null); setShowTemplateEditor(true); }}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm"
+                className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm whitespace-nowrap shrink-0"
               >
                 <span className="material-symbols-outlined text-[16px]">add</span>
                 New Template

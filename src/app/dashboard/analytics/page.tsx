@@ -152,7 +152,7 @@ export default function AnalyticsOverviewPage() {
                       {formatRelative(r.lastScanAt, tr.analytics_never, lang)}
                     </span>
                   </div>
-                  <div className="grid grid-cols-4 gap-2 text-center">
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-3">
                     <MobileStat label={tr.analytics_col_total} value={r.totalScans} />
                     <MobileStat label={tr.analytics_col_7d} value={r.last7d} />
                     <MobileStat label={tr.analytics_col_unique} value={r.uniqueVisitors} />
@@ -184,9 +184,9 @@ function SummaryCard({ icon, label, value }: { icon: string; label: string; valu
 
 function MobileStat({ label, value }: { label: string; value: number }) {
   return (
-    <div>
-      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider truncate">{label}</p>
-      <p className="text-base font-bold text-slate-900 dark:text-slate-100 tabular-nums">{value}</p>
+    <div className="min-w-0">
+      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider leading-tight">{label}</p>
+      <p className="text-base font-bold text-slate-900 dark:text-slate-100 tabular-nums mt-0.5">{value}</p>
     </div>
   );
 }

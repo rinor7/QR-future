@@ -183,8 +183,8 @@ export default function LeadsPage() {
     <div className="p-4 wide:p-8">
       {preview && <QRPreviewModal card={preview} onClose={() => setPreview(null)} />}
 
-      <div className="flex items-center justify-between mb-6">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{tr.leads_title}</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             {tr.leads_subtitle}
@@ -192,7 +192,7 @@ export default function LeadsPage() {
         </div>
         <button
           onClick={exportCSV}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
+          className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap shrink-0"
         >
           <Download className="w-4 h-4" />
           {tr.export_csv}
