@@ -785,17 +785,16 @@ export default function SettingsPage() {
                 </div>
               )}
             </div>
-            {/* Linked sign-in methods (OAuth providers + email/password) */}
-            {identities.length > 0 && (
+            {/* Linked sign-in methods — only show when an OAuth provider is linked */}
+            {identities.some((i) => i.provider !== "email") && (
               <div className="pt-4 border-t border-slate-200 dark:border-slate-700/50 space-y-3">
                 <div>
                   <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{tr.settings_linked_logins}</span>
                   <p className="text-xs text-slate-400 mt-0.5">{tr.settings_linked_logins_hint}</p>
                 </div>
                 <ul className="space-y-2">
-                  {identities.map((identity) => {
-                    const isEmail = identity.provider === "email";
-                    const label = isEmail ? tr.settings_linked_email : identity.provider.charAt(0).toUpperCase() + identity.provider.slice(1);
+                  {identities.filter((i) => i.provider !== "email").map((identity) => {
+                    const label = identity.provider.charAt(0).toUpperCase() + identity.provider.slice(1);
                     const canRemove = identities.length > 1;
                     const busy = unlinkingProvider === identity.provider;
                     return (

@@ -35,6 +35,12 @@ export default function SetPasswordPage() {
       return;
     }
 
+    // If this set-password flow happened right after an email change on an
+    // OAuth-only account, the original Google/etc. identity is still attached
+    // and pointing at the old email. Now that a password exists, we can
+    // safely remove it so the old OAuth login no longer works.
+    await supabase.rpc("cleanup_stale_oauth_identities");
+
     router.replace("/dashboard");
   }
 
