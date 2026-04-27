@@ -462,6 +462,7 @@ export const t = {
     settings_linked_error: "Trennen fehlgeschlagen. Bitte erneut versuchen.",
     settings_email_needs_password: "Sie haben sich mit Google angemeldet. Bitte legen Sie zuerst ein Passwort fest, bevor Sie Ihre E-Mail ändern.",
     settings_set_password_cta: "Passwort festlegen",
+    settings_email_taken: "Diese E-Mail-Adresse wird bereits verwendet.",
     // Upgrade page
     upgrade_subscription_mgmt: "Abonnement-Verwaltung",
     upgrade_active_btn: "Aktiv",
@@ -1228,6 +1229,7 @@ export const t = {
     settings_linked_error: "Could not disconnect. Please try again.",
     settings_email_needs_password: "You signed up with Google. Please set a password before changing your email.",
     settings_set_password_cta: "Set password",
+    settings_email_taken: "This email address is already in use.",
     // Upgrade page
     upgrade_subscription_mgmt: "Subscription Management",
     upgrade_active_btn: "Active",

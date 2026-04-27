@@ -505,7 +505,11 @@ export default function SettingsPage() {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         const code = data?.error;
-        setEmailError(code === "set_password_required" ? tr.settings_email_needs_password : code || "Failed to update email");
+        const message =
+          code === "set_password_required" ? tr.settings_email_needs_password
+          : code === "email_taken"           ? tr.settings_email_taken
+          : code || "Failed to update email";
+        setEmailError(message);
         setEmailLoading(false);
         return;
       }

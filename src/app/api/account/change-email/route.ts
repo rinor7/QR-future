@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     .neq("user_id", user.id)
     .maybeSingle();
   if (existing) {
-    return NextResponse.json({ error: "Diese E-Mail ist bereits vergeben." }, { status: 409 });
+    return NextResponse.json({ error: "email_taken" }, { status: 409 });
   }
 
   // Standard confirmation flow — Supabase emails the new address with a confirm
