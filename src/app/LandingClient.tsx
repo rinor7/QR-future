@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { QrCode, Check, Zap, Shield, Globe, ScanLine, Pencil, CreditCard, Layers, BadgeCheck } from "lucide-react";
+import { QrCode, Check, Zap, Shield, Globe, ScanLine, Pencil, CreditCard, Layers, BadgeCheck, Phone, Mail, MapPin, User, Briefcase, HardHat, Users, Wifi, Signal, BatteryFull } from "lucide-react";
 import FAQSection from "./FAQSection";
 import QRDemoSection from "./QRDemoSection";
 import { useLang } from "@/lib/language";
@@ -73,60 +73,156 @@ export default function LandingClient({
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
-        <div className="absolute inset-0 opacity-10" style={{backgroundImage:"radial-gradient(circle at 20% 50%, white 0%, transparent 50%), radial-gradient(circle at 80% 20%, white 0%, transparent 40%)"}} />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+      <section className="relative overflow-hidden bg-gradient-to-b from-white via-blue-50/40 to-white">
+        <div className="absolute inset-0 pointer-events-none opacity-60" style={{backgroundImage:"radial-gradient(circle at 85% 15%, rgba(37,99,235,0.10) 0%, transparent 45%), radial-gradient(circle at 10% 90%, rgba(99,102,241,0.06) 0%, transparent 40%)"}} />
 
-        <div className="relative max-w-6xl mx-auto px-6 py-20 flex flex-col md:flex-row items-center gap-12">
-          <div className="flex-1 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 bg-white/15 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
+        <div className="relative max-w-6xl mx-auto px-6 py-16 md:py-24 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8 items-center">
+          <div className="md:col-span-6 text-center md:text-left order-2 md:order-1">
+            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
               <Zap className="w-3 h-3" /> {tr.home_eyebrow}
             </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-5">
-              {tr.home_hero_h1_a}<br />{tr.home_hero_h1_b}
+            <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.05] tracking-tight mb-4">
+              <span className="text-gray-900">{tr.home_hero_h1_a}</span>
+              <br />
+              <span className="text-blue-600">{tr.home_hero_h1_b}</span>
             </h1>
-            <p className="text-lg text-blue-100 max-w-lg mb-8">
+            <div className="hidden md:block w-16 h-1 bg-blue-600 rounded-full my-6" />
+            <p className="text-lg text-gray-600 max-w-lg mb-8 mt-5 md:mt-0 mx-auto md:mx-0">
               {tr.home_hero_sub}
             </p>
-            <div className="flex flex-col sm:flex-row items-center md:items-start gap-3">
-              <Link href="/register" className="w-full sm:w-auto text-center bg-white hover:bg-blue-50 text-blue-700 px-8 py-3.5 rounded-xl font-semibold text-base transition-colors shadow-lg">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center md:items-start gap-3 justify-center md:justify-start">
+              <Link href="/register" className="text-center bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-semibold text-base transition-colors shadow-lg shadow-blue-600/25">
                 {tr.home_start_free}
               </Link>
-              <Link href="/login" className="w-full sm:w-auto text-center border border-white/30 hover:bg-white/10 text-white px-8 py-3.5 rounded-xl font-semibold text-base transition-colors">
+              <Link href="/login" className="text-center border border-gray-200 hover:bg-gray-50 text-gray-700 px-8 py-3.5 rounded-xl font-semibold text-base transition-colors">
                 {tr.home_signin}
               </Link>
             </div>
             <div className="flex flex-wrap items-center gap-4 mt-8 justify-center md:justify-start">
               {[tr.home_trust_no_app, tr.home_trust_free, tr.home_trust_cancel].map((t) => (
-                <span key={t} className="flex items-center gap-1.5 text-blue-100 text-xs">
-                  <Check className="w-3.5 h-3.5 text-green-300" />{t}
+                <span key={t} className="flex items-center gap-1.5 text-gray-500 text-xs">
+                  <Check className="w-3.5 h-3.5 text-green-500" />{t}
                 </span>
               ))}
             </div>
           </div>
 
-          <div className="flex-shrink-0 w-full max-w-xs">
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-              <div className="h-24 bg-gradient-to-br from-indigo-500 to-blue-600" />
-              <div className="flex flex-col items-center -mt-10 pb-6 px-6">
-                <div className="w-20 h-20 rounded-2xl bg-white border-4 border-white shadow-lg flex items-center justify-center mb-3">
-                  <QrCode className="w-10 h-10 text-blue-600" />
+          {/* Phone + Card composition */}
+          <div className="md:col-span-6 order-1 md:order-2 flex justify-center md:justify-end">
+            <div className="relative w-[300px] sm:w-[340px] h-[540px] sm:h-[600px]">
+              {/* Metallic card behind */}
+              <div className="absolute right-0 top-12 w-44 sm:w-52 h-72 sm:h-80 rounded-2xl shadow-xl rotate-[8deg]"
+                style={{
+                  background: "linear-gradient(135deg, #f3f4f6 0%, #d1d5db 45%, #9ca3af 100%)",
+                  border: "1px solid rgba(255,255,255,0.6)",
+                }}
+              >
+                <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{boxShadow:"inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.05)"}} />
+                <div className="px-4 pt-4 flex items-center gap-2">
+                  <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
+                    <span className="text-white text-[10px] font-extrabold">M</span>
+                  </div>
+                  <div className="leading-tight">
+                    <div className="text-[10px] font-extrabold text-blue-700 tracking-wide">{tr.home_phone_company_line1}</div>
+                    <div className="text-[8px] font-bold text-gray-600 tracking-wide">{tr.home_phone_company_line2}</div>
+                  </div>
                 </div>
-                <p className="font-bold text-gray-900 text-base">Max Muster</p>
-                <p className="text-sm text-gray-500">{tr.home_card_role}</p>
-                <div className="w-full mt-5 space-y-2">
-                  {["+41 79 000 00 00", "max@muster.ch", "www.muster.ch"].map((line) => (
-                    <div key={line} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                      <span className="text-xs text-gray-600 truncate">{line}</span>
-                    </div>
-                  ))}
+                <div className="absolute inset-x-0 top-1/2 -translate-y-[55%] flex justify-center">
+                  <div className="w-24 h-24 bg-white p-1.5 rounded shadow-sm flex items-center justify-center">
+                    <QrCode className="w-full h-full text-gray-900" strokeWidth={1.4} />
+                  </div>
                 </div>
-                <div className="mt-5 p-3 bg-gray-50 rounded-2xl">
-                  <QrCode className="w-20 h-20 text-gray-800" />
+                <div className="absolute bottom-3 right-4 flex flex-col items-center text-gray-500">
+                  <Wifi className="w-3.5 h-3.5 -rotate-90" />
+                  <span className="text-[7px] font-bold mt-0.5">NFC</span>
                 </div>
               </div>
+
+              {/* Phone */}
+              <div className="absolute left-0 top-0 w-[240px] sm:w-[270px] z-10">
+                <div className="relative bg-gray-900 rounded-[2.4rem] shadow-2xl p-1.5">
+                  <div className="relative bg-white rounded-[2rem] overflow-hidden" style={{aspectRatio:"9/19"}}>
+                    {/* Notch */}
+                    <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-20 h-5 bg-gray-900 rounded-full z-30" />
+                    {/* Status bar */}
+                    <div className="absolute top-2 left-0 right-0 px-5 flex items-center justify-between text-[9px] font-semibold text-white z-20">
+                      <span>9:41</span>
+                      <div className="flex items-center gap-1">
+                        <Signal className="w-2.5 h-2.5" />
+                        <Wifi className="w-2.5 h-2.5" />
+                        <BatteryFull className="w-3 h-3" />
+                      </div>
+                    </div>
+                    {/* Blue header */}
+                    <div className="bg-gradient-to-br from-blue-500 to-blue-700 h-28 flex items-end justify-center pb-3 pt-8">
+                      <div className="text-white text-center flex items-center gap-1.5">
+                        <div className="w-6 h-6 bg-white/15 backdrop-blur rounded-md flex items-center justify-center">
+                          <span className="text-white text-[9px] font-extrabold">M</span>
+                        </div>
+                        <div className="leading-tight text-left">
+                          <div className="text-[11px] font-extrabold tracking-wide">{tr.home_phone_company_line1}</div>
+                          <div className="text-[8px] opacity-90 tracking-wide">{tr.home_phone_company_line2}</div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Avatar */}
+                    <div className="flex justify-center -mt-7 relative z-10">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 border-[3px] border-white flex items-center justify-center shadow-md">
+                        <User className="w-6 h-6 text-blue-600" />
+                      </div>
+                    </div>
+                    {/* Name */}
+                    <div className="text-center mt-1.5 px-3">
+                      <div className="text-xs font-bold text-gray-900">{tr.home_phone_name}</div>
+                      <div className="text-[9px] text-gray-500 mt-0.5">{tr.home_phone_role}</div>
+                    </div>
+                    {/* Rows */}
+                    <div className="px-4 mt-3 space-y-1.5">
+                      {[
+                        { Icon: Phone, txt: "+41 79 123 45 67" },
+                        { Icon: Mail, txt: "max@musterbau.ch" },
+                        { Icon: MapPin, txt: "Musterstrasse 1, 8000 Zürich" },
+                        { Icon: Globe, txt: "www.musterbau.ch" },
+                      ].map(({ Icon, txt }) => (
+                        <div key={txt} className="flex items-center gap-2">
+                          <div className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                            <Icon className="w-2.5 h-2.5 text-blue-600" />
+                          </div>
+                          <span className="text-[9px] text-gray-700 truncate">{txt}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Save button */}
+                    <div className="px-4 mt-3.5">
+                      <div className="bg-blue-600 text-white text-[10px] font-semibold py-2 rounded-full text-center flex items-center justify-center gap-1.5">
+                        <User className="w-2.5 h-2.5" />
+                        {tr.home_phone_save}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Ideal für strip */}
+        <div className="relative border-t border-gray-100 bg-white/60 backdrop-blur-sm">
+          <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 sm:gap-6">
+            <span className="text-sm font-semibold text-gray-500 shrink-0">{tr.home_ideal_label}</span>
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+              {[
+                { Icon: Briefcase, label: tr.home_ideal1 },
+                { Icon: HardHat, label: tr.home_ideal2 },
+                { Icon: Users, label: tr.home_ideal3 },
+              ].map(({ Icon, label }) => (
+                <div key={label} className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center">
+                    <Icon className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">{label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
