@@ -109,43 +109,43 @@ export default function LandingClient({
 
           {/* Phone + Card composition */}
           <div className="md:col-span-6 order-1 md:order-2 flex justify-center md:justify-end">
-            <div className="relative w-[300px] sm:w-[340px] h-[540px] sm:h-[600px]">
+            <div className="relative w-[320px] sm:w-[400px] h-[560px] sm:h-[620px]">
               {/* Metallic card behind */}
-              <div className="absolute right-0 top-12 w-44 sm:w-52 h-72 sm:h-80 rounded-2xl shadow-xl rotate-[8deg]"
+              <div className="absolute right-[-20px] sm:right-[-10px] top-16 w-48 sm:w-56 h-80 sm:h-[360px] rounded-2xl shadow-xl rotate-[10deg]"
                 style={{
-                  background: "linear-gradient(135deg, #f3f4f6 0%, #d1d5db 45%, #9ca3af 100%)",
+                  background: "linear-gradient(135deg, #f9fafb 0%, #d1d5db 45%, #9ca3af 100%)",
                   border: "1px solid rgba(255,255,255,0.6)",
                 }}
               >
-                <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{boxShadow:"inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.05)"}} />
+                <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{boxShadow:"inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(0,0,0,0.06)"}} />
                 <div className="px-4 pt-4 flex items-center gap-2">
-                  <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
+                  <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center shadow-sm">
                     <span className="text-white text-[10px] font-extrabold">M</span>
                   </div>
                   <div className="leading-tight">
-                    <div className="text-[10px] font-extrabold text-blue-700 tracking-wide">{tr.home_phone_company_line1}</div>
-                    <div className="text-[8px] font-bold text-gray-600 tracking-wide">{tr.home_phone_company_line2}</div>
+                    <div className="text-[11px] font-extrabold text-blue-700 tracking-wide">{tr.home_phone_company_line1}</div>
+                    <div className="text-[9px] font-bold text-gray-600 tracking-wide">{tr.home_phone_company_line2}</div>
                   </div>
                 </div>
-                <div className="absolute inset-x-0 top-1/2 -translate-y-[55%] flex justify-center">
-                  <div className="w-24 h-24 bg-white p-1.5 rounded shadow-sm flex items-center justify-center">
+                <div className="absolute inset-x-0 top-1/2 -translate-y-[50%] flex justify-center">
+                  <div className="w-28 h-28 bg-white p-1.5 rounded-md shadow-sm flex items-center justify-center">
                     <QrCode className="w-full h-full text-gray-900" strokeWidth={1.4} />
                   </div>
                 </div>
                 <div className="absolute bottom-3 right-4 flex flex-col items-center text-gray-500">
-                  <Wifi className="w-3.5 h-3.5 -rotate-90" />
-                  <span className="text-[7px] font-bold mt-0.5">NFC</span>
+                  <Wifi className="w-4 h-4 -rotate-90" />
+                  <span className="text-[8px] font-bold mt-0.5">NFC</span>
                 </div>
               </div>
 
               {/* Phone */}
-              <div className="absolute left-0 top-0 w-[240px] sm:w-[270px] z-10">
-                <div className="relative bg-gray-900 rounded-[2.4rem] shadow-2xl p-1.5">
-                  <div className="relative bg-white rounded-[2rem] overflow-hidden" style={{aspectRatio:"9/19"}}>
+              <div className="absolute left-0 top-0 w-[260px] sm:w-[290px] z-10">
+                <div className="relative bg-gray-900 rounded-[2.6rem] shadow-2xl p-1.5">
+                  <div className="relative bg-white rounded-[2.1rem] overflow-hidden" style={{aspectRatio:"9/19.5"}}>
                     {/* Notch */}
                     <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-20 h-5 bg-gray-900 rounded-full z-30" />
-                    {/* Status bar */}
-                    <div className="absolute top-2 left-0 right-0 px-5 flex items-center justify-between text-[9px] font-semibold text-white z-20">
+                    {/* Status bar (white text on blue header behind it) */}
+                    <div className="absolute top-2 left-0 right-0 px-5 flex items-center justify-between text-[10px] font-semibold text-white z-20">
                       <span>9:41</span>
                       <div className="flex items-center gap-1">
                         <Signal className="w-2.5 h-2.5" />
@@ -153,52 +153,64 @@ export default function LandingClient({
                         <BatteryFull className="w-3 h-3" />
                       </div>
                     </div>
-                    {/* Blue header */}
-                    <div className="bg-gradient-to-br from-blue-500 to-blue-700 h-28 flex items-end justify-center pb-3 pt-8">
-                      <div className="text-white text-center flex items-center gap-1.5">
-                        <div className="w-6 h-6 bg-white/15 backdrop-blur rounded-md flex items-center justify-center">
-                          <span className="text-white text-[9px] font-extrabold">M</span>
+                    {/* Blue header — company sits at top, avatar protrudes from bottom edge */}
+                    <div className="bg-gradient-to-br from-blue-500 to-blue-700 h-28 pt-8 px-3">
+                      <div className="flex items-center justify-center gap-2 mt-1.5 text-white">
+                        <div className="w-7 h-7 bg-white/20 backdrop-blur rounded-md flex items-center justify-center">
+                          <span className="text-white text-[10px] font-extrabold">M</span>
                         </div>
                         <div className="leading-tight text-left">
-                          <div className="text-[11px] font-extrabold tracking-wide">{tr.home_phone_company_line1}</div>
-                          <div className="text-[8px] opacity-90 tracking-wide">{tr.home_phone_company_line2}</div>
+                          <div className="text-[12px] font-extrabold tracking-wide">{tr.home_phone_company_line1}</div>
+                          <div className="text-[9px] opacity-90 tracking-wide">{tr.home_phone_company_line2}</div>
                         </div>
                       </div>
                     </div>
                     {/* Avatar */}
-                    <div className="flex justify-center -mt-7 relative z-10">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 border-[3px] border-white flex items-center justify-center shadow-md">
-                        <User className="w-6 h-6 text-blue-600" />
+                    <div className="flex justify-center -mt-8 relative z-10">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 border-[3px] border-white flex items-center justify-center shadow-md">
+                        <User className="w-7 h-7 text-blue-600" />
                       </div>
                     </div>
                     {/* Name */}
-                    <div className="text-center mt-1.5 px-3">
-                      <div className="text-xs font-bold text-gray-900">{tr.home_phone_name}</div>
-                      <div className="text-[9px] text-gray-500 mt-0.5">{tr.home_phone_role}</div>
+                    <div className="text-center mt-2 px-3">
+                      <div className="text-sm font-bold text-gray-900">{tr.home_phone_name}</div>
+                      <div className="text-[10px] text-gray-500 mt-0.5">{tr.home_phone_role}</div>
                     </div>
                     {/* Rows */}
-                    <div className="px-4 mt-3 space-y-1.5">
+                    <div className="px-4 mt-4 space-y-2">
                       {[
                         { Icon: Phone, txt: "+41 79 123 45 67" },
                         { Icon: Mail, txt: "max@musterbau.ch" },
                         { Icon: MapPin, txt: "Musterstrasse 1, 8000 Zürich" },
                         { Icon: Globe, txt: "www.musterbau.ch" },
                       ].map(({ Icon, txt }) => (
-                        <div key={txt} className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                            <Icon className="w-2.5 h-2.5 text-blue-600" />
+                        <div key={txt} className="flex items-center gap-2.5">
+                          <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                            <Icon className="w-3 h-3 text-blue-600" />
                           </div>
-                          <span className="text-[9px] text-gray-700 truncate">{txt}</span>
+                          <span className="text-[10px] text-gray-700 truncate">{txt}</span>
                         </div>
                       ))}
                     </div>
                     {/* Save button */}
-                    <div className="px-4 mt-3.5">
-                      <div className="bg-blue-600 text-white text-[10px] font-semibold py-2 rounded-full text-center flex items-center justify-center gap-1.5">
-                        <User className="w-2.5 h-2.5" />
+                    <div className="px-4 mt-5">
+                      <div className="bg-blue-600 text-white text-[11px] font-semibold py-2.5 rounded-full text-center flex items-center justify-center gap-1.5 shadow-sm">
+                        <User className="w-3 h-3" />
                         {tr.home_phone_save}
                       </div>
                     </div>
+                    {/* Mini QR + brand footer to fill empty space */}
+                    <div className="px-4 mt-5 flex items-center justify-center gap-3 pb-2">
+                      <div className="w-12 h-12 bg-gray-50 rounded-md p-1 flex items-center justify-center">
+                        <QrCode className="w-full h-full text-gray-800" strokeWidth={1.3} />
+                      </div>
+                      <div className="leading-tight">
+                        <div className="text-[8px] font-semibold text-gray-400">Powered by</div>
+                        <div className="text-[10px] font-bold text-blue-600">QR Plattform</div>
+                      </div>
+                    </div>
+                    {/* Home indicator */}
+                    <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-24 h-1 bg-gray-900 rounded-full" />
                   </div>
                 </div>
               </div>
