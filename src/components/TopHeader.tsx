@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { getUserProfile } from "@/lib/store";
 import type { Plan } from "@/lib/types";
@@ -15,11 +16,22 @@ export default function TopHeader({
   activityCount?: number;
 }) {
   const { lang, tr, toggleLang } = useLang();
+  const router = useRouter();
   const [userEmail, setUserEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [userRole, setUserRole] = useState("Enterprise Admin");
   const [plan, setPlan] = useState<Plan>("free");
   const [darkMode, setDarkMode] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    const supabase = getSupabaseBrowser();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   useEffect(() => {
     const saved = localStorage.getItem("qr-dark-mode") === "true";
@@ -107,10 +119,10 @@ export default function TopHeader({
 
         <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-700" />
 
-        {/* User area — clicks through to settings */}
-        <Link
-          href="/dashboard/settings"
-          title={tr.nav_settings}
+        {/* User area — opens a small profile menu */}
+        <button
+          type="button"
+          onClick={() => setProfileMenuOpen(true)}
           className="flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl px-2 py-1.5 transition-colors"
         >
           <div className="text-right hidden sm:block max-w-[220px]">
@@ -125,8 +137,53 @@ export default function TopHeader({
           >
             {initial}
           </div>
-        </Link>
+        </button>
       </div>
+
+      {/* Profile menu modal */}
+      {profileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-start justify-end p-6 sm:p-8"
+          onClick={() => setProfileMenuOpen(false)}
+        >
+          <div
+            className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-2xl w-full max-w-xs mt-12 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 pt-5 pb-4 border-b border-slate-100 dark:border-[#242736] flex items-center gap-3">
+              <div
+                className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base shrink-0"
+                style={{ background: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
+              >
+                {initial}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{displayName}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{userEmail}</p>
+              </div>
+            </div>
+            <div className="p-2">
+              <Link
+                href="/dashboard/settings"
+                onClick={() => setProfileMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[20px] text-slate-500">settings</span>
+                {tr.nav_settings}
+              </Link>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-60"
+              >
+                <span className="material-symbols-outlined text-[20px]">logout</span>
+                {signingOut ? tr.signing_out : tr.sign_out}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

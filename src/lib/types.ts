@@ -106,8 +106,22 @@ export interface ClientAccount {
   plan: Plan;
   createdAt: string;
   qrCount: number;
-  lastActivityAt?: string;
+  lastActivityAt?: string | null;
   hasStripe?: boolean;
+  firstName?: string;
+  lastName?: string;
+  organizationName?: string;
+  subUsers?: ClientSubUser[];
+}
+
+export interface ClientSubUser {
+  userId: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  role: string;
+  createdAt: string;
+  lastActivityAt?: string | null;
 }
 
 export interface TeamMember {

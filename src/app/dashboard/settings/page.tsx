@@ -148,6 +148,18 @@ export default function SettingsPage() {
     setUnlinkingProvider(null);
   }
 
+  async function handleLinkGoogle() {
+    setIdentityError(null);
+    const supabase = getSupabaseBrowser();
+    const { error } = await supabase.auth.linkIdentity({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard/settings` },
+    });
+    if (error) {
+      setIdentityError(tr.settings_linked_connect_error);
+    }
+  }
+
   async function handleToggleLeadCapture(val: boolean) {
     setLeadCaptureDisabled(val);
     setLeadCaptureSaving(true);
@@ -801,41 +813,64 @@ export default function SettingsPage() {
                 </div>
               )}
             </div>
-            {/* Linked sign-in methods — only show when an OAuth provider is linked */}
-            {identities.some((i) => i.provider !== "email") && (
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-700/50 space-y-3">
-                <div>
-                  <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{tr.settings_linked_logins}</span>
-                  <p className="text-xs text-slate-400 mt-0.5">{tr.settings_linked_logins_hint}</p>
+            {/* Linked sign-in methods — manage external providers (Google) */}
+            {(() => {
+              const oauthIdentities = identities.filter((i) => i.provider !== "email");
+              const googleLinked = identities.some((i) => i.provider === "google");
+              const showSection = oauthIdentities.length > 0 || (hasPassword && !googleLinked);
+              if (!showSection) return null;
+              return (
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-700/50 space-y-3">
+                  <div>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{tr.settings_linked_logins}</span>
+                    <p className="text-xs text-slate-400 mt-0.5">{tr.settings_linked_logins_hint}</p>
+                  </div>
+                  {oauthIdentities.length > 0 && (
+                    <ul className="space-y-2">
+                      {oauthIdentities.map((identity) => {
+                        const label = identity.provider.charAt(0).toUpperCase() + identity.provider.slice(1);
+                        const canRemove = identities.length > 1;
+                        const busy = unlinkingProvider === identity.provider;
+                        return (
+                          <li key={identity.provider} className="flex items-center justify-between gap-2 bg-slate-50 dark:bg-[#242736] rounded-xl px-3 py-2">
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{label}</p>
+                              {identity.email && <p className="text-xs text-slate-400 truncate">{identity.email}</p>}
+                            </div>
+                            {canRemove && (
+                              <button
+                                type="button"
+                                onClick={() => handleUnlinkIdentity(identity.provider)}
+                                disabled={busy}
+                                className="shrink-0 text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-60 transition-colors"
+                              >
+                                {busy ? tr.settings_linked_disconnecting : tr.settings_linked_disconnect}
+                              </button>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                  {hasPassword && !googleLinked && (
+                    <button
+                      type="button"
+                      onClick={handleLinkGoogle}
+                      className="w-full flex items-center justify-center gap-2 bg-white dark:bg-[#242736] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-[#2a2e3d] transition-colors"
+                    >
+                      <svg viewBox="0 0 48 48" className="w-4 h-4" aria-hidden="true">
+                        <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
+                        <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z" />
+                        <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+                        <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571c.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
+                      </svg>
+                      {tr.settings_linked_connect_google}
+                    </button>
+                  )}
+                  {identityError && <p className="text-xs text-red-500">{identityError}</p>}
                 </div>
-                <ul className="space-y-2">
-                  {identities.filter((i) => i.provider !== "email").map((identity) => {
-                    const label = identity.provider.charAt(0).toUpperCase() + identity.provider.slice(1);
-                    const canRemove = identities.length > 1;
-                    const busy = unlinkingProvider === identity.provider;
-                    return (
-                      <li key={identity.provider} className="flex items-center justify-between gap-2 bg-slate-50 dark:bg-[#242736] rounded-xl px-3 py-2">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{label}</p>
-                          {identity.email && <p className="text-xs text-slate-400 truncate">{identity.email}</p>}
-                        </div>
-                        {canRemove && (
-                          <button
-                            type="button"
-                            onClick={() => handleUnlinkIdentity(identity.provider)}
-                            disabled={busy}
-                            className="shrink-0 text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-60 transition-colors"
-                          >
-                            {busy ? tr.settings_linked_disconnecting : tr.settings_linked_disconnect}
-                          </button>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-                {identityError && <p className="text-xs text-red-500">{identityError}</p>}
-              </div>
-            )}
+              );
+            })()}
             {/* Owner toggle: allow/disallow members from using 2FA */}
             {isOwner && !isPlatformAdmin && (
               <div className="pt-4 border-t border-slate-200 dark:border-slate-700/50">
@@ -989,7 +1024,7 @@ export default function SettingsPage() {
 
         {/* Company Templates (owner or admin only, not platform admin) */}
         {(isOwner || userRole === "admin") && !isPlatformAdmin && (
-          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-5 sm:p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+          <section id="templates" className="col-span-12 scroll-mt-20 bg-white dark:bg-[#1a1d27] rounded-xl p-5 sm:p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
               <div className="flex items-center gap-4 min-w-0">
                 <div className="bg-purple-500/10 p-3 rounded-xl text-purple-600 shrink-0">

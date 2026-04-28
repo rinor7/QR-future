@@ -94,3 +94,23 @@ h1, h2, h3, h4, h5, h6 {
 .btn-primary:active {
   transform: scale(0.98);
 }
+
+/* iOS Safari zooms into any text input whose effective font-size is below 16px.
+   Force a 16px minimum on small screens so tapping any field doesn't shift the
+   page. The visual size of the input stays the same — Tailwind's text-sm/xs
+   utilities take over again on tablet/desktop. */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="number"],
+  input[type="date"],
+  input:not([type]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useLang } from "@/lib/language";
 import { getUserProfile } from "@/lib/store";
 import { ClientAccount, Plan, PLAN_LABELS } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Trash2, Users, AlertTriangle, Eye, Lock, Mail, X, Copy, Check, Send, Loader2 } from "lucide-react";
+import { Trash2, Users, AlertTriangle, Eye, Lock, Mail, X, Copy, Check, Send, Loader2, ChevronRight } from "lucide-react";
 
 const PLAN_COLORS: Record<Plan, string> = {
   free: "bg-gray-100 text-gray-600",
@@ -26,6 +26,24 @@ export default function ClientsPage() {
   const [deleting, setDeleting] = useState(false);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [expandedOwners, setExpandedOwners] = useState<Set<string>>(new Set());
+
+  function toggleExpand(ownerId: string) {
+    setExpandedOwners((prev) => {
+      const next = new Set(prev);
+      if (next.has(ownerId)) next.delete(ownerId);
+      else next.add(ownerId);
+      return next;
+    });
+  }
+
+  function fullName(first?: string, last?: string): string {
+    return `${first ?? ""} ${last ?? ""}`.trim();
+  }
+
+  function ownerDisplayName(c: ClientAccount): string {
+    return c.organizationName?.trim() || fullName(c.firstName, c.lastName) || "";
+  }
   const [remindOpen, setRemindOpen] = useState(false);
   const [remindSubject, setRemindSubject] = useState("");
   const [remindBody, setRemindBody] = useState("");
@@ -73,15 +91,48 @@ export default function ClientsPage() {
   }
 
   const INACTIVITY_DAYS = 14;
-  const inactiveClients = clients.filter((c) => {
-    if (!c.lastActivityAt) return true; // never had activity
-    const daysSince = (Date.now() - new Date(c.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24);
-    return daysSince > INACTIVITY_DAYS;
-  });
+  const isStale = (lastActivityAt?: string | null) => {
+    if (!lastActivityAt) return true;
+    const days = (Date.now() - new Date(lastActivityAt).getTime()) / (1000 * 60 * 60 * 24);
+    return days > INACTIVITY_DAYS;
+  };
 
-  function daysInactive(c: ClientAccount): number | null {
-    if (!c.lastActivityAt) return null;
-    return Math.floor((Date.now() - new Date(c.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24));
+  type InactiveItem = {
+    userId: string;
+    email: string;
+    lastActivityAt?: string | null;
+    isSub: boolean;
+    ownerEmail?: string;
+    ownerName?: string;
+  };
+
+  const inactiveItems: InactiveItem[] = [];
+  for (const c of clients) {
+    if (isStale(c.lastActivityAt)) {
+      inactiveItems.push({
+        userId: c.userId,
+        email: c.email,
+        lastActivityAt: c.lastActivityAt,
+        isSub: false,
+      });
+    }
+    for (const sub of c.subUsers ?? []) {
+      if (isStale(sub.lastActivityAt)) {
+        inactiveItems.push({
+          userId: sub.userId,
+          email: sub.email,
+          lastActivityAt: sub.lastActivityAt,
+          isSub: true,
+          ownerEmail: c.email,
+          ownerName: ownerDisplayName(c),
+        });
+      }
+    }
+  }
+
+  function daysInactiveFor(lastActivityAt?: string | null): number | null {
+    if (!lastActivityAt) return null;
+    return Math.floor((Date.now() - new Date(lastActivityAt).getTime()) / (1000 * 60 * 60 * 24));
   }
 
   function toggleSelect(userId: string) {
@@ -94,8 +145,8 @@ export default function ClientsPage() {
   }
 
   function toggleSelectAll() {
-    if (selectedIds.size === inactiveClients.length) setSelectedIds(new Set());
-    else setSelectedIds(new Set(inactiveClients.map((c) => c.userId)));
+    if (selectedIds.size === inactiveItems.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(inactiveItems.map((c) => c.userId)));
   }
 
   function openReminderModal() {
@@ -104,15 +155,15 @@ export default function ClientsPage() {
     setRemindOpen(true);
   }
 
-  function fillPlaceholders(template: string, c: ClientAccount): string {
-    const days = daysInactive(c);
+  function fillPlaceholders(template: string, c: InactiveItem): string {
+    const days = daysInactiveFor(c.lastActivityAt);
     return template
       .replace(/\{email\}/g, c.email)
       .replace(/\{days\}/g, days === null ? "0" : String(days))
       .replace(/\{last_active\}/g, c.lastActivityAt ? new Date(c.lastActivityAt).toLocaleDateString() : tr.clients_remind_never);
   }
 
-  function buildPayload(targets: ClientAccount[]) {
+  function buildPayload(targets: InactiveItem[]) {
     return targets.map((c) => ({
       email: c.email,
       subject: fillPlaceholders(remindSubject, c),
@@ -120,7 +171,7 @@ export default function ClientsPage() {
     }));
   }
 
-  async function sendOne(c: ClientAccount) {
+  async function sendOne(c: InactiveItem) {
     setSendStatus((s) => ({ ...s, [c.userId]: "sending" }));
     setSendError((s) => { const n = { ...s }; delete n[c.userId]; return n; });
     try {
@@ -144,7 +195,7 @@ export default function ClientsPage() {
   }
 
   async function sendAllSelected() {
-    const selected = inactiveClients.filter((c) => selectedIds.has(c.userId));
+    const selected = inactiveItems.filter((c) => selectedIds.has(c.userId));
     if (selected.length === 0) return;
     setSendingAll(true);
     const initial: Record<string, "sending"> = {};
@@ -182,8 +233,8 @@ export default function ClientsPage() {
   }
 
   async function copyAllAddresses() {
-    const selected = inactiveClients.filter((c) => selectedIds.has(c.userId));
-    const list = (selected.length ? selected : inactiveClients).map((c) => c.email).join(", ");
+    const selected = inactiveItems.filter((c) => selectedIds.has(c.userId));
+    const list = (selected.length ? selected : inactiveItems).map((c) => c.email).join(", ");
     await navigator.clipboard.writeText(list);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
@@ -228,19 +279,19 @@ export default function ClientsPage() {
       </div>
 
       {/* Inactivity notification */}
-      {inactiveClients.length > 0 && (
+      {inactiveItems.length > 0 && (
         <div className="bg-amber-50 dark:bg-amber-900/15 border border-amber-200 dark:border-amber-700/40 rounded-2xl p-5">
           <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-300 shrink-0" />
-              <h2 className="text-sm font-semibold text-amber-800 dark:text-amber-200">{tr.clients_inactive_title} ({inactiveClients.length})</h2>
+              <h2 className="text-sm font-semibold text-amber-800 dark:text-amber-200">{tr.clients_inactive_title} ({inactiveItems.length})</h2>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={toggleSelectAll}
                 className="text-xs font-medium text-amber-700 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/30 px-3 py-1.5 rounded-lg transition-colors"
               >
-                {tr.clients_remind_select_all} ({selectedIds.size}/{inactiveClients.length})
+                {tr.clients_remind_select_all} ({selectedIds.size}/{inactiveItems.length})
               </button>
               <button
                 onClick={openReminderModal}
@@ -254,7 +305,7 @@ export default function ClientsPage() {
           </div>
           <p className="text-xs text-amber-700 dark:text-amber-300/90 mb-4">{tr.clients_inactive_body.replace("{days}", String(INACTIVITY_DAYS))}</p>
           <div className="flex flex-col gap-2">
-            {inactiveClients.map((c) => {
+            {inactiveItems.map((c) => {
               const checked = selectedIds.has(c.userId);
               return (
                 <label
@@ -271,7 +322,14 @@ export default function ClientsPage() {
                     <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold shrink-0">
                       {c.email[0].toUpperCase()}
                     </div>
-                    <span className="text-sm text-gray-800 dark:text-slate-200 font-medium truncate">{c.email}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm text-gray-800 dark:text-slate-200 font-medium truncate">{c.email}</p>
+                      {c.isSub && (
+                        <p className="text-[11px] text-amber-700 dark:text-amber-300/80 truncate">
+                          {tr.clients_via_owner} {c.ownerName ? `${c.ownerName} · ` : ""}{c.ownerEmail}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <span className="text-xs text-gray-400 dark:text-slate-500 shrink-0 ml-3">
                     {c.lastActivityAt
@@ -308,63 +366,113 @@ export default function ClientsPage() {
                 </td>
               </tr>
             ) : (
-              clients.map((c) => (
-                <tr key={c.userId} className="border-b border-gray-50 dark:border-[#242736] last:border-0 hover:bg-gray-50 dark:hover:bg-[#242736]/50">
-                  {/* Avatar + email */}
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                        {c.email[0].toUpperCase()}
-                      </div>
-                      <span className="text-gray-800 dark:text-slate-200 font-medium">{c.email}</span>
-                    </div>
-                  </td>
-                  {/* Plan */}
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col gap-1">
-                      <span className={`text-xs font-semibold px-2 py-1 rounded-lg w-fit ${PLAN_COLORS[c.plan]}`}>
-                        {PLAN_LABELS[c.plan]}
-                      </span>
-                      <span className="text-xs text-gray-400 dark:text-slate-500 flex items-center gap-1">
-                        {c.hasStripe
-                          ? <><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />Stripe</>
-                          : <><Lock className="w-3 h-3" />{tr.clients_manual}</>
-                        }
-                      </span>
-                    </div>
-                  </td>
-                  {/* QR count */}
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1 text-gray-700 dark:text-slate-300 font-medium">
-                      {c.qrCount}
-                    </span>
-                  </td>
-                  {/* Joined */}
-                  <td className="px-6 py-4 text-gray-400 dark:text-slate-500 text-xs">
-                    {new Date(c.createdAt).toLocaleDateString()}
-                  </td>
-                  {/* View */}
-                  <td className="px-6 py-4">
-                    <Link
-                      href={`/dashboard/clients/${c.userId}`}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                    >
-                      <Eye className="w-3 h-3" />
-                      {tr.clients_view}
-                    </Link>
-                  </td>
-                  {/* Delete */}
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => { setDeleteTarget(c); setDeleteConfirmText(""); }}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      {tr.clients_delete}
-                    </button>
-                  </td>
-                </tr>
-              ))
+              clients.map((c) => {
+                const expanded = expandedOwners.has(c.userId);
+                const subs = c.subUsers ?? [];
+                const ownerName = ownerDisplayName(c);
+                return (
+                  <Fragment key={c.userId}>
+                    <tr className="border-b border-gray-50 dark:border-[#242736] last:border-0 hover:bg-gray-50 dark:hover:bg-[#242736]/50">
+                      {/* Avatar + email + name/company */}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {subs.length > 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => toggleExpand(c.userId)}
+                              className="shrink-0 w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-[#242736] transition-colors"
+                              title={expanded ? "Collapse" : "Expand"}
+                            >
+                              <ChevronRight className={`w-4 h-4 transition-transform ${expanded ? "rotate-90" : ""}`} />
+                            </button>
+                          ) : (
+                            <span className="w-6 h-6 shrink-0" />
+                          )}
+                          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                            {c.email[0].toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            {ownerName && (
+                              <p className="text-sm text-gray-900 dark:text-slate-100 font-semibold truncate">{ownerName}</p>
+                            )}
+                            <p className={`text-gray-700 dark:text-slate-300 truncate ${ownerName ? "text-xs" : "text-sm font-medium"}`}>{c.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      {/* Plan */}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-lg w-fit ${PLAN_COLORS[c.plan]}`}>
+                            {PLAN_LABELS[c.plan]}
+                          </span>
+                          <span className="text-xs text-gray-400 dark:text-slate-500 flex items-center gap-1">
+                            {c.hasStripe
+                              ? <><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />Stripe</>
+                              : <><Lock className="w-3 h-3" />{tr.clients_manual}</>
+                            }
+                          </span>
+                        </div>
+                      </td>
+                      {/* QR count */}
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1 text-gray-700 dark:text-slate-300 font-medium">
+                          {c.qrCount}
+                        </span>
+                      </td>
+                      {/* Joined */}
+                      <td className="px-6 py-4 text-gray-400 dark:text-slate-500 text-xs">
+                        {new Date(c.createdAt).toLocaleDateString()}
+                      </td>
+                      {/* View */}
+                      <td className="px-6 py-4">
+                        <Link
+                          href={`/dashboard/clients/${c.userId}`}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                        >
+                          <Eye className="w-3 h-3" />
+                          {tr.clients_view}
+                        </Link>
+                      </td>
+                      {/* Delete */}
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => { setDeleteTarget(c); setDeleteConfirmText(""); }}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          {tr.clients_delete}
+                        </button>
+                      </td>
+                    </tr>
+                    {expanded && subs.map((s) => {
+                      const subName = fullName(s.firstName, s.lastName);
+                      return (
+                        <tr key={s.userId} className="border-b border-gray-50 dark:border-[#242736] last:border-0 bg-gray-50/40 dark:bg-[#242736]/20">
+                          <td className="px-6 py-3" colSpan={6}>
+                            <div className="flex items-center gap-3 pl-12">
+                              <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                {s.email[0].toUpperCase()}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                {subName && (
+                                  <p className="text-sm text-gray-800 dark:text-slate-200 font-medium truncate">{subName}</p>
+                                )}
+                                <p className={`text-gray-600 dark:text-slate-400 truncate ${subName ? "text-xs" : "text-sm"}`}>{s.email}</p>
+                              </div>
+                              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0">
+                                {s.role}
+                              </span>
+                              <span className="text-xs text-gray-400 dark:text-slate-500 shrink-0">
+                                {new Date(s.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </Fragment>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -496,8 +604,8 @@ export default function ClientsPage() {
                   </button>
                 </div>
                 <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
-                  {inactiveClients.filter((c) => selectedIds.has(c.userId)).map((c) => {
-                    const d = daysInactive(c);
+                  {inactiveItems.filter((c) => selectedIds.has(c.userId)).map((c) => {
+                    const d = daysInactiveFor(c.lastActivityAt);
                     const status = sendStatus[c.userId];
                     const err = sendError[c.userId];
                     return (

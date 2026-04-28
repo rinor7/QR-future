@@ -1037,19 +1037,22 @@ export default function CodesPage() {
                       </div>
                       {(() => {
                         const folderHasActive = isFolderActive(folder);
+                        const canToggle = isAdmin || isOwner || folder.created_by === userId;
                         return (
                           <>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setPauseModal({ id: folder.id, currentlyActive: folderHasActive, isFolder: true, folderNode: folder }); }}
-                              disabled={togglingFolder === folder.id}
-                              title={folderHasActive ? tr.codes_pause_folder : tr.codes_activate_folder}
-                              className={`absolute top-2 right-10 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg transition-all disabled:opacity-30 hover:bg-white/20 ${folderHasActive ? "text-white" : "text-green-200"}`}
-                            >
-                              {togglingFolder === folder.id
-                                ? <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
-                                : <span className="material-symbols-outlined text-[16px]">{folderHasActive ? "pause_circle" : "play_circle"}</span>
-                              }
-                            </button>
+                            {canToggle && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setPauseModal({ id: folder.id, currentlyActive: folderHasActive, isFolder: true, folderNode: folder }); }}
+                                disabled={togglingFolder === folder.id}
+                                title={folderHasActive ? tr.codes_pause_folder : tr.codes_activate_folder}
+                                className={`absolute top-2 right-10 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg transition-all disabled:opacity-30 hover:bg-white/20 ${folderHasActive ? "text-white" : "text-green-200"}`}
+                              >
+                                {togglingFolder === folder.id
+                                  ? <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+                                  : <span className="material-symbols-outlined text-[16px]">{folderHasActive ? "pause_circle" : "play_circle"}</span>
+                                }
+                              </button>
+                            )}
                             {(isAdmin || isOwner) && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setDeleteFolderModal(folder); }}
@@ -1175,7 +1178,18 @@ export default function CodesPage() {
                               {isAdmin && contact.createdBy && (
                                 <div>
                                   <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Created by</span>
-                                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{memberMap[contact.createdBy] || contact.createdBy}</span>
+                                  {(() => {
+                                    const name = memberMap[contact.createdBy];
+                                    const hasName = name && name !== contact.createdBy;
+                                    return hasName ? (
+                                      <>
+                                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 block leading-tight">{name}</span>
+                                        <span className="text-xs text-slate-500 dark:text-slate-400 block leading-tight">{contact.createdBy}</span>
+                                      </>
+                                    ) : (
+                                      <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{contact.createdBy}</span>
+                                    );
+                                  })()}
                                   {contact.originalCreatorDeleted && (
                                     <button
                                       onClick={() => setDepartedModal(contact)}
@@ -1260,7 +1274,18 @@ export default function CodesPage() {
                           {isAdmin && contact.createdBy && (
                             <span className="hidden lg:flex items-center gap-1">
                               <span className="material-symbols-outlined text-xs">person</span>
-                              {memberMap[contact.createdBy] || contact.createdBy}
+                              {(() => {
+                                const name = memberMap[contact.createdBy];
+                                const hasName = name && name !== contact.createdBy;
+                                return hasName ? (
+                                  <span className="flex flex-col leading-tight">
+                                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{name}</span>
+                                    <span className="text-[10px] text-slate-400">{contact.createdBy}</span>
+                                  </span>
+                                ) : (
+                                  <span>{contact.createdBy}</span>
+                                );
+                              })()}
                               {contact.originalCreatorDeleted && (
                                 <button
                                   onClick={() => setDepartedModal(contact)}

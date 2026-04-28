@@ -8,6 +8,7 @@ import { useLang } from "@/lib/language";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import QRStylePicker from "@/components/QRStylePicker";
+import { useRole } from "@/lib/useRole";
 
 const DEFAULTS: CreateQRContact = {
   qrLabel: "",
@@ -112,6 +113,7 @@ interface Props {
 export default function QRForm({ initial, onSubmit, submitLabel, saved, loading, error, supportEmail, onFormChange, hideActions, formId, orgLeadCaptureDisabled = false }: Props) {
   const router = useRouter();
   const { tr } = useLang();
+  const { isWriter } = useRole();
   const [form, setForm] = useState<CreateQRContact>({ ...DEFAULTS, ...initial });
 
   // Track which optional fields are manually opened
@@ -380,14 +382,16 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
               Templates only pre-fill fields here during creation. After the QR code is saved, all fields become editable again.
             </p>
           </div>
-          <a
-            href="/dashboard/settings"
-            target="_blank"
-            className="flex items-center gap-1 text-xs font-semibold text-purple-600 hover:text-purple-800 transition-colors shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg border border-purple-200 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-          >
-            <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-            {templates.length === 0 ? "Create" : "Manage"}
-          </a>
+          {!isWriter && (
+            <a
+              href="/dashboard/settings#templates"
+              target="_blank"
+              className="flex items-center gap-1 text-xs font-semibold text-purple-600 hover:text-purple-800 transition-colors shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg border border-purple-200 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+            >
+              <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+              {templates.length === 0 ? "Create" : "Manage"}
+            </a>
+          )}
         </div>
 
         {templates.length > 0 && (
@@ -733,7 +737,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                   className={`${input} ${isLocked("phone") ? lockedCls : ""}`}
                 />
               </div>
-              <div className="w-40 shrink-0">
+              <div className="w-24 sm:w-40 shrink-0">
                 <input
                   type="text"
                   value={ph.label}
@@ -792,7 +796,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                   className={`${input} ${isLocked("email") ? lockedCls : ""}`}
                 />
               </div>
-              <div className="w-40 shrink-0">
+              <div className="w-24 sm:w-40 shrink-0">
                 <input
                   type="text"
                   value={em.label}
@@ -859,7 +863,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 />
               </div>
               {ws.url ? (
-                <div className="w-40 shrink-0">
+                <div className="w-24 sm:w-40 shrink-0">
                   <input
                     type="text"
                     value={ws.label}
@@ -874,7 +878,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                   />
                 </div>
               ) : (
-                <div className="w-40 shrink-0" aria-hidden="true" />
+                <div className="w-24 sm:w-40 shrink-0" aria-hidden="true" />
               )}
               {idx > 0 ? (
                 <button

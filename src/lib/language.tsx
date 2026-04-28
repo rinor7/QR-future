@@ -289,6 +289,10 @@ export const t = {
     clients_remind_subject_default: "Wir vermissen dich bei qr-card.ch",
     clients_remind_body_default: "Hallo,\n\nwir haben bemerkt, dass du {days} Tage lang nicht in QR Platform aktiv warst (zuletzt am {last_active}).\n\nDeine QR Codes warten auf dich — logge dich ein, um neue Scans zu sehen, Inhalte zu aktualisieren oder neue QR Codes zu erstellen.\n\nBei Fragen sind wir gerne für dich da. Einfach auf diese E-Mail antworten.\n\nBis bald!",
     clients_remind_body_never: "Hallo,\n\nwir haben bemerkt, dass du dein Konto bei QR Platform noch nicht aktiv genutzt hast.\n\nMelde dich an und erstelle deinen ersten QR Code — bei Fragen antworte einfach auf diese E-Mail.\n\nBis bald!",
+    clients_team_count: "Team",
+    clients_role_owner_badge: "Inhaber",
+    clients_via_owner: "Konto von",
+    clients_no_subusers: "Keine Team-Mitglieder",
     // Client detail page
     client_detail_back: "Zurück zu Kunden",
     client_detail_profile: "Profil",
@@ -463,6 +467,9 @@ export const t = {
     settings_email_needs_password: "Sie haben sich mit Google angemeldet. Bitte legen Sie zuerst ein Passwort fest, bevor Sie Ihre E-Mail ändern.",
     settings_set_password_cta: "Passwort festlegen",
     settings_email_taken: "Diese E-Mail-Adresse wird bereits verwendet.",
+    settings_linked_connect_google: "Google verbinden",
+    settings_linked_connect_hint: "Mit Ihrem Google-Konto schneller anmelden.",
+    settings_linked_connect_error: "Verbinden fehlgeschlagen. Bitte erneut versuchen.",
     // Upgrade page
     upgrade_subscription_mgmt: "Abonnement-Verwaltung",
     upgrade_active_btn: "Aktiv",
@@ -584,6 +591,7 @@ export const t = {
     clients_to: "Bis",
     clients_not_found: "Kunde nicht gefunden.",
     sign_out: "Abmelden",
+    signing_out: "Wird abgemeldet…",
     // Public homepage
     home_signin: "Anmelden",
     home_start_free: "Kostenlos starten",
@@ -1056,6 +1064,10 @@ export const t = {
     clients_remind_subject_default: "We miss you at qr-card.ch",
     clients_remind_body_default: "Hi,\n\nwe noticed you haven't been active on QR Platform for {days} days (last seen {last_active}).\n\nYour QR codes are waiting for you — sign in to check new scans, update content, or build new codes.\n\nIf anything's in the way, just reply to this email and we'll help.\n\nSee you soon!",
     clients_remind_body_never: "Hi,\n\nwe noticed you haven't used your QR Platform account yet.\n\nSign in and create your first QR code — if anything's in the way, just reply to this email.\n\nSee you soon!",
+    clients_team_count: "Team",
+    clients_role_owner_badge: "Owner",
+    clients_via_owner: "Account of",
+    clients_no_subusers: "No team members",
     // Client detail page
     client_detail_back: "Back to clients",
     client_detail_profile: "Profile",
@@ -1230,6 +1242,9 @@ export const t = {
     settings_email_needs_password: "You signed up with Google. Please set a password before changing your email.",
     settings_set_password_cta: "Set password",
     settings_email_taken: "This email address is already in use.",
+    settings_linked_connect_google: "Connect Google",
+    settings_linked_connect_hint: "Use your Google account to sign in faster.",
+    settings_linked_connect_error: "Could not connect. Please try again.",
     // Upgrade page
     upgrade_subscription_mgmt: "Subscription Management",
     upgrade_active_btn: "Active",
@@ -1351,6 +1366,7 @@ export const t = {
     clients_to: "To",
     clients_not_found: "Client not found.",
     sign_out: "Sign out",
+    signing_out: "Signing out…",
     // Public homepage
     home_signin: "Sign in",
     home_start_free: "Start for free",
