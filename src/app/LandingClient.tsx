@@ -17,10 +17,8 @@ const PLAN_STYLE: Record<string, { badge: string; border: string; highlight: boo
 
 export default function LandingClient({
   plans,
-  stats,
 }: {
   plans: { plan: string; price: number; features: string[]; features_en: string[] }[] | null;
-  stats: { codes: number; scans: number; users: number } | null;
 }) {
   const { lang, tr, toggleLang } = useLang();
 
@@ -244,26 +242,6 @@ export default function LandingClient({
           </div>
         </div>
       </section>
-
-      {/* Stats */}
-      {stats && stats.codes >= 20 && stats.users >= 5 && (
-        <section className="border-y border-gray-100 py-10">
-          <div className="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-6 text-center">
-            <div>
-              <p className="text-3xl font-extrabold text-blue-600">{stats.codes.toLocaleString(lang === "de" ? "de-CH" : "en-US")}+</p>
-              <p className="text-sm text-gray-500 mt-1">{tr.home_stats_codes}</p>
-            </div>
-            <div>
-              <p className="text-3xl font-extrabold text-blue-600">{stats.scans.toLocaleString(lang === "de" ? "de-CH" : "en-US")}+</p>
-              <p className="text-sm text-gray-500 mt-1">{tr.home_stats_scans}</p>
-            </div>
-            <div>
-              <p className="text-3xl font-extrabold text-blue-600">{stats.users.toLocaleString(lang === "de" ? "de-CH" : "en-US")}+</p>
-              <p className="text-sm text-gray-500 mt-1">{tr.home_stats_users}</p>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Features */}
       <section className="bg-gray-50 py-20">
