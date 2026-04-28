@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/language";
+import { BRAND_NAME } from "@/lib/brand";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,7 +17,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "QR Plattform",
+  title: BRAND_NAME,
   description: "QR-Code-Verwaltungsplattform für digitale Visitenkarten und mehr.",
 };
 

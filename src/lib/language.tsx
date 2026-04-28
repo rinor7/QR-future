@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { BRAND_NAME } from "./brand";
 
 export type Lang = "de" | "en";
 
@@ -615,7 +616,7 @@ export const t = {
     home_stats_codes: "QR-Codes erstellt",
     home_stats_scans: "Scans insgesamt",
     home_stats_users: "Nutzer vertrauen uns",
-    home_features_title: "Warum QR Plattform?",
+    home_features_title: `Warum ${BRAND_NAME}?`,
     home_feat1_title: "Digitale Visitenkarten",
     home_feat1_desc: "Erstellen Sie professionelle QR-Codes mit Kontaktdaten, Logo, Social Media und mehr.",
     home_feat2_title: "Überall zugänglich",
@@ -1399,7 +1400,7 @@ export const t = {
     home_stats_codes: "QR codes created",
     home_stats_scans: "Total scans",
     home_stats_users: "Users trust us",
-    home_features_title: "Why QR Plattform?",
+    home_features_title: `Why ${BRAND_NAME}?`,
     home_feat1_title: "Digital business cards",
     home_feat1_desc: "Create professional QR codes with contact details, logo, social media and more.",
     home_feat2_title: "Accessible everywhere",

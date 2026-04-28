@@ -5,6 +5,7 @@ import { QrCode, Check, Zap, Shield, Globe, ScanLine, Pencil, CreditCard, Layers
 import FAQSection from "./FAQSection";
 import QRDemoSection from "./QRDemoSection";
 import { useLang } from "@/lib/language";
+import { BRAND_NAME } from "@/lib/brand";
 
 const PLAN_ORDER = ["free", "star", "premium", "platinum"];
 
@@ -50,7 +51,7 @@ export default function LandingClient({
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <QrCode className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg text-gray-900 hidden sm:inline">QR Plattform</span>
+            <span className="font-bold text-lg text-gray-900 hidden sm:inline">{BRAND_NAME}</span>
           </Link>
           <div className="flex items-center gap-1 sm:gap-3">
             <button
@@ -206,7 +207,7 @@ export default function LandingClient({
                       </div>
                       <div className="leading-tight">
                         <div className="text-[8px] font-semibold text-gray-400">Powered by</div>
-                        <div className="text-[10px] font-bold text-blue-600">QR Plattform</div>
+                        <div className="text-[10px] font-bold text-blue-600">{BRAND_NAME}</div>
                       </div>
                     </div>
                     {/* Home indicator */}
@@ -386,7 +387,7 @@ export default function LandingClient({
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <QrCode className="w-4.5 h-4.5 text-white" />
               </div>
-              <span className="font-bold text-white text-base">QR Plattform</span>
+              <span className="font-bold text-white text-base">{BRAND_NAME}</span>
             </div>
             <p className="text-sm leading-relaxed text-gray-500">
               {tr.home_footer_about}
@@ -415,7 +416,7 @@ export default function LandingClient({
 
         <div className="border-t border-gray-800">
           <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
-            <span>© {new Date().getFullYear()} QR Plattform. {tr.home_footer_rights}</span>
+            <span>© {new Date().getFullYear()} {BRAND_NAME}. {tr.home_footer_rights}</span>
             <span>{tr.home_footer_made_in}</span>
           </div>
         </div>

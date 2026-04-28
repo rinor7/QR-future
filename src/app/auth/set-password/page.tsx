@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { QrCode } from "lucide-react";
+import { BRAND_NAME } from "@/lib/brand";
 
 export default function SetPasswordPage() {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function SetPasswordPage() {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <QrCode className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold text-lg text-gray-900">QR Plattform</span>
+          <span className="font-bold text-lg text-gray-900">{BRAND_NAME}</span>
         </div>
 
         <h1 className="text-xl font-bold text-gray-900 mb-1">Passwort festlegen</h1>

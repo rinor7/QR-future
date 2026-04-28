@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { QrCode, Check } from "lucide-react";
 import { useSupportEmail } from "@/lib/useSupportEmail";
+import { BRAND_NAME } from "@/lib/brand";
 
 function GoogleIcon() {
   return (
@@ -104,7 +105,7 @@ function LoginForm() {
           <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
             <QrCode className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold text-white text-lg">QR Plattform</span>
+          <span className="font-bold text-white text-lg">{BRAND_NAME}</span>
         </Link>
 
         {/* Center content */}
@@ -154,7 +155,7 @@ function LoginForm() {
           <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center mb-3 shadow-lg shadow-blue-200">
             <QrCode className="w-7 h-7 text-white" />
           </div>
-          <span className="font-bold text-gray-900 text-lg">QR Plattform</span>
+          <span className="font-bold text-gray-900 text-lg">{BRAND_NAME}</span>
         </div>
 
         <div className="w-full max-w-sm">
