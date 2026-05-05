@@ -206,7 +206,7 @@ export default function LandingClient({
                         <QrCode className="w-full h-full text-gray-800" strokeWidth={1.3} />
                       </div>
                       <div className="leading-tight">
-                        <div className="text-[8px] font-semibold text-gray-400">Powered by</div>
+                        <div className="text-[8px] font-semibold text-gray-400">{tr.home_phone_powered_by}</div>
                         <div className="text-[10px] font-bold text-blue-600">{BRAND_NAME}</div>
                       </div>
                     </div>
