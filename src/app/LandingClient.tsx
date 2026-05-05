@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { QrCode, Check, Zap, Shield, Globe, ScanLine, Pencil, CreditCard, Layers, BadgeCheck, Phone, Mail, MapPin, User, Briefcase, HardHat, Users, Wifi, Signal, BatteryFull } from "lucide-react";
 import FAQSection from "./FAQSection";
-import QRDemoSection from "./QRDemoSection";
 import { useLang } from "@/lib/language";
 import { BRAND_NAME } from "@/lib/brand";
 
@@ -61,7 +60,7 @@ export default function LandingClient({
             >
               {lang === "de" ? "DE" : "EN"}
             </button>
-            <Link href="/login" className="hidden sm:inline text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-2">
+            <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-2">
               {tr.home_signin}
             </Link>
             <Link href="/register" className="text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
@@ -290,9 +289,6 @@ export default function LandingClient({
           </div>
         </div>
       </section>
-
-      {/* Live QR Demo */}
-      <QRDemoSection />
 
       {/* Use cases */}
       <section className="py-20">
