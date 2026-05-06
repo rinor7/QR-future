@@ -1268,7 +1268,7 @@ function Section({
   const ic = SECTION_ICONS[iconKey ?? "default"];
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm overflow-hidden min-w-0">
+    <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm min-w-0">
       <div
         className={`flex items-center justify-between px-6 py-4 ${open ? "border-b border-gray-100 dark:border-[#242736]" : ""} ${collapsible ? "cursor-pointer select-none" : ""}`}
         onClick={collapsible ? () => setOpen((v) => !v) : undefined}
