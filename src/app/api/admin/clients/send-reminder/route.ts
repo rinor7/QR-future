@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { BRAND_NAME } from "@/lib/brand";
 
 type RecipientResult = { email: string; ok: boolean; error?: string };
 
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
     }
     try {
       await transporter.sendMail({
-        from: `"QR Platform" <${smtpUser}>`,
+        from: `"${BRAND_NAME}" <${smtpUser}>`,
         to: r.email,
         replyTo,
         subject: r.subject,

@@ -1,4 +1,4 @@
-# QR Platform — Documentation
+# qr-card.ch — Documentation
 
 ## Overview
 
