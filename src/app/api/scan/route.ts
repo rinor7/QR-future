@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { limiters, rateLimit } from "@/lib/rate-limit";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function parseDevice(ua: string): { device_type: string; os: string } {
   const u = ua.toLowerCase();
 
@@ -49,16 +51,23 @@ export async function POST(req: NextRequest) {
 
   const { contactId, referrer, visitorId } = await req.json();
   if (!contactId) return NextResponse.json({ ok: false });
-
-  const ua = req.headers.get("user-agent") ?? "";
-  const { device_type, os } = parseDevice(ua);
-
-  const { country, city } = await getGeo(ip);
+  if (!UUID_RE.test(contactId)) return NextResponse.json({ error: "Invalid contactId" }, { status: 400 });
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+
+  const { count: contactExists } = await supabase
+    .from("contacts")
+    .select("id", { count: "exact", head: true })
+    .eq("id", contactId);
+  if (!contactExists) return NextResponse.json({ error: "Contact not found" }, { status: 404 });
+
+  const ua = req.headers.get("user-agent") ?? "";
+  const { device_type, os } = parseDevice(ua);
+
+  const { country, city } = await getGeo(ip);
 
   // Server-side returning check — has this visitor_id scanned this contact before?
   let is_returning = false;
