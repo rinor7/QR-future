@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { limiters, rateLimit } from "@/lib/rate-limit";
 
 interface AddressComponent {
   long_name: string;
@@ -17,6 +18,9 @@ export async function GET(request: Request) {
   );
   const { data: { user } } = await supabaseAuth.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { ok } = await rateLimit(limiters.places, user.id);
+  if (!ok) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
 
   const { searchParams } = new URL(request.url);
   const placeId = searchParams.get("placeId");

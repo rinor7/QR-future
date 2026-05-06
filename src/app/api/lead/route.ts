@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { limiters, rateLimit } from "@/lib/rate-limit";
 
 function parseDevice(ua: string): { device_type: string; os: string } {
   const u = ua.toLowerCase();
@@ -32,6 +33,12 @@ async function getGeo(ip: string): Promise<{ country: string | null; city: strin
 }
 
 export async function POST(req: NextRequest) {
+  const forwarded = req.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0].trim() : (req.headers.get("x-real-ip") ?? "");
+
+  const { ok } = await rateLimit(limiters.lead, ip || "unknown");
+  if (!ok) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+
   const { contactId, visitorId, name, email, comment, consent } = await req.json();
 
   if (!contactId || !name || !email || !consent) {
@@ -40,8 +47,6 @@ export async function POST(req: NextRequest) {
 
   const ua = req.headers.get("user-agent") ?? "";
   const { device_type, os } = parseDevice(ua);
-  const forwarded = req.headers.get("x-forwarded-for");
-  const ip = forwarded ? forwarded.split(",")[0].trim() : (req.headers.get("x-real-ip") ?? "");
   const { country, city } = await getGeo(ip);
 
   const supabase = createClient(
