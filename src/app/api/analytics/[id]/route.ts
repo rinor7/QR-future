@@ -30,26 +30,26 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     .eq("id", contactId).eq("user_id", ownerId).single();
   if (!contact) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Fetch leads
-  const { data: leads } = await supabase
-    .from("qr_leads")
-    .select("id, name, email, company, consented_at, created_at")
-    .eq("contact_id", contactId)
-    .order("created_at", { ascending: false });
-
-  // Fetch all scans
-  const { data: scans } = await supabase
-    .from("qr_scans")
-    .select("scanned_at, device_type, os, country, city, referrer, is_returning, visitor_id")
-    .eq("contact_id", contactId)
-    .order("scanned_at", { ascending: false });
-
-  // Fetch all interactions
-  const { data: interactions } = await supabase
-    .from("qr_interactions")
-    .select("event_type, scanned_at, visitor_id")
-    .eq("contact_id", contactId)
-    .order("scanned_at", { ascending: false });
+  const [leadsRes, scansRes, interactionsRes] = await Promise.all([
+    supabase
+      .from("qr_leads")
+      .select("id, name, email, company, consented_at, created_at")
+      .eq("contact_id", contactId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("qr_scans")
+      .select("scanned_at, device_type, os, country, city, referrer, is_returning, visitor_id")
+      .eq("contact_id", contactId)
+      .order("scanned_at", { ascending: false }),
+    supabase
+      .from("qr_interactions")
+      .select("event_type, scanned_at, visitor_id")
+      .eq("contact_id", contactId)
+      .order("scanned_at", { ascending: false }),
+  ]);
+  const leads = leadsRes.data;
+  const scans = scansRes.data;
+  const interactions = interactionsRes.data;
 
   const s = scans ?? [];
   const ix = interactions ?? [];
