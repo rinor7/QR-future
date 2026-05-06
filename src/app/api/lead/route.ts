@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { limiters, rateLimit } from "@/lib/rate-limit";
+import { getGeoFromHeaders } from "@/lib/geo";
 
 function parseDevice(ua: string): { device_type: string; os: string } {
   const u = ua.toLowerCase();
@@ -14,22 +15,6 @@ function parseDevice(ua: string): { device_type: string; os: string } {
   if (u.includes("iphone") || u.includes("ipod") || (u.includes("android") && !u.includes("tablet"))) device_type = "Mobile";
   else if (u.includes("ipad") || u.includes("tablet")) device_type = "Tablet";
   return { device_type, os };
-}
-
-async function getGeo(ip: string): Promise<{ country: string | null; city: string | null }> {
-  if (!ip || ip === "127.0.0.1" || ip === "::1" || ip.startsWith("192.168.") || ip.startsWith("10.")) {
-    return { country: null, city: null };
-  }
-  try {
-    const res = await fetch(`http://ip-api.com/json/${ip}?fields=country,city,status`, {
-      signal: AbortSignal.timeout(3000),
-    });
-    const data = await res.json();
-    if (data.status === "success") return { country: data.country ?? null, city: data.city ?? null };
-  } catch {
-    // best-effort
-  }
-  return { country: null, city: null };
 }
 
 export async function POST(req: NextRequest) {
@@ -47,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   const ua = req.headers.get("user-agent") ?? "";
   const { device_type, os } = parseDevice(ua);
-  const { country, city } = await getGeo(ip);
+  const { country, city } = getGeoFromHeaders(req);
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

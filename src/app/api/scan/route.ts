@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { limiters, rateLimit } from "@/lib/rate-limit";
+import { getGeoFromHeaders } from "@/lib/geo";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -22,24 +23,6 @@ function parseDevice(ua: string): { device_type: string; os: string } {
   }
 
   return { device_type, os };
-}
-
-async function getGeo(ip: string): Promise<{ country: string | null; city: string | null }> {
-  if (!ip || ip === "127.0.0.1" || ip === "::1" || ip.startsWith("192.168.") || ip.startsWith("10.")) {
-    return { country: null, city: null };
-  }
-  try {
-    const res = await fetch(`http://ip-api.com/json/${ip}?fields=country,city,status`, {
-      signal: AbortSignal.timeout(3000),
-    });
-    const data = await res.json();
-    if (data.status === "success") {
-      return { country: data.country ?? null, city: data.city ?? null };
-    }
-  } catch {
-    // geo lookup is best-effort
-  }
-  return { country: null, city: null };
 }
 
 export async function POST(req: NextRequest) {
@@ -67,7 +50,7 @@ export async function POST(req: NextRequest) {
   const ua = req.headers.get("user-agent") ?? "";
   const { device_type, os } = parseDevice(ua);
 
-  const { country, city } = await getGeo(ip);
+  const { country, city } = getGeoFromHeaders(req);
 
   // Server-side returning check — has this visitor_id scanned this contact before?
   let is_returning = false;
