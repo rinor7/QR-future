@@ -342,16 +342,12 @@ export default function CodesPage() {
         }).catch(() => {});
         // Load team members for admin/owner filter
         if (profile.role === "admin" || profile.userId === profile.ownerId) {
-          getSupabaseBrowser()
-            .from("org_notifications")
-            .select("metadata, created_at")
-            .eq("owner_id", profile.ownerId)
-            .eq("type", "user_deleted")
-            .order("created_at", { ascending: false })
-            .then(({ data }) => {
+          fetch("/api/notifications?type=user_deleted&limit=200")
+            .then((r) => r.json())
+            .then(({ data }: { data?: { metadata: { email?: string; name?: string; role?: string } | null; created_at: string }[] }) => {
               if (!data) return;
               const map: Record<string, { departedAt: string; name: string; role: string | null }> = {};
-              data.forEach((n: { metadata: { email?: string; name?: string; role?: string } | null; created_at: string }) => {
+              data.forEach((n) => {
                 const email = n.metadata?.email;
                 if (!email || map[email]) return;
                 map[email] = {
@@ -361,7 +357,8 @@ export default function CodesPage() {
                 };
               });
               setDepartedMap(map);
-            });
+            })
+            .catch(() => {});
           getSupabaseBrowser()
             .from("profiles")
             .select("user_id, email, first_name, last_name")

@@ -187,11 +187,14 @@ export default function SettingsPage() {
           const fromEmail = prof.email;
           await supabase.from("profiles").update({ email: user.email }).eq("user_id", user.id);
           if (fromEmail) {
-            await supabase.from("org_notifications").insert({
-              owner_id: prof.owner_id ?? user.id,
-              type: "email_changed",
-              message: `${fromEmail} changed email to ${user.email}`,
-              metadata: { from: fromEmail, to: user.email, user_id: user.id },
+            await fetch("/api/notifications", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                type: "email_changed",
+                message: `${fromEmail} changed email to ${user.email}`,
+                metadata: { from: fromEmail, to: user.email, user_id: user.id },
+              }),
             });
           }
         }
@@ -582,12 +585,14 @@ export default function SettingsPage() {
     setMfaUri(""); setMfaSecret(""); setMfaCode(""); setMfaVerifying(false);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data: prof } = await supabase.from("profiles").select("owner_id").eq("user_id", user.id).single();
-      await supabase.from("org_notifications").insert({
-        owner_id: prof?.owner_id ?? user.id,
-        type: "mfa_enabled",
-        message: `${user.email} enabled 2FA`,
-        metadata: { user_id: user.id, email: user.email },
+      await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "mfa_enabled",
+          message: `${user.email} enabled 2FA`,
+          metadata: { user_id: user.id, email: user.email },
+        }),
       });
     }
   }
@@ -605,12 +610,14 @@ export default function SettingsPage() {
     setMfaEnrolled(false); setMfaDisabling(false); setMfaFactorId(""); setMfaVerifying(false);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data: prof } = await supabase.from("profiles").select("owner_id").eq("user_id", user.id).single();
-      await supabase.from("org_notifications").insert({
-        owner_id: prof?.owner_id ?? user.id,
-        type: "mfa_disabled",
-        message: `${user.email} disabled 2FA`,
-        metadata: { user_id: user.id, email: user.email },
+      await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "mfa_disabled",
+          message: `${user.email} disabled 2FA`,
+          metadata: { user_id: user.id, email: user.email },
+        }),
       });
     }
   }
@@ -622,11 +629,14 @@ export default function SettingsPage() {
     if (user) {
       await supabase.from("profiles").update({ mfa_members_allowed: val }).eq("user_id", user.id);
       setMfaMembersAllowed(val);
-      await supabase.from("org_notifications").insert({
-        owner_id: user.id,
-        type: "team_mfa_toggled",
-        message: `Team 2FA ${val ? "enabled" : "disabled"} for ${user.email}'s team`,
-        metadata: { enabled: val, owner_email: user.email },
+      await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "team_mfa_toggled",
+          message: `Team 2FA ${val ? "enabled" : "disabled"} for ${user.email}'s team`,
+          metadata: { enabled: val, owner_email: user.email },
+        }),
       });
     }
     setMfaMembersSaving(false);
