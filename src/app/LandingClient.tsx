@@ -396,6 +396,7 @@ export default function LandingClient({
               <li><a href="#pricing" className="hover:text-white transition-colors">{tr.home_footer_pricing}</a></li>
               <li><a href="#faq" className="hover:text-white transition-colors">{tr.home_footer_faq}</a></li>
               <li><Link href="/impressum" className="hover:text-white transition-colors">{tr.home_footer_impressum}</Link></li>
+              <li><Link href="/datenschutz" className="hover:text-white transition-colors">{tr.home_footer_privacy}</Link></li>
             </ul>
           </div>
 
