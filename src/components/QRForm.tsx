@@ -353,10 +353,13 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
     }
   }
 
+  const isRedirectMode = !!form.directRedirectUrl;
+
   return (
     <form id={formId} onSubmit={handleSubmit} className="space-y-8 min-w-0">
 
       {/* Template picker bar */}
+      {!isRedirectMode && (
       <div className="p-5 bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-[#1a1d27] rounded-2xl border border-purple-100 dark:border-purple-900/30 shadow-sm min-w-0">
         <div className="flex items-start gap-4 mb-4">
           <div className="w-11 h-11 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
@@ -424,6 +427,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           </div>
         )}
       </div>
+      )}
 
       {/* Basic Information */}
       <Section title="Basic Information" iconKey="basicinfo">
@@ -488,6 +492,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         })()}
       </Section>
 
+      {!isRedirectMode && (<>
       {/* Identity */}
       <Section title={tr.section_identity} iconKey="identity">
         <div className="grid grid-cols-2 gap-3">
@@ -746,6 +751,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           </div>
         </div>
       </Section>
+      </>)}
 
       {/* QR Code Design */}
       <Section title="QR Code Design" iconKey="qrdesign" collapsible defaultOpen={false}>
@@ -770,6 +776,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         </div>
       </Section>
 
+      {!isRedirectMode && (<>
       {/* Phone Numbers */}
       <Section title={tr.field_phone} iconKey="contact">
         <p className="text-xs text-gray-400 dark:text-slate-500 -mt-2 mb-1">You can add up to 4 phone numbers. Optionally set a display name for each button (e.g. &quot;Mobile&quot;, &quot;Office&quot;).</p>
@@ -1232,6 +1239,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           )}
         </div>
       </Section>
+      </>)}
 
       {/* Notes */}
       <Section title={tr.section_notes} iconKey="notes" collapsible defaultOpen={false}>
