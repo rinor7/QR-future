@@ -50,6 +50,7 @@ const DEFAULTS: CreateQRContact = {
   qrBgColor: "#ffffff",
   qrGradient: false,
   qrGradientColor: "#2563eb",
+  directRedirectUrl: "",
 };
 
 const MAX_SIZE = 14 * 1024 * 1024; // 14 MB
@@ -436,6 +437,55 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           />
           <p className="text-xs text-gray-400 mt-1">{tr.qr_label_hint}</p>
         </Field>
+
+        {/* Direct-redirect mode: scanner jumps straight to a URL instead of
+            seeing the landing page. Scans are still tracked. */}
+        {(() => {
+          const on = !!form.directRedirectUrl;
+          return (
+            <div className={`rounded-xl border-2 transition-all ${on ? "bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-500 shadow-sm" : "bg-white dark:bg-[#242736] border-gray-200 dark:border-slate-700"}`}>
+              <div
+                onClick={() => setForm((prev) => {
+                  const nextOn = !on;
+                  const next = {
+                    ...prev,
+                    directRedirectUrl: nextOn ? (prev.directRedirectUrl || "https://") : "",
+                    ...(nextOn && { leadCaptureEnabled: false }),
+                  };
+                  onFormChange?.(next);
+                  return next;
+                })}
+                className="flex items-center justify-between p-4 cursor-pointer"
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${on ? "bg-blue-600 text-white" : "bg-blue-100 dark:bg-blue-900/40 text-blue-600"}`}>
+                    <span className="material-symbols-outlined text-[20px]">forward</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{tr.direct_redirect_title}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{tr.direct_redirect_hint}</p>
+                  </div>
+                </div>
+                <div className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ml-3 ${on ? "bg-blue-600" : "bg-gray-300 dark:bg-slate-600"}`}>
+                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${on ? "translate-x-[22px]" : "translate-x-0.5"}`} />
+                </div>
+              </div>
+              {on && (
+                <div className="px-4 pb-4 -mt-1 space-y-2">
+                  <input
+                    type="url"
+                    value={form.directRedirectUrl}
+                    onChange={(e) => set("directRedirectUrl", e.target.value)}
+                    placeholder="https://example.com"
+                    required
+                    className={input}
+                  />
+                  <p className="text-[11px] text-gray-500 dark:text-slate-400 italic">{tr.direct_redirect_note}</p>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </Section>
 
       {/* Identity */}
@@ -617,8 +667,9 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
           {(() => {
             const lockedByTemplate = isLocked("lead_capture_enabled");
             const lockedByOrg = orgLeadCaptureDisabled;
-            const locked = lockedByTemplate || lockedByOrg;
-            const effectiveOn = lockedByOrg ? false : form.leadCaptureEnabled;
+            const lockedByRedirect = !!form.directRedirectUrl;
+            const locked = lockedByTemplate || lockedByOrg || lockedByRedirect;
+            const effectiveOn = (lockedByOrg || lockedByRedirect) ? false : form.leadCaptureEnabled;
             return (
               <div
                 onClick={locked ? undefined : () => setForm((prev) => { const next = { ...prev, leadCaptureEnabled: !prev.leadCaptureEnabled }; onFormChange?.(next); return next; })}
@@ -635,7 +686,9 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Lead Capture</p>
                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                      {lockedByOrg
+                      {lockedByRedirect
+                        ? tr.lead_capture_disabled_by_redirect
+                        : lockedByOrg
                         ? "Disabled org-wide in Settings — turn it on there to enable per-QR."
                         : "Show a “Leave contact” button on this profile"}
                     </p>

@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import QRLandingClient from "./QRLandingClient";
 import CardUnavailable from "./CardUnavailable";
@@ -12,6 +13,27 @@ function getServiceClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+}
+
+function parseDevice(ua: string): { device_type: string; os: string } {
+  const u = ua.toLowerCase();
+  let os = "Unknown";
+  if (u.includes("iphone") || u.includes("ipad") || u.includes("ipod")) os = "iOS";
+  else if (u.includes("android")) os = "Android";
+  else if (u.includes("windows")) os = "Windows";
+  else if (u.includes("mac os") || u.includes("macintosh")) os = "macOS";
+  else if (u.includes("linux")) os = "Linux";
+  let device_type = "Desktop";
+  if (u.includes("iphone") || u.includes("ipod") || (u.includes("android") && !u.includes("tablet"))) device_type = "Mobile";
+  else if (u.includes("ipad") || u.includes("tablet")) device_type = "Tablet";
+  return { device_type, os };
+}
+
+function normalizeRedirectUrl(raw: string): string {
+  const v = raw.trim();
+  if (!v) return "";
+  if (/^https?:\/\//i.test(v)) return v;
+  return `https://${v}`;
 }
 
 export default async function QRLandingPage({ params }: { params: { id: string } }) {
@@ -25,6 +47,37 @@ export default async function QRLandingPage({ params }: { params: { id: string }
     .single();
 
   if (!row || !row.is_active) return <CardUnavailable />;
+
+  // Direct-redirect mode: log the scan server-side, then 302 to the target.
+  // We don't have access to localStorage here so visitor_id stays null — that
+  // means returning-visitor stats are best-effort in this mode, but the scan
+  // itself is fully tracked in qr_scans.
+  const redirectTarget = normalizeRedirectUrl((row.direct_redirect_url as string) ?? "");
+  if (redirectTarget) {
+    const h = headers();
+    const ua = h.get("user-agent") ?? "";
+    const { device_type, os } = parseDevice(ua);
+    const countryCode = h.get("x-vercel-ip-country");
+    let country: string | null = null;
+    if (countryCode) {
+      try { country = new Intl.DisplayNames(["en"], { type: "region" }).of(countryCode) ?? countryCode; }
+      catch { country = countryCode; }
+    }
+    const cityRaw = h.get("x-vercel-ip-city");
+    const city = cityRaw ? decodeURIComponent(cityRaw) : null;
+    const referrer = h.get("referer");
+    await supabase.from("qr_scans").insert({
+      contact_id: row.id,
+      device_type,
+      os,
+      country,
+      city,
+      referrer,
+      visitor_id: null,
+      is_returning: false,
+    });
+    redirect(redirectTarget);
+  }
 
   // Owner-level lead-capture kill switch overrides the per-card flag.
   const ownerId = (row.user_id as string) ?? "";
@@ -91,6 +144,7 @@ export default async function QRLandingPage({ params }: { params: { id: string }
     qrBgColor: (row.qr_bg_color as string) ?? "#ffffff",
     qrGradient: (row.qr_gradient as boolean) ?? false,
     qrGradientColor: (row.qr_gradient_color as string) ?? "#2563eb",
+    directRedirectUrl: "",
   };
 
   // Middleware sets `x-custom-domain` only when the request hits a true custom

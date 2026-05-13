@@ -58,6 +58,10 @@ export interface QRContact {
   leadCaptureEnabled: boolean;
   theme: 'classic' | 'dark' | 'minimal';
 
+  // Direct redirect — when set, scanning the QR jumps straight to this URL
+  // instead of rendering the landing page. Scans are still tracked server-side.
+  directRedirectUrl: string;
+
   // QR Code styling
   qrDotStyle: 'square' | 'dots' | 'rounded' | 'classy' | 'classy-rounded' | 'extra-rounded';
   qrCornerStyle: 'square' | 'dot' | 'extra-rounded';

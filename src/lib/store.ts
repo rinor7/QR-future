@@ -57,6 +57,7 @@ function toContact(row: Record<string, unknown>): QRContact {
     qrBgColor: (row.qr_bg_color as string) ?? "#ffffff",
     qrGradient: (row.qr_gradient as boolean) ?? false,
     qrGradientColor: (row.qr_gradient_color as string) ?? "#2563eb",
+    directRedirectUrl: (row.direct_redirect_url as string) ?? "",
   };
 }
 
@@ -99,6 +100,7 @@ function toRow(data: Partial<CreateQRContact>) {
     ...(data.qrBgColor !== undefined && { qr_bg_color: data.qrBgColor }),
     ...(data.qrGradient !== undefined && { qr_gradient: data.qrGradient }),
     ...(data.qrGradientColor !== undefined && { qr_gradient_color: data.qrGradientColor }),
+    ...(data.directRedirectUrl !== undefined && { direct_redirect_url: data.directRedirectUrl }),
   };
 }
 
