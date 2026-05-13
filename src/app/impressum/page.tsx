@@ -26,94 +26,107 @@ export default function ImpressumPage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-6 py-16">
-        <h1 className="text-4xl font-bold mb-2">{tr.impressum_title}</h1>
-        <p className="text-gray-500 mb-12">{tr.impressum_subtitle}</p>
+        <h1 className="text-4xl font-bold mb-12">{tr.impressum_title}</h1>
 
         <div className="space-y-10 text-sm leading-relaxed text-gray-700">
+          <section>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_operator_heading}</h2>
+            <p className="font-semibold text-gray-900">{tr.impressum_operator_name}</p>
+            <p>{tr.impressum_operator_street}</p>
+            <p>{tr.impressum_operator_city}</p>
+            <p>{tr.impressum_operator_country}</p>
+            <p className="mt-3">
+              {tr.impressum_operator_email_label}{" "}
+              <a href={`mailto:${tr.impressum_operator_email_value}`} className="text-blue-600 hover:underline">{tr.impressum_operator_email_value}</a>
+            </p>
+            <p>
+              {tr.impressum_operator_website_label}{" "}
+              <a href={`https://${tr.impressum_operator_website_value}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{tr.impressum_operator_website_value}</a>
+            </p>
+          </section>
+
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_company_heading}</h2>
             <dl className="space-y-1.5">
               <div className="flex gap-3">
                 <dt className="w-40 shrink-0 text-gray-500">{tr.impressum_company_name_label}</dt>
-                <dd>{tr.impressum_company_name_placeholder}</dd>
+                <dd>{tr.impressum_company_name_value}</dd>
               </div>
               <div className="flex gap-3">
                 <dt className="w-40 shrink-0 text-gray-500">{tr.impressum_legal_form_label}</dt>
-                <dd>{tr.impressum_legal_form_placeholder}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_address_heading}</h2>
-            <p>{tr.impressum_address_placeholder}</p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_contact_heading}</h2>
-            <dl className="space-y-1.5">
-              <div className="flex gap-3">
-                <dt className="w-40 shrink-0 text-gray-500">{tr.impressum_contact_email_label}</dt>
-                <dd>{tr.impressum_contact_email_placeholder}</dd>
+                <dd>{tr.impressum_legal_form_value}</dd>
               </div>
               <div className="flex gap-3">
-                <dt className="w-40 shrink-0 text-gray-500">{tr.impressum_contact_phone_label}</dt>
-                <dd>{tr.impressum_contact_phone_placeholder}</dd>
+                <dt className="w-40 shrink-0 text-gray-500">{tr.impressum_sitz_label}</dt>
+                <dd>{tr.impressum_sitz_value}</dd>
               </div>
-            </dl>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_register_heading}</h2>
-            <dl className="space-y-1.5">
+              <div className="flex gap-3">
+                <dt className="w-40 shrink-0 text-gray-500">{tr.impressum_register_label}</dt>
+                <dd>{tr.impressum_register_value}</dd>
+              </div>
               <div className="flex gap-3">
                 <dt className="w-40 shrink-0 text-gray-500">{tr.impressum_uid_label}</dt>
-                <dd>{tr.impressum_uid_placeholder}</dd>
-              </div>
-              <div className="flex gap-3">
-                <dt className="w-40 shrink-0 text-gray-500">{tr.impressum_vat_label}</dt>
-                <dd>{tr.impressum_vat_placeholder}</dd>
-              </div>
-              <div className="flex gap-3">
-                <dt className="w-40 shrink-0 text-gray-500">{tr.impressum_register_court_label}</dt>
-                <dd>{tr.impressum_register_court_placeholder}</dd>
+                <dd>{tr.impressum_uid_value}</dd>
               </div>
             </dl>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_authority_heading}</h2>
-            <p>{tr.impressum_authority_placeholder}</p>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_representatives_heading}</h2>
+            <p>{tr.impressum_representatives_body}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_responsible_heading}</h2>
-            <p>{tr.impressum_responsible_placeholder}</p>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_platform_heading}</h2>
+            <p>{tr.impressum_platform_body}</p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_content_responsibility_heading}</h2>
+            <p className="mb-3">{tr.impressum_content_responsibility_body_1}</p>
+            <p>{tr.impressum_content_responsibility_body_2}</p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_user_content_heading}</h2>
+            <p className="mb-3">{tr.impressum_user_content_body_1}</p>
+            <p>{tr.impressum_user_content_body_2}</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_disclaimer_heading}</h2>
-            <p>{tr.impressum_disclaimer_body}</p>
+            <p className="mb-3">{tr.impressum_disclaimer_body_1}</p>
+            <p>{tr.impressum_disclaimer_body_2}</p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_external_links_heading}</h2>
+            <p className="mb-3">{tr.impressum_external_links_body_1}</p>
+            <p>{tr.impressum_external_links_body_2}</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_copyright_heading}</h2>
-            <p>{tr.impressum_copyright_body}</p>
+            <p className="mb-3">{tr.impressum_copyright_body_1}</p>
+            <p>{tr.impressum_copyright_body_2}</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_privacy_heading}</h2>
-            <p>{tr.impressum_privacy_body}</p>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_trademarks_heading}</h2>
+            <p>{tr.impressum_trademarks_body}</p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_law_heading}</h2>
+            <p className="mb-3">{tr.impressum_law_body_1}</p>
+            <p>{tr.impressum_law_body_2}</p>
           </section>
 
           <section className="border-t border-gray-100 pt-8">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_provider_heading}</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{tr.impressum_privacy_heading}</h2>
             <p>
-              {tr.impressum_provider_body}{" "}
-              <a href="https://puzzle-enterprise.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
-                Puzzle Enterprise
-              </a>
-              .
+              {tr.impressum_privacy_body}{" "}
+              <Link href="/datenschutz" className="text-blue-600 hover:underline font-medium">{tr.impressum_privacy_link}</Link>
             </p>
           </section>
         </div>
