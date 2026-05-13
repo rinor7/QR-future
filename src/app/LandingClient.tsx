@@ -395,6 +395,7 @@ export default function LandingClient({
             <ul className="space-y-2.5 text-sm">
               <li><a href="#pricing" className="hover:text-white transition-colors">{tr.home_footer_pricing}</a></li>
               <li><a href="#faq" className="hover:text-white transition-colors">{tr.home_footer_faq}</a></li>
+              <li><Link href="/impressum" className="hover:text-white transition-colors">{tr.home_footer_impressum}</Link></li>
             </ul>
           </div>
 
@@ -413,7 +414,12 @@ export default function LandingClient({
         <div className="border-t border-gray-800">
           <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
             <span>© {new Date().getFullYear()} {BRAND_NAME}. {tr.home_footer_rights}</span>
-            <span>{tr.home_footer_made_in}</span>
+            <span>
+              {tr.home_footer_created_by}{" "}
+              <a href="https://puzzle-enterprise.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors underline">
+                Puzzle Enterprise
+              </a>
+            </span>
           </div>
         </div>
       </footer>
