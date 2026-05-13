@@ -1144,14 +1144,24 @@ export default function CodesPage() {
                         <div className="flex-1 p-6 flex flex-col justify-between min-w-0">
                           <div>
                             <div className="flex items-center gap-2 mb-4">
-                              <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-extrabold uppercase tracking-wider">Business Card</span>
+                              {contact.directRedirectUrl ? (
+                                <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-extrabold uppercase tracking-wider">{tr.badge_direct_link}</span>
+                              ) : (
+                                <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-extrabold uppercase tracking-wider">Business Card</span>
+                              )}
                               <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${contact.isActive !== false ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
                                 {contact.isActive !== false ? "Active" : "Paused"}
                               </span>
                             </div>
-                            <h4 className="text-2xl font-headline font-bold text-slate-900 mb-1 leading-tight">
-                              {`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}
-                            </h4>
+                            {contact.directRedirectUrl ? (
+                              <h4 className="text-sm font-mono font-semibold text-slate-700 mb-1 leading-snug truncate" title={contact.directRedirectUrl}>
+                                {contact.directRedirectUrl}
+                              </h4>
+                            ) : (
+                              <h4 className="text-2xl font-headline font-bold text-slate-900 mb-1 leading-tight">
+                                {`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}
+                              </h4>
+                            )}
                             {contact.title && <p className="text-primary font-semibold text-sm mb-0.5">{contact.title}</p>}
                             {contact.company && <p className="text-slate-500 text-sm mb-5">{contact.company}</p>}
                             <div className="flex items-center gap-4 sm:gap-8 mt-2 flex-wrap">
@@ -1253,9 +1263,16 @@ export default function CodesPage() {
                         </div>
                         {/* Name + meta */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <p className="font-headline font-bold text-slate-900 truncate">{`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</p>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${contact.isActive !== false ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                          <div className="flex items-center gap-2 mb-0.5 min-w-0">
+                            {contact.directRedirectUrl ? (
+                              <p className="text-xs font-mono font-semibold text-slate-700 truncate" title={contact.directRedirectUrl}>{contact.directRedirectUrl}</p>
+                            ) : (
+                              <p className="font-headline font-bold text-slate-900 truncate">{`${contact.firstName} ${contact.lastName}`.trim() || tr.unnamed}</p>
+                            )}
+                            {contact.directRedirectUrl && (
+                              <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[9px] font-extrabold uppercase tracking-wider shrink-0">{tr.badge_direct_link}</span>
+                            )}
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider shrink-0 ${contact.isActive !== false ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
                               {contact.isActive !== false ? "Active" : "Paused"}
                             </span>
                           </div>
