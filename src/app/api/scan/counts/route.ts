@@ -32,19 +32,31 @@ export async function GET() {
     .select("id")
     .eq("user_id", ownerId);
 
-  if (!contacts || contacts.length === 0) return NextResponse.json({ counts: {} });
+  if (!contacts || contacts.length === 0) return NextResponse.json({ counts: {}, nfcCounts: {} });
 
   const contactIds = contacts.map((c: { id: string }) => c.id);
 
-  const { data: scans } = await supabase
+  type ScanRow = { contact_id: string; source?: string | null };
+  let scans: ScanRow[] | null = null;
+  const r = await supabase
     .from("qr_scans")
-    .select("contact_id")
+    .select("contact_id, source")
     .in("contact_id", contactIds);
+  scans = r.data as ScanRow[] | null;
+  if (r.error) {
+    const f = await supabase
+      .from("qr_scans")
+      .select("contact_id")
+      .in("contact_id", contactIds);
+    scans = f.data as ScanRow[] | null;
+  }
 
   const counts: Record<string, number> = {};
-  (scans ?? []).forEach((s: { contact_id: string }) => {
+  const nfcCounts: Record<string, number> = {};
+  (scans ?? []).forEach((s) => {
     counts[s.contact_id] = (counts[s.contact_id] ?? 0) + 1;
+    if (s.source === "nfc") nfcCounts[s.contact_id] = (nfcCounts[s.contact_id] ?? 0) + 1;
   });
 
-  return NextResponse.json({ counts });
+  return NextResponse.json({ counts, nfcCounts });
 }

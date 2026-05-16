@@ -276,6 +276,7 @@ export default function CodesPage() {
   const [plan, setPlan] = useState<Plan>("free");
   const [isOwner, setIsOwner] = useState(false);
   const [scanCounts, setScanCounts] = useState<Record<string, number>>({});
+  const [nfcCounts, setNfcCounts] = useState<Record<string, number>>({});
   const [folderTree, setFolderTree] = useState<FolderWithStats[]>([]);
   const [contactFolders, setContactFolders] = useState<Record<string, string | null>>({});
   const [orgId, setOrgId] = useState("");
@@ -393,7 +394,10 @@ export default function CodesPage() {
 
     fetch("/api/scan/counts")
       .then((r) => r.json())
-      .then(({ counts }) => { if (counts) setScanCounts(counts); })
+      .then(({ counts, nfcCounts }) => {
+        if (counts) setScanCounts(counts);
+        if (nfcCounts) setNfcCounts(nfcCounts);
+      })
       .catch(() => {});
   }, []);
 
@@ -1176,6 +1180,15 @@ export default function CodesPage() {
                                   {scanCounts[contact.id] ?? 0} Scans
                                 </span>
                               </div>
+                              {(nfcCounts[contact.id] ?? 0) > 0 && (
+                                <div>
+                                  <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">NFC</span>
+                                  <span className="text-sm font-semibold text-indigo-700 flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-xs text-indigo-500">contactless</span>
+                                    {nfcCounts[contact.id]}
+                                  </span>
+                                </div>
+                              )}
                               {hasFolders && (
                                 <div>
                                   <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Folder</span>
@@ -1285,6 +1298,12 @@ export default function CodesPage() {
                             <span className="material-symbols-outlined text-xs">trending_up</span>
                             {scanCounts[contact.id] ?? 0}
                           </span>
+                          {(nfcCounts[contact.id] ?? 0) > 0 && (
+                            <span className="flex items-center gap-1 text-indigo-600">
+                              <span className="material-symbols-outlined text-xs">contactless</span>
+                              {nfcCounts[contact.id]}
+                            </span>
+                          )}
                           {isAdmin && contact.createdBy && (
                             <span className="hidden lg:flex items-center gap-1">
                               <span className="material-symbols-outlined text-xs">person</span>

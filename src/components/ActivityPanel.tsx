@@ -17,6 +17,7 @@ function groupItems(items: ActivityItem[]): DisplayItem[] {
       last.type === "scan" &&
       it.type === "scan" &&
       last.qr_id === it.qr_id &&
+      (last.source ?? "qr") === (it.source ?? "qr") &&
       new Date(last.ts).getTime() - new Date(it.ts).getTime() < WINDOW_MS
     ) {
       last.count = (last.count ?? 1) + 1;
@@ -133,21 +134,23 @@ function ActivityRow({ item, isNew }: { item: DisplayItem; isNew: boolean }) {
 
   const isScan = item.type === "scan";
   const isLead = item.type === "lead";
+  const isNfc = isScan && item.source === "nfc";
 
   const iconBg = isScan
-    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600"
+    ? (isNfc ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600" : "bg-blue-50 dark:bg-blue-900/20 text-blue-600")
     : isLead
     ? "bg-green-50 dark:bg-green-900/20 text-green-600"
     : "bg-purple-50 dark:bg-purple-900/20 text-purple-600";
 
   const icon = isScan
-    ? "qr_code_scanner"
+    ? (isNfc ? "contactless" : "qr_code_scanner")
     : isLead
     ? "contact_mail"
     : EVENT_ICONS[item.event_type ?? ""] ?? "touch_app";
 
+  const scanNoun = isNfc ? "NFC tap" : "QR scan";
   const headline = isScan
-    ? (item.count && item.count > 1 ? `${item.count} scans` : "QR scanned")
+    ? (item.count && item.count > 1 ? `${item.count} ${scanNoun}s` : (isNfc ? "NFC tapped" : "QR scanned"))
     : isLead
     ? (item.lead_name ? `New lead: ${item.lead_name}` : "New lead")
     : (EVENT_LABELS[item.event_type ?? ""] ?? item.event_type ?? "Interaction");

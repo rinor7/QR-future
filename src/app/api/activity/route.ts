@@ -12,6 +12,7 @@ export interface ActivityItem {
   device_type?: string;
   country?: string;
   city?: string;
+  source?: string;
   lead_name?: string;
   notification_kind?: string;
   message?: string;
@@ -100,7 +101,7 @@ export async function GET() {
   const [scansRes, interactionsRes, leadsRes, notificationsRes] = await Promise.all([
     supabase
       .from("qr_scans")
-      .select("id, contact_id, device_type, country, city, scanned_at")
+      .select("id, contact_id, device_type, country, city, scanned_at, source")
       .in("contact_id", contactIds)
       .order("scanned_at", { ascending: false })
       .limit(30),
@@ -135,6 +136,7 @@ export async function GET() {
       device_type: s.device_type ?? undefined,
       country: s.country ?? undefined,
       city: s.city ?? undefined,
+      source: s.source ?? undefined,
       ts: s.scanned_at,
     });
   });

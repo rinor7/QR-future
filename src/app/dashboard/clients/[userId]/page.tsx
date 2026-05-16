@@ -260,6 +260,12 @@ export default function ClientDetailPage() {
                             <BarChart2 className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
                             {q.scans}
                           </span>
+                          {q.nfcScans > 0 && (
+                            <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 px-1.5 py-0.5 rounded-full">
+                              <span className="material-symbols-outlined text-[12px]">contactless</span>
+                              {q.nfcScans}
+                            </span>
+                          )}
                         </td>
                         <td className="px-6 py-3 text-gray-400 dark:text-slate-500 text-xs">
                           {new Date(q.createdAt).toLocaleDateString()}
