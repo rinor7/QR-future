@@ -1,19 +1,24 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-// Monthly Stripe price IDs (legacy IDs reused after the plan rename).
-// Yearly IDs are added by the user from the Stripe dashboard; until set,
-// yearly checkout is disabled in the UI.
+// Live Stripe price IDs (created 2026-05-17). Keep in sync with PLAN_META
+// in src/app/dashboard/upgrade/page.tsx and PRICE_TO_PLAN in the webhook.
 const VALID_PRICES = new Set([
-  "price_1TBkP61MPl7fNPWeElDgBGsM", // growth (monthly)
-  "price_1TBkPQ1MPl7fNPWehoGc86wl", // business (monthly)
-  "price_1TBkPb1MPl7fNPWeD7FeszuB", // enterprise (monthly)
+  "price_1TXqLz1DHdp5yzacOTHAnrsl", // growth monthly
+  "price_1TXqLz1DHdp5yzacFxKS3HrS", // growth yearly
+  "price_1TXqR21DHdp5yzacdKQPyHq3", // business monthly
+  "price_1TXqR21DHdp5yzacOBJ2nUnd", // business yearly
+  "price_1TXqRT1DHdp5yzacOUnF63Jj", // enterprise monthly
+  "price_1TXqSr1DHdp5yzacnuZ74Laj", // enterprise yearly
 ]);
 
 const PRICE_TO_PLAN: Record<string, string> = {
-  "price_1TBkP61MPl7fNPWeElDgBGsM": "growth",
-  "price_1TBkPQ1MPl7fNPWehoGc86wl": "business",
-  "price_1TBkPb1MPl7fNPWeD7FeszuB": "enterprise",
+  "price_1TXqLz1DHdp5yzacOTHAnrsl": "growth",
+  "price_1TXqLz1DHdp5yzacFxKS3HrS": "growth",
+  "price_1TXqR21DHdp5yzacdKQPyHq3": "business",
+  "price_1TXqR21DHdp5yzacOBJ2nUnd": "business",
+  "price_1TXqRT1DHdp5yzacOUnF63Jj": "enterprise",
+  "price_1TXqSr1DHdp5yzacnuZ74Laj": "enterprise",
 };
 
 export async function POST(request: Request) {

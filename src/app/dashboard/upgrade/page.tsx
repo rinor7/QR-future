@@ -17,13 +17,12 @@ interface PlanMeta {
   popular?: boolean;
 }
 
-// Yearly Stripe price IDs are filled in once you create the yearly
-// products in Stripe. Until then yearly upgrades are disabled in the UI.
+// Live Stripe price IDs (created 2026-05-17 in live mode).
 const PLAN_META: Record<Plan, PlanMeta> = {
-  free:       { priceIdMonthly: null,                                priceIdYearly: null, gradient: "none",                                              badgeBg: "rgba(115,118,136,0.1)", badgeText: "#737688", accentColor: "#737688" },
-  growth:     { priceIdMonthly: "price_1TBkP61MPl7fNPWeElDgBGsM",   priceIdYearly: null, gradient: "linear-gradient(135deg, #b45309 0%, #d97706 100%)", badgeBg: "rgba(180,83,9,0.1)",    badgeText: "#b45309", accentColor: "#d97706" },
-  business:   { priceIdMonthly: "price_1TBkPQ1MPl7fNPWehoGc86wl",   priceIdYearly: null, gradient: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", badgeBg: "rgba(0,62,199,0.1)",    badgeText: "#003ec7", accentColor: "#003ec7", popular: true },
-  enterprise: { priceIdMonthly: "price_1TBkPb1MPl7fNPWeD7FeszuB",   priceIdYearly: null, gradient: "linear-gradient(135deg, #6b21a8 0%, #9333ea 100%)", badgeBg: "rgba(107,33,168,0.1)",  badgeText: "#6b21a8", accentColor: "#9333ea" },
+  free:       { priceIdMonthly: null,                                  priceIdYearly: null,                                  gradient: "none",                                              badgeBg: "rgba(115,118,136,0.1)", badgeText: "#737688", accentColor: "#737688" },
+  growth:     { priceIdMonthly: "price_1TXqLz1DHdp5yzacOTHAnrsl",     priceIdYearly: "price_1TXqLz1DHdp5yzacFxKS3HrS",     gradient: "linear-gradient(135deg, #b45309 0%, #d97706 100%)", badgeBg: "rgba(180,83,9,0.1)",    badgeText: "#b45309", accentColor: "#d97706" },
+  business:   { priceIdMonthly: "price_1TXqR21DHdp5yzacdKQPyHq3",     priceIdYearly: "price_1TXqR21DHdp5yzacOBJ2nUnd",     gradient: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", badgeBg: "rgba(0,62,199,0.1)",    badgeText: "#003ec7", accentColor: "#003ec7", popular: true },
+  enterprise: { priceIdMonthly: "price_1TXqRT1DHdp5yzacOUnF63Jj",     priceIdYearly: "price_1TXqSr1DHdp5yzacnuZ74Laj",     gradient: "linear-gradient(135deg, #6b21a8 0%, #9333ea 100%)", badgeBg: "rgba(107,33,168,0.1)",  badgeText: "#6b21a8", accentColor: "#9333ea" },
 };
 
 interface PlanConfig { plan: Plan; price: number; price_yearly: number; features: string[]; features_en: string[]; }

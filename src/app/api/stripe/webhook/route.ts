@@ -2,18 +2,16 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-// Monthly Stripe price IDs (legacy IDs reused after the plan rename:
-// star→growth, premium→business, platinum→enterprise).
-// Yearly IDs are added by the user from the Stripe dashboard; until set
-// they stay as empty strings and yearly checkout is disabled.
+// Live Stripe price IDs (created 2026-05-17). Keep in sync with
+// PLAN_META in src/app/dashboard/upgrade/page.tsx and VALID_PRICES in
+// the checkout route.
 const PRICE_TO_PLAN: Record<string, string> = {
-  "price_1TBkP61MPl7fNPWeElDgBGsM": "growth",
-  "price_1TBkPQ1MPl7fNPWehoGc86wl": "business",
-  "price_1TBkPb1MPl7fNPWeD7FeszuB": "enterprise",
-  // Yearly — fill in once created in Stripe.
-  // "price_<yearly_growth>":     "growth",
-  // "price_<yearly_business>":   "business",
-  // "price_<yearly_enterprise>": "enterprise",
+  "price_1TXqLz1DHdp5yzacOTHAnrsl": "growth",     // growth monthly
+  "price_1TXqLz1DHdp5yzacFxKS3HrS": "growth",     // growth yearly
+  "price_1TXqR21DHdp5yzacdKQPyHq3": "business",   // business monthly
+  "price_1TXqR21DHdp5yzacOBJ2nUnd": "business",   // business yearly
+  "price_1TXqRT1DHdp5yzacOUnF63Jj": "enterprise", // enterprise monthly
+  "price_1TXqSr1DHdp5yzacnuZ74Laj": "enterprise", // enterprise yearly
 };
 
 const PLAN_LIMITS: Record<string, number> = {
