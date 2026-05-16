@@ -8,6 +8,7 @@ import { getUserProfile } from "@/lib/store";
 import { Plan, PLAN_LABELS, PLAN_LIMITS } from "@/lib/types";
 import { useLang } from "@/lib/language";
 import TemplateEditorModal, { QRTemplate } from "@/components/TemplateEditorModal";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 import QRCode from "react-qr-code";
 import { setCustomDomain as broadcastCustomDomain } from "@/lib/qr-url";
 
@@ -1010,11 +1011,37 @@ export default function SettingsPage() {
                   {tr.settings_address}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <input type="text" value={acctStreet} onChange={(e) => setAcctStreet(e.target.value)} placeholder={tr.settings_street_ph} className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  <input type="text" value={acctStreetNr} onChange={(e) => setAcctStreetNr(e.target.value)} placeholder={tr.settings_streetnr_ph} className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  <input type="text" value={acctPlz} onChange={(e) => setAcctPlz(e.target.value)} placeholder={tr.settings_plz_ph} className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  <input type="text" value={acctCity} onChange={(e) => setAcctCity(e.target.value)} placeholder={tr.settings_city_ph} className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  <input type="text" value={acctCountry} onChange={(e) => setAcctCountry(e.target.value)} placeholder={tr.settings_country_ph} className="sm:col-span-2 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  <select
+                    value={acctCountry}
+                    onChange={(e) => setAcctCountry(e.target.value)}
+                    className="sm:col-span-2 bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">{tr.settings_country_ph}</option>
+                    <option value="ch">Schweiz</option>
+                    <option value="de">Deutschland</option>
+                    <option value="at">Österreich</option>
+                    <option value="li">Liechtenstein</option>
+                    <option value="fr">Frankreich</option>
+                    <option value="lu">Luxemburg</option>
+                  </select>
+                  <div className={`sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 ${!acctCountry ? "opacity-40 pointer-events-none" : ""}`}>
+                    <AddressAutocomplete
+                      value={acctStreet}
+                      onChange={setAcctStreet}
+                      onSelect={(parts) => {
+                        setAcctStreet(parts.street);
+                        setAcctStreetNr(parts.streetNr);
+                        setAcctPlz(parts.plz);
+                        setAcctCity(parts.city);
+                      }}
+                      country={acctCountry}
+                      placeholder={tr.settings_street_ph}
+                      className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 w-full"
+                    />
+                    <input type="text" value={acctStreetNr} onChange={(e) => setAcctStreetNr(e.target.value)} placeholder={tr.settings_streetnr_ph} className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                    <input type="text" value={acctPlz} onChange={(e) => setAcctPlz(e.target.value)} placeholder={tr.settings_plz_ph} className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                    <input type="text" value={acctCity} onChange={(e) => setAcctCity(e.target.value)} placeholder={tr.settings_city_ph} className="bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
+                  </div>
                 </div>
               </div>
 
@@ -1187,7 +1214,26 @@ export default function SettingsPage() {
               </ul>
             </div>
 
-            <div className="space-y-10">
+            {plan !== "enterprise" && (
+              <div className="mb-8 rounded-2xl border-2 border-purple-200 dark:border-purple-900/40 bg-gradient-to-br from-purple-50/60 to-white dark:from-purple-900/10 dark:to-[#1a1d27] p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="w-12 h-12 shrink-0 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-md shadow-purple-200 dark:shadow-purple-900/40">
+                  <span className="material-symbols-outlined">workspace_premium</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{tr.branding_enterprise_only_title}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">{tr.branding_enterprise_only_body}</p>
+                </div>
+                <Link
+                  href="/dashboard/upgrade"
+                  className="shrink-0 inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
+                  {tr.branding_enterprise_only_cta}
+                </Link>
+              </div>
+            )}
+
+            <div className={`space-y-10 ${plan === "enterprise" ? "" : "pointer-events-none opacity-50 select-none"}`}>
               {/* White Label */}
               <div>
                 <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-2">
@@ -1702,6 +1748,11 @@ export default function SettingsPage() {
           acctTiktok,
           acctSnapchat,
           acctX,
+          acctStreet,
+          acctStreetNr,
+          acctPlz,
+          acctCity,
+          acctCountry,
         }}
       />
     </div>

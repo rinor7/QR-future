@@ -3,6 +3,7 @@
 import { QRContact } from "@/lib/types";
 import {
   Phone,
+  Smartphone,
   Globe,
   Ghost,
   Music2,
@@ -340,13 +341,13 @@ export default function QRLandingClient({ contact, leadCaptureActive = false, su
 
         {/* Action buttons */}
         <div className="px-5 space-y-2.5 pb-4">
-          {(contact.phones?.length ? contact.phones.filter((p) => p.number) : contact.phone ? [{ number: contact.phone, label: "" }] : []).map((ph, i) => (
+          {(contact.phones?.length ? contact.phones.filter((p) => p.number) : contact.phone ? [{ number: contact.phone, label: "", kind: undefined as ("mobile" | "phone" | undefined) }] : []).map((ph, i) => (
             <a key={i} href={`tel:${ph.number}`} onClick={() => track("click_phone")} className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: th.btnBg(color), color: th.btnText(color) }}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: th.iconBg(color), color: th.iconText }}>
-                <Phone className="w-4 h-4" />
+                {ph.kind === "mobile" ? <Smartphone className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
               </div>
               <div className="flex-1">
-                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{ph.label || tr.landing_call}</div>
+                <div className={`text-xs font-normal ${th.actionLabelColor}`}>{ph.label || (ph.kind === "mobile" ? tr.landing_mobile : tr.landing_call)}</div>
                 <div className="text-sm font-semibold">{formatPhone(ph.number)}</div>
               </div>
             </a>

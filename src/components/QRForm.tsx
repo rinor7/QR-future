@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, FileText, Plus, Link2, X } from "lucide-react";
+import { Upload, FileText, Plus, Link2, X, Phone, Smartphone } from "lucide-react";
 import { CreateQRContact, ContactLink } from "@/lib/types";
 import { useLang } from "@/lib/language";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
@@ -148,6 +148,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
     tiktok_url: string | null; snapchat_url: string | null; x_url: string | null; other_social_url: string | null;
     qr_dot_style: string | null; qr_corner_style: string | null; qr_dot_color: string | null;
     qr_bg_color: string | null; qr_gradient: boolean; qr_gradient_color: string | null;
+    street: string | null; street_nr: string | null; plz: string | null; city: string | null; country: string | null;
     locked_fields: string[];
   };
   const [templates, setTemplates] = useState<QRTemplate[]>([]);
@@ -180,7 +181,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       if (!s) return [];
       try { const v = typeof s === "string" ? JSON.parse(s) : s; return Array.isArray(v) ? v : []; } catch { return []; }
     };
-    const tplPhones = parseArr<{ number: string; label: string }>(t.phones);
+    const tplPhones = parseArr<{ number: string; label: string; kind?: "mobile" | "phone" }>(t.phones);
     const tplEmails = parseArr<{ email: string; label: string }>(t.emails);
     const tplWebsites = parseArr<{ url: string; label: string }>(t.websites);
 
@@ -212,6 +213,11 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
         ...(t.qr_bg_color && { qrBgColor: t.qr_bg_color }),
         ...(locked.has("qr_gradient") && { qrGradient: t.qr_gradient }),
         ...(t.qr_gradient_color && { qrGradientColor: t.qr_gradient_color }),
+        ...(t.country && { country: t.country }),
+        ...(t.street && { street: t.street }),
+        ...(t.street_nr && { streetNr: t.street_nr }),
+        ...(t.plz && { plz: t.plz }),
+        ...(t.city && { city: t.city }),
       };
       onFormChange?.(next);
       return next;
@@ -779,16 +785,33 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
       {!isRedirectMode && (<>
       {/* Phone Numbers */}
       <Section title={tr.field_phone} iconKey="contact">
-        <p className="text-xs text-gray-400 dark:text-slate-500 -mt-2 mb-1">You can add up to 4 phone numbers. Optionally set a display name for each button (e.g. &quot;Mobile&quot;, &quot;Office&quot;).</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 -mt-2 mb-1">You can add up to 4 phone numbers. Tap the icon to mark a number as mobile.</p>
         <div className={`space-y-3 ${isLocked("phone") ? "pointer-events-none opacity-60" : ""}`}>
-          {(form.phones.length === 0 ? [{ number: "", label: "" }] : form.phones).map((ph, idx) => (
+          {(form.phones.length === 0 ? [{ number: "", label: "", kind: undefined as ("mobile" | "phone" | undefined) }] : form.phones).map((ph, idx) => {
+            const isMobile = ph.kind === "mobile";
+            return (
             <div key={idx} className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const base = form.phones.length === 0 ? [{ number: "", label: "", kind: undefined as ("mobile" | "phone" | undefined) }] : form.phones;
+                  const next = [...base];
+                  next[idx] = { ...next[idx], kind: isMobile ? "phone" : "mobile" };
+                  setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; });
+                }}
+                disabled={isLocked("phone")}
+                title={isMobile ? "Mobile — click to switch to phone" : "Phone — click to switch to mobile"}
+                className={`w-9 h-9 shrink-0 flex items-center justify-center rounded-lg border transition-colors ${isMobile ? "bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/30 dark:border-blue-700" : "bg-gray-50 border-gray-200 text-gray-500 dark:bg-[#242736] dark:border-[#2a2e3e] dark:text-slate-400"}`}
+              >
+                {isMobile ? <Smartphone className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
+              </button>
               <div className="flex-1 min-w-0">
                 <input
                   type="tel"
                   value={ph.number}
                   onChange={(e) => {
-                    const next = [...(form.phones.length === 0 ? [{ number: "", label: "" }] : form.phones)];
+                    const base = form.phones.length === 0 ? [{ number: "", label: "", kind: undefined as ("mobile" | "phone" | undefined) }] : form.phones;
+                    const next = [...base];
                     next[idx] = { ...next[idx], number: e.target.value };
                     setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; });
                   }}
@@ -802,7 +825,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                   type="text"
                   value={ph.label}
                   onChange={(e) => {
-                    const next = [...(form.phones.length === 0 ? [{ number: "", label: "" }] : form.phones)];
+                    const base = form.phones.length === 0 ? [{ number: "", label: "", kind: undefined as ("mobile" | "phone" | undefined) }] : form.phones;
+                    const next = [...base];
                     next[idx] = { ...next[idx], label: e.target.value };
                     setForm((prev) => { const n = { ...prev, phones: next }; onFormChange?.(n); return n; });
                   }}
@@ -823,7 +847,8 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
                 <div className="w-8 h-8 shrink-0" aria-hidden="true" />
               )}
             </div>
-          ))}
+            );
+          })}
           {(form.phones.length === 0 ? 1 : form.phones.length) < 4 && !isLocked("phone") && (
             <button
               type="button"

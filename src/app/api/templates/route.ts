@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     phones, emails, websites,
     linkedin_url, instagram_url, facebook_url, tiktok_url, snapchat_url, x_url, other_social_url,
     qr_dot_style, qr_corner_style, qr_dot_color, qr_bg_color, qr_gradient, qr_gradient_color,
+    street, street_nr, plz, city, country,
     locked_fields,
   } = body;
 
@@ -95,6 +96,11 @@ export async function POST(req: NextRequest) {
     qr_bg_color: qr_bg_color ?? null,
     qr_gradient: qr_gradient ?? false,
     qr_gradient_color: qr_gradient_color ?? null,
+    street: street ?? null,
+    street_nr: street_nr ?? null,
+    plz: plz ?? null,
+    city: city ?? null,
+    country: country ?? null,
     locked_fields: locked_fields ?? [],
   }).select().single();
 

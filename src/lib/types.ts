@@ -24,7 +24,10 @@ export interface QRContact {
 
   // Contact
   phone: string;
-  phones: { number: string; label: string }[];
+  // kind is optional for backwards-compat — legacy rows have no kind and
+  // render with the default phone icon. New "mobile" entries render with a
+  // mobile icon instead.
+  phones: { number: string; label: string; kind?: 'mobile' | 'phone' }[];
   email: string;
   emails: { email: string; label: string }[];
   website: string;

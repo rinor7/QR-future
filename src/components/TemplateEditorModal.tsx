@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import PhonePreview from "./PhonePreview";
 import QRCodeStyled from "./QRCodeStyled";
+import AddressAutocomplete from "./AddressAutocomplete";
 import type { CreateQRContact } from "@/lib/types";
 
 export interface QRTemplate {
@@ -34,6 +35,11 @@ export interface QRTemplate {
   qr_bg_color: string | null;
   qr_gradient: boolean;
   qr_gradient_color: string | null;
+  street: string | null;
+  street_nr: string | null;
+  plz: string | null;
+  city: string | null;
+  country: string | null;
   locked_fields: string[];
 }
 
@@ -49,6 +55,11 @@ export interface OrgDefaults {
   acctTiktok?: string;
   acctSnapchat?: string;
   acctX?: string;
+  acctStreet?: string;
+  acctStreetNr?: string;
+  acctPlz?: string;
+  acctCity?: string;
+  acctCountry?: string;
 }
 
 interface Props {
@@ -173,9 +184,16 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set(["company_info"]));
 
   // Multi-value arrays for phones, emails, websites
-  const [tplPhones, setTplPhones] = useState<{ number: string; label: string }[]>([]);
+  const [tplPhones, setTplPhones] = useState<{ number: string; label: string; kind?: "mobile" | "phone" }[]>([]);
   const [tplEmails, setTplEmails] = useState<{ email: string; label: string }[]>([]);
   const [tplWebsites, setTplWebsites] = useState<{ url: string; label: string }[]>([]);
+
+  // Address (single composite field — toggled via "address" key in `included`)
+  const [tplStreet, setTplStreet] = useState("");
+  const [tplStreetNr, setTplStreetNr] = useState("");
+  const [tplPlz, setTplPlz] = useState("");
+  const [tplCity, setTplCity] = useState("");
+  const [tplCountry, setTplCountry] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -186,11 +204,16 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
       setTplPhones(parseJsonArray(editing.phones));
       setTplEmails(parseJsonArray(editing.emails));
       setTplWebsites(parseJsonArray(editing.websites));
+      setTplStreet(editing.street ?? "");
+      setTplStreetNr(editing.street_nr ?? "");
+      setTplPlz(editing.plz ?? "");
+      setTplCity(editing.city ?? "");
+      setTplCountry(editing.country ?? "");
       const groups = new Set<string>();
       FIELD_GROUPS.forEach((g) => {
         if (g.fields.some((f) => editing.locked_fields.includes(f.key))) groups.add(g.key);
       });
-      if (["phones", "emails", "websites"].some((k) => editing.locked_fields.includes(k))) {
+      if (["phones", "emails", "websites", "address"].some((k) => editing.locked_fields.includes(k))) {
         groups.add("company_info");
       }
       if (groups.size === 0) groups.add("company_info");
@@ -202,6 +225,7 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
       setTplPhones([]);
       setTplEmails([]);
       setTplWebsites([]);
+      setTplStreet(""); setTplStreetNr(""); setTplPlz(""); setTplCity(""); setTplCountry("");
       setOpenGroups(new Set(["company_info"]));
     }
   }, [open, editing]);
@@ -278,6 +302,21 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
     setIncluded((prev) => { const next = new Set(prev); next.add("websites"); return next; });
   }
 
+  function fetchAddressFromAccount() {
+    const street = orgDefaults?.acctStreet ?? "";
+    const streetNr = orgDefaults?.acctStreetNr ?? "";
+    const plz = orgDefaults?.acctPlz ?? "";
+    const city = orgDefaults?.acctCity ?? "";
+    const country = orgDefaults?.acctCountry ?? "";
+    if (!street && !city && !plz && !country) return;
+    setTplStreet(street);
+    setTplStreetNr(streetNr);
+    setTplPlz(plz);
+    setTplCity(city);
+    setTplCountry(country);
+    setIncluded((prev) => { const next = new Set(prev); next.add("address"); return next; });
+  }
+
   async function handleSave() {
     if (!name.trim()) return;
     setSaving(true);
@@ -311,6 +350,11 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
       qr_bg_color: str("qr_bg_color"),
       qr_gradient: inc("qr_gradient") ? values.qr_gradient === true : false,
       qr_gradient_color: str("qr_gradient_color"),
+      street: included.has("address") ? (tplStreet || null) : null,
+      street_nr: included.has("address") ? (tplStreetNr || null) : null,
+      plz: included.has("address") ? (tplPlz || null) : null,
+      city: included.has("address") ? (tplCity || null) : null,
+      country: included.has("address") ? (tplCountry || null) : null,
     };
 
     const res = editing
@@ -392,6 +436,7 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
               if (included.has("phones")) activeCount++;
               if (included.has("emails")) activeCount++;
               if (included.has("websites")) activeCount++;
+              if (included.has("address")) activeCount++;
             }
             const isOpen = openGroups.has(group.key);
             return (
@@ -669,6 +714,69 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                                   <span className="material-symbols-outlined text-[14px]">add</span>Add website
                                 </button>
                               )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Address (composite) */}
+                        <div className="px-4 py-3 bg-white dark:bg-[#1a1d27]">
+                          <div className="flex items-center gap-3 mb-2">
+                            <input
+                              type="checkbox"
+                              id="field-address"
+                              checked={included.has("address")}
+                              onChange={() => {
+                                setIncluded((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has("address")) next.delete("address"); else next.add("address");
+                                  return next;
+                                });
+                              }}
+                              className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
+                            />
+                            <label htmlFor="field-address" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer flex-1">
+                              Address
+                              {included.has("address") && <span className="ml-2 text-[10px] font-bold text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-full">🔒 Locked</span>}
+                            </label>
+                            {(orgDefaults?.acctStreet || orgDefaults?.acctCity) && (
+                              <button type="button" onClick={fetchAddressFromAccount} className="text-xs text-blue-600 hover:underline shrink-0">
+                                ← from account
+                              </button>
+                            )}
+                          </div>
+                          {included.has("address") && (
+                            <div className="ml-7 space-y-2">
+                              <select
+                                value={tplCountry}
+                                onChange={(e) => setTplCountry(e.target.value)}
+                                className={inputCls}
+                              >
+                                <option value="">— Country —</option>
+                                <option value="ch">Schweiz</option>
+                                <option value="de">Deutschland</option>
+                                <option value="at">Österreich</option>
+                                <option value="li">Liechtenstein</option>
+                                <option value="fr">Frankreich</option>
+                                <option value="lu">Luxemburg</option>
+                              </select>
+                              <div className={`grid grid-cols-2 gap-2 ${!tplCountry ? "opacity-40 pointer-events-none" : ""}`}>
+                                <AddressAutocomplete
+                                  value={tplStreet}
+                                  onChange={setTplStreet}
+                                  onSelect={(parts) => {
+                                    setTplStreet(parts.street);
+                                    setTplStreetNr(parts.streetNr);
+                                    setTplPlz(parts.plz);
+                                    setTplCity(parts.city);
+                                  }}
+                                  country={tplCountry}
+                                  placeholder="Street"
+                                  className={`${inputCls} w-full`}
+                                />
+                                <input type="text" value={tplStreetNr} onChange={(e) => setTplStreetNr(e.target.value)} placeholder="Nr." className={inputCls} />
+                                <input type="text" value={tplPlz} onChange={(e) => setTplPlz(e.target.value)} placeholder="PLZ" className={inputCls} />
+                                <input type="text" value={tplCity} onChange={(e) => setTplCity(e.target.value)} placeholder="City" className={inputCls} />
+                              </div>
                             </div>
                           )}
                         </div>
