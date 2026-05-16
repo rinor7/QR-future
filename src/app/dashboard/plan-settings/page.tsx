@@ -40,7 +40,6 @@ export default function PlanSettingsPage() {
   const [draft, setDraft] = useState<PlanConfig | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<Plan | null>(null);
-  const [stripeWarning, setStripeWarning] = useState(false);
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -71,16 +70,6 @@ export default function PlanSettingsPage() {
     setDraft(null);
   }
 
-  function setDraftPrice(value: string) {
-    if (!draft) return;
-    setDraft({ ...draft, price: parseFloat(value) || 0 });
-  }
-
-  function setDraftYearly(value: string) {
-    if (!draft) return;
-    setDraft({ ...draft, price_yearly: parseFloat(value) || 0 });
-  }
-
   function setDraftFeature(lang: "de" | "en", index: number, value: string) {
     if (!draft) return;
     const key = lang === "de" ? "features" : "features_en";
@@ -105,23 +94,13 @@ export default function PlanSettingsPage() {
     });
   }
 
-  function requestSave() {
-    if (!draft) return;
-    const original = configs.find((c) => c.plan === draft.plan);
-    const priceChanged = original && (original.price !== draft.price || original.price_yearly !== draft.price_yearly);
-    if (draft.plan !== "free" && priceChanged) {
-      setStripeWarning(true);
-    } else {
-      doSave();
-    }
-  }
-
   async function doSave() {
     if (!draft) return;
-    setStripeWarning(false);
     setSaving(true);
     const features = draft.features.filter(Boolean);
     const features_en = draft.features_en.filter(Boolean);
+    // Prices are intentionally not editable from the admin UI — they live in
+    // Stripe + plan_config seed and stay in sync via the SQL migration.
     await fetch("/api/admin/plan-config", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -150,24 +129,6 @@ export default function PlanSettingsPage() {
         <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{tr.plan_settings_subtitle}</p>
       </div>
 
-      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-2xl p-4 flex items-start gap-3">
-        <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
-          <span className="material-symbols-outlined text-amber-700 dark:text-amber-300 text-[20px]">warning</span>
-        </div>
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-1">{tr.plan_settings_stripe_banner_title}</p>
-          <p className="text-xs text-amber-800 dark:text-amber-200/90 leading-relaxed">{tr.plan_settings_stripe_banner_body}</p>
-          <a
-            href="https://dashboard.stripe.com/products"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-amber-900 dark:text-amber-200 underline hover:text-amber-950"
-          >
-            {tr.plan_settings_stripe_banner_link}
-          </a>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {configs.map((config) => {
           const isEditing = editing === config.plan;
@@ -187,39 +148,24 @@ export default function PlanSettingsPage() {
                 )}
               </div>
 
-              {/* Price (monthly) */}
-              <div>
-                <label className="text-xs font-medium text-gray-600 dark:text-slate-400 mb-1 block">{tr.plan_settings_price_monthly}</label>
-                <div className={`flex items-center gap-1 bg-white dark:bg-[#1a1d27] border rounded-xl px-3 py-2 ${isEditing ? "border-blue-300" : "border-gray-200 dark:border-[#242736]"}`}>
-                  <span className="text-sm text-gray-400 dark:text-slate-500">CHF</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={current.price}
-                    onChange={(e) => setDraftPrice(e.target.value)}
-                    disabled={!isEditing || config.plan === "free"}
-                    className="flex-1 text-sm font-semibold text-gray-900 dark:text-slate-100 bg-transparent focus:outline-none disabled:text-gray-400 dark:disabled:text-slate-500 w-full"
-                  />
+              {/* Prices — read-only (managed in Stripe + SQL seed) */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-gray-600 dark:text-slate-400 mb-1 block">{tr.plan_settings_price_monthly}</label>
+                  <div className="flex items-baseline gap-1 bg-gray-50 dark:bg-[#1a1d27] border border-gray-200 dark:border-[#242736] rounded-xl px-3 py-2">
+                    <span className="text-xs text-gray-400 dark:text-slate-500">CHF</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-slate-100">{current.price}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600 dark:text-slate-400 mb-1 block">{tr.plan_settings_price_yearly}</label>
+                  <div className="flex items-baseline gap-1 bg-gray-50 dark:bg-[#1a1d27] border border-gray-200 dark:border-[#242736] rounded-xl px-3 py-2">
+                    <span className="text-xs text-gray-400 dark:text-slate-500">CHF</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-slate-100">{current.price_yearly}</span>
+                  </div>
                 </div>
               </div>
-
-              {/* Price (yearly) */}
-              <div>
-                <label className="text-xs font-medium text-gray-600 dark:text-slate-400 mb-1 block">{tr.plan_settings_price_yearly}</label>
-                <div className={`flex items-center gap-1 bg-white dark:bg-[#1a1d27] border rounded-xl px-3 py-2 ${isEditing ? "border-blue-300" : "border-gray-200 dark:border-[#242736]"}`}>
-                  <span className="text-sm text-gray-400 dark:text-slate-500">CHF</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={current.price_yearly}
-                    onChange={(e) => setDraftYearly(e.target.value)}
-                    disabled={!isEditing || config.plan === "free"}
-                    className="flex-1 text-sm font-semibold text-gray-900 dark:text-slate-100 bg-transparent focus:outline-none disabled:text-gray-400 dark:disabled:text-slate-500 w-full"
-                  />
-                </div>
-              </div>
+              <p className="-mt-2 text-[11px] text-gray-400 dark:text-slate-500 italic">{tr.plan_settings_price_locked}</p>
 
               {/* Features */}
               <div className="flex-1">
@@ -290,7 +236,7 @@ export default function PlanSettingsPage() {
                     {tr.plan_settings_cancel}
                   </button>
                   <button
-                    onClick={requestSave}
+                    onClick={doSave}
                     disabled={saving}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-2 rounded-xl text-xs font-medium transition-colors"
                   >
@@ -311,39 +257,6 @@ export default function PlanSettingsPage() {
         })}
       </div>
 
-      {/* Stripe warning modal */}
-      {stripeWarning && draft && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-5">
-            <div>
-              <h2 className="text-base font-bold text-gray-900 dark:text-slate-100 mb-1">{tr.plan_settings_stripe_title}</h2>
-              <p className="text-sm text-gray-500 dark:text-slate-400">{tr.plan_settings_stripe_body}</p>
-            </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-1.5 text-sm text-amber-800">
-              <p className="font-semibold">{tr.plan_settings_stripe_steps}</p>
-              <ol className="list-decimal list-inside space-y-1 text-amber-700">
-                <li>{tr.plan_settings_stripe_step1}</li>
-                <li>{tr.plan_settings_stripe_step2}</li>
-                <li>{tr.plan_settings_stripe_step3}</li>
-              </ol>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStripeWarning(false)}
-                className="flex-1 border border-gray-200 dark:border-[#242736] text-gray-700 dark:text-slate-300 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-[#242736] transition-colors"
-              >
-                {tr.plan_settings_cancel}
-              </button>
-              <button
-                onClick={doSave}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors"
-              >
-                {tr.plan_settings_stripe_confirm}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
