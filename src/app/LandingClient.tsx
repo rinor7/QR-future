@@ -1,32 +1,34 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { QrCode, Check, Zap, Shield, Globe, ScanLine, Pencil, CreditCard, Layers, BadgeCheck, Phone, Mail, MapPin, User, Briefcase, HardHat, Users, Wifi, Signal, BatteryFull } from "lucide-react";
 import FAQSection from "./FAQSection";
 import { useLang } from "@/lib/language";
 import { BRAND_NAME } from "@/lib/brand";
 
-const PLAN_ORDER = ["free", "star", "premium", "platinum"];
+const PLAN_ORDER = ["free", "growth", "business", "enterprise"];
 
 const PLAN_STYLE: Record<string, { badge: string; border: string; highlight: boolean }> = {
-  free:     { badge: "bg-gray-100 text-gray-600",     border: "border-gray-200",   highlight: false },
-  star:     { badge: "bg-yellow-100 text-yellow-700", border: "border-yellow-300", highlight: false },
-  premium:  { badge: "bg-blue-100 text-blue-700",     border: "border-blue-400",   highlight: true  },
-  platinum: { badge: "bg-purple-100 text-purple-700", border: "border-purple-400", highlight: false },
+  free:       { badge: "bg-gray-100 text-gray-600",     border: "border-gray-200",   highlight: false },
+  growth:     { badge: "bg-yellow-100 text-yellow-700", border: "border-yellow-300", highlight: false },
+  business:   { badge: "bg-blue-100 text-blue-700",     border: "border-blue-400",   highlight: true  },
+  enterprise: { badge: "bg-purple-100 text-purple-700", border: "border-purple-400", highlight: false },
 };
 
 export default function LandingClient({
   plans,
 }: {
-  plans: { plan: string; price: number; features: string[]; features_en: string[] }[] | null;
+  plans: { plan: string; price: number; price_yearly: number; features: string[]; features_en: string[] }[] | null;
 }) {
   const { lang, tr, toggleLang } = useLang();
+  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
 
   const PLAN_CTA: Record<string, string> = {
-    free:     tr.home_cta_free,
-    star:     tr.home_cta_star,
-    premium:  tr.home_cta_premium,
-    platinum: tr.home_cta_platinum,
+    free:       tr.home_cta_free,
+    growth:     tr.home_cta_growth,
+    business:   tr.home_cta_business,
+    enterprise: tr.home_cta_enterprise,
   };
 
   const FEATURES = [
@@ -315,11 +317,33 @@ export default function LandingClient({
       <section id="pricing" className="bg-gray-50 py-20 scroll-mt-20">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">{tr.home_pricing_title}</h2>
-          <p className="text-center text-gray-500 mb-12">{tr.home_pricing_sub}</p>
+          <p className="text-center text-gray-500 mb-8">{tr.home_pricing_sub}</p>
+
+          {/* Monthly / Yearly toggle */}
+          <div className="flex justify-center mb-10">
+            <div className="inline-flex bg-white border border-gray-200 rounded-full p-1 shadow-sm">
+              <button
+                onClick={() => setBilling("monthly")}
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${billing === "monthly" ? "bg-blue-600 text-white" : "text-gray-600 hover:text-gray-900"}`}
+              >
+                {tr.upgrade_billing_monthly}
+              </button>
+              <button
+                onClick={() => setBilling("yearly")}
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors flex items-center gap-2 ${billing === "yearly" ? "bg-blue-600 text-white" : "text-gray-600 hover:text-gray-900"}`}
+              >
+                {tr.upgrade_billing_yearly}
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${billing === "yearly" ? "bg-white text-blue-600" : "bg-green-100 text-green-700"}`}>{tr.upgrade_billing_save}</span>
+              </button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {(plans ?? []).filter((p) => PLAN_ORDER.includes(p.plan)).map((plan) => {
               const style = PLAN_STYLE[plan.plan] ?? PLAN_STYLE.free;
               const planName = plan.plan.charAt(0).toUpperCase() + plan.plan.slice(1);
+              const showPrice = billing === "yearly" ? plan.price_yearly : plan.price;
+              const perLabel = billing === "yearly" ? tr.home_pricing_per_year : tr.home_pricing_per_month;
               return (
                 <div
                   key={plan.plan}
@@ -334,8 +358,8 @@ export default function LandingClient({
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${style.badge}`}>{planName}</span>
                   </div>
                   <div className="mb-4">
-                    <span className="text-3xl font-bold text-gray-900">CHF {plan.price}</span>
-                    <span className="text-gray-400 text-sm">{tr.home_pricing_per_month}</span>
+                    <span className="text-3xl font-bold text-gray-900">CHF {showPrice}</span>
+                    <span className="text-gray-400 text-sm">{perLabel}</span>
                   </div>
                   <ul className="space-y-2 mb-6 flex-1">
                     {(() => {

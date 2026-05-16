@@ -2,17 +2,25 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
+// Monthly Stripe price IDs (legacy IDs reused after the plan rename:
+// star→growth, premium→business, platinum→enterprise).
+// Yearly IDs are added by the user from the Stripe dashboard; until set
+// they stay as empty strings and yearly checkout is disabled.
 const PRICE_TO_PLAN: Record<string, string> = {
-  "price_1TBkP61MPl7fNPWeElDgBGsM": "star",
-  "price_1TBkPQ1MPl7fNPWehoGc86wl": "premium",
-  "price_1TBkPb1MPl7fNPWeD7FeszuB": "platinum",
+  "price_1TBkP61MPl7fNPWeElDgBGsM": "growth",
+  "price_1TBkPQ1MPl7fNPWehoGc86wl": "business",
+  "price_1TBkPb1MPl7fNPWeD7FeszuB": "enterprise",
+  // Yearly — fill in once created in Stripe.
+  // "price_<yearly_growth>":     "growth",
+  // "price_<yearly_business>":   "business",
+  // "price_<yearly_enterprise>": "enterprise",
 };
 
 const PLAN_LIMITS: Record<string, number> = {
   free: 1,
-  star: 10,
-  premium: 100,
-  platinum: -1,
+  growth: 10,
+  business: 100,
+  enterprise: -1,
 };
 
 function getSupabase() {

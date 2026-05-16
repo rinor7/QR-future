@@ -11,21 +11,22 @@ const MAX_FEATURES = 4;
 
 const PLAN_COLORS: Record<Plan, string> = {
   free: "border-gray-200 dark:border-[#242736] bg-gray-50 dark:bg-[#1a1d27]",
-  star: "border-yellow-300 dark:border-yellow-700/50 bg-yellow-50 dark:bg-yellow-900/10",
-  premium: "border-blue-300 dark:border-blue-700/50 bg-blue-50 dark:bg-blue-900/10",
-  platinum: "border-purple-300 dark:border-purple-700/50 bg-purple-50 dark:bg-purple-900/10",
+  growth: "border-yellow-300 dark:border-yellow-700/50 bg-yellow-50 dark:bg-yellow-900/10",
+  business: "border-blue-300 dark:border-blue-700/50 bg-blue-50 dark:bg-blue-900/10",
+  enterprise: "border-purple-300 dark:border-purple-700/50 bg-purple-50 dark:bg-purple-900/10",
 };
 
 const PLAN_BADGES: Record<Plan, string> = {
   free: "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300",
-  star: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
-  premium: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  platinum: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  growth: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+  business: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  enterprise: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
 };
 
 interface PlanConfig {
   plan: Plan;
   price: number;
+  price_yearly: number;
   features: string[];     // German
   features_en: string[];  // English
 }
@@ -51,6 +52,7 @@ export default function PlanSettingsPage() {
         if (plans) {
           setConfigs(plans.map((p: PlanConfig) => ({
             ...p,
+            price_yearly: p.price_yearly ?? 0,
             features: (p.features ?? []).slice(0, MAX_FEATURES),
             features_en: (p.features_en ?? p.features ?? []).slice(0, MAX_FEATURES),
           })));
@@ -72,6 +74,11 @@ export default function PlanSettingsPage() {
   function setDraftPrice(value: string) {
     if (!draft) return;
     setDraft({ ...draft, price: parseFloat(value) || 0 });
+  }
+
+  function setDraftYearly(value: string) {
+    if (!draft) return;
+    setDraft({ ...draft, price_yearly: parseFloat(value) || 0 });
   }
 
   function setDraftFeature(lang: "de" | "en", index: number, value: string) {
@@ -101,7 +108,7 @@ export default function PlanSettingsPage() {
   function requestSave() {
     if (!draft) return;
     const original = configs.find((c) => c.plan === draft.plan);
-    const priceChanged = original && original.price !== draft.price;
+    const priceChanged = original && (original.price !== draft.price || original.price_yearly !== draft.price_yearly);
     if (draft.plan !== "free" && priceChanged) {
       setStripeWarning(true);
     } else {
@@ -118,7 +125,7 @@ export default function PlanSettingsPage() {
     await fetch("/api/admin/plan-config", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: draft.plan, price: draft.price, features, features_en }),
+      body: JSON.stringify({ plan: draft.plan, price: draft.price, price_yearly: draft.price_yearly, features, features_en }),
     });
     setConfigs((prev) => prev.map((c) => c.plan === draft.plan ? { ...draft, features, features_en } : c));
     setSaving(false);
@@ -180,16 +187,34 @@ export default function PlanSettingsPage() {
                 )}
               </div>
 
-              {/* Price */}
+              {/* Price (monthly) */}
               <div>
-                <label className="text-xs font-medium text-gray-600 dark:text-slate-400 mb-1 block">{tr.plan_settings_price}</label>
+                <label className="text-xs font-medium text-gray-600 dark:text-slate-400 mb-1 block">{tr.plan_settings_price_monthly}</label>
                 <div className={`flex items-center gap-1 bg-white dark:bg-[#1a1d27] border rounded-xl px-3 py-2 ${isEditing ? "border-blue-300" : "border-gray-200 dark:border-[#242736]"}`}>
                   <span className="text-sm text-gray-400 dark:text-slate-500">CHF</span>
                   <input
                     type="number"
                     min="0"
+                    step="0.01"
                     value={current.price}
                     onChange={(e) => setDraftPrice(e.target.value)}
+                    disabled={!isEditing || config.plan === "free"}
+                    className="flex-1 text-sm font-semibold text-gray-900 dark:text-slate-100 bg-transparent focus:outline-none disabled:text-gray-400 dark:disabled:text-slate-500 w-full"
+                  />
+                </div>
+              </div>
+
+              {/* Price (yearly) */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 dark:text-slate-400 mb-1 block">{tr.plan_settings_price_yearly}</label>
+                <div className={`flex items-center gap-1 bg-white dark:bg-[#1a1d27] border rounded-xl px-3 py-2 ${isEditing ? "border-blue-300" : "border-gray-200 dark:border-[#242736]"}`}>
+                  <span className="text-sm text-gray-400 dark:text-slate-500">CHF</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={current.price_yearly}
+                    onChange={(e) => setDraftYearly(e.target.value)}
                     disabled={!isEditing || config.plan === "free"}
                     className="flex-1 text-sm font-semibold text-gray-900 dark:text-slate-100 bg-transparent focus:outline-none disabled:text-gray-400 dark:disabled:text-slate-500 w-full"
                   />

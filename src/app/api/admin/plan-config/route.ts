@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const PLAN_ORDER = ["free", "star", "premium", "platinum"];
+const PLAN_ORDER = ["free", "growth", "business", "enterprise"];
 
 export async function GET() {
   const supabase = createClient(
@@ -13,19 +13,19 @@ export async function GET() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  type Row = { plan: string; price: number; features: string[]; features_en?: string[] | null };
+  type Row = { plan: string; price: number; price_yearly?: number | null; features: string[]; features_en?: string[] | null };
   let data: Row[] | null = null;
   let error: { message: string } | null = null;
   {
     const r = await supabase
       .from("plan_config")
-      .select("plan, price, features, features_en")
+      .select("plan, price, price_yearly, features, features_en")
       .order("plan");
     data = r.data as Row[] | null;
     error = r.error;
   }
-  // If the bilingual migration hasn't run yet, the features_en column won't
-  // exist — fall back to the German-only shape so the page still renders.
+  // Falls back if a column hasn't been added yet (bilingual or yearly
+  // migration not run) so the page still renders.
   if (error) {
     const fallback = await supabase
       .from("plan_config")
@@ -40,7 +40,7 @@ export async function GET() {
   const sorted = PLAN_ORDER
     .map((p) => data?.find((r) => r.plan === p))
     .filter(Boolean)
-    .map((r) => ({ ...r, features_en: r!.features_en ?? r!.features ?? [] }));
+    .map((r) => ({ ...r, price_yearly: r!.price_yearly ?? 0, features_en: r!.features_en ?? r!.features ?? [] }));
   return NextResponse.json({ plans: sorted });
 }
 
@@ -70,15 +70,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { plan, price, features, features_en } = await req.json();
+  const { plan, price, price_yearly, features, features_en } = await req.json();
 
   if (!PLAN_ORDER.includes(plan)) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
 
+  const payload: Record<string, unknown> = { plan, price, features, features_en };
+  if (typeof price_yearly === "number") payload.price_yearly = price_yearly;
+
   const { error } = await supabase
     .from("plan_config")
-    .upsert({ plan, price, features, features_en }, { onConflict: "plan" });
+    .upsert(payload, { onConflict: "plan" });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });

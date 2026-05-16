@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
+// Monthly Stripe price IDs (legacy IDs reused after the plan rename).
+// Yearly IDs are added by the user from the Stripe dashboard; until set,
+// yearly checkout is disabled in the UI.
 const VALID_PRICES = new Set([
-  "price_1TBkP61MPl7fNPWeElDgBGsM", // star
-  "price_1TBkPQ1MPl7fNPWehoGc86wl", // premium
-  "price_1TBkPb1MPl7fNPWeD7FeszuB", // platinum
+  "price_1TBkP61MPl7fNPWeElDgBGsM", // growth (monthly)
+  "price_1TBkPQ1MPl7fNPWehoGc86wl", // business (monthly)
+  "price_1TBkPb1MPl7fNPWeD7FeszuB", // enterprise (monthly)
 ]);
 
 const PRICE_TO_PLAN: Record<string, string> = {
-  "price_1TBkP61MPl7fNPWeElDgBGsM": "star",
-  "price_1TBkPQ1MPl7fNPWehoGc86wl": "premium",
-  "price_1TBkPb1MPl7fNPWeD7FeszuB": "platinum",
+  "price_1TBkP61MPl7fNPWeElDgBGsM": "growth",
+  "price_1TBkPQ1MPl7fNPWehoGc86wl": "business",
+  "price_1TBkPb1MPl7fNPWeD7FeszuB": "enterprise",
 };
 
 export async function POST(request: Request) {

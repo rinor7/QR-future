@@ -64,10 +64,10 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const allRows = allScans ?? [];
-  const nfcScansCount = allRows.filter((r) => r.source === "nfc").length;
-  // Total scans excludes NFC taps so the two metrics don't double-count.
-  const s = allRows.filter((r) => r.source !== "nfc");
+  const s = allScans ?? [];
+  // NFC taps are still counted in the overall total; nfcScans surfaces
+  // the subset so admins can see the NFC-only contribution.
+  const nfcScansCount = s.filter((r) => r.source === "nfc").length;
 
   // Unique visitors
   const knownVisitors = new Set(s.map((r) => r.visitor_id).filter(Boolean));

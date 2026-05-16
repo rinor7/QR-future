@@ -27,6 +27,7 @@ const EVENT_LABELS: Record<string, { label: string; icon: string; color: string 
 
 interface AnalyticsData {
   total: number;
+  nfcScans: number;
   unique: number;
   returning: number;
   new: number;
@@ -36,7 +37,7 @@ interface AnalyticsData {
   os: { name: string; count: number }[];
   countries: { name: string; count: number }[];
   interactions: { event: string; count: number }[];
-  recentScans: { scanned_at: string; device_type: string; os: string; country: string; city: string; is_returning: boolean; visitor_id: string | null }[];
+  recentScans: { scanned_at: string; device_type: string; os: string; country: string; city: string; is_returning: boolean; visitor_id: string | null; source?: string | null }[];
   hotLeads: { visitorId: string; scanCount: number; lastSeen: string | null; device: string | null; os: string | null; country: string | null; city: string | null; isReturning: boolean; events: string[]; score: number; tier: "low" | "medium" | "high" }[];
   conversionRate: number;
   convertedVisitors: number;
@@ -160,9 +161,10 @@ export default function AnalyticsPage() {
       </div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { label: "Total Scans",      value: data.total,                     icon: "qr_code_scanner", color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20" },
+          { label: "NFC Scans",        value: data.nfcScans ?? 0,             icon: "contactless",     color: "text-indigo-600", bg: "bg-indigo-50 dark:bg-indigo-900/20" },
           { label: "Unique Visitors",  value: data.unique,                    icon: "person",          color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20" },
           { label: "Returning",        value: data.returning,                 icon: "repeat",          color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20", badge: returningRate > 0 ? `${returningRate}%` : null },
           { label: "Conversion Rate",  value: `${data.conversionRate ?? 0}%`, icon: "conversion_path", color: "text-teal-600",   bg: "bg-teal-50 dark:bg-teal-900/20",   badge: (data.convertedVisitors ?? 0) > 0 ? `${data.convertedVisitors} converted` : null },
@@ -372,9 +374,14 @@ export default function AnalyticsPage() {
                     {scan.is_returning ? "repeat" : "fiber_new"}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
-                      {[scan.city, scan.country].filter(Boolean).join(", ") || "Unknown location"}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+                        {[scan.city, scan.country].filter(Boolean).join(", ") || "Unknown location"}
+                      </p>
+                      {scan.source === "nfc" && (
+                        <span className="text-[9px] font-bold text-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 px-1.5 py-0.5 rounded-full shrink-0">NFC</span>
+                      )}
+                    </div>
                     <p className="text-[10px] text-slate-400">{scan.device_type} · {scan.os}</p>
                   </div>
                   <p className="text-[10px] text-slate-400 shrink-0">

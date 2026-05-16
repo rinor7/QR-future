@@ -8,7 +8,8 @@ import { Plan } from "@/lib/types";
 import { useLang } from "@/lib/language";
 
 interface PlanMeta {
-  priceId: string | null;
+  priceIdMonthly: string | null;
+  priceIdYearly: string | null;
   gradient: string;
   badgeBg: string;
   badgeText: string;
@@ -16,23 +17,27 @@ interface PlanMeta {
   popular?: boolean;
 }
 
+// Yearly Stripe price IDs are filled in once you create the yearly
+// products in Stripe. Until then yearly upgrades are disabled in the UI.
 const PLAN_META: Record<Plan, PlanMeta> = {
-  free:     { priceId: null,                               gradient: "none",                                              badgeBg: "rgba(115,118,136,0.1)", badgeText: "#737688", accentColor: "#737688" },
-  star:     { priceId: "price_1TBkP61MPl7fNPWeElDgBGsM",  gradient: "linear-gradient(135deg, #b45309 0%, #d97706 100%)", badgeBg: "rgba(180,83,9,0.1)",    badgeText: "#b45309", accentColor: "#d97706" },
-  premium:  { priceId: "price_1TBkPQ1MPl7fNPWehoGc86wl",  gradient: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", badgeBg: "rgba(0,62,199,0.1)",    badgeText: "#003ec7", accentColor: "#003ec7", popular: true },
-  platinum: { priceId: "price_1TBkPb1MPl7fNPWeD7FeszuB",  gradient: "linear-gradient(135deg, #6b21a8 0%, #9333ea 100%)", badgeBg: "rgba(107,33,168,0.1)",  badgeText: "#6b21a8", accentColor: "#9333ea" },
+  free:       { priceIdMonthly: null,                                priceIdYearly: null, gradient: "none",                                              badgeBg: "rgba(115,118,136,0.1)", badgeText: "#737688", accentColor: "#737688" },
+  growth:     { priceIdMonthly: "price_1TBkP61MPl7fNPWeElDgBGsM",   priceIdYearly: null, gradient: "linear-gradient(135deg, #b45309 0%, #d97706 100%)", badgeBg: "rgba(180,83,9,0.1)",    badgeText: "#b45309", accentColor: "#d97706" },
+  business:   { priceIdMonthly: "price_1TBkPQ1MPl7fNPWehoGc86wl",   priceIdYearly: null, gradient: "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)", badgeBg: "rgba(0,62,199,0.1)",    badgeText: "#003ec7", accentColor: "#003ec7", popular: true },
+  enterprise: { priceIdMonthly: "price_1TBkPb1MPl7fNPWeD7FeszuB",   priceIdYearly: null, gradient: "linear-gradient(135deg, #6b21a8 0%, #9333ea 100%)", badgeBg: "rgba(107,33,168,0.1)",  badgeText: "#6b21a8", accentColor: "#9333ea" },
 };
 
-interface PlanConfig { plan: Plan; price: number; features: string[]; features_en: string[]; }
+interface PlanConfig { plan: Plan; price: number; price_yearly: number; features: string[]; features_en: string[]; }
+
+type Billing = "monthly" | "yearly";
 
 type CmpValue = boolean | string;
 interface CompareRow {
   labelKey: string;
   subKey: string;
   free: CmpValue;
-  star: CmpValue;
-  premium: CmpValue;
-  platinum: CmpValue;
+  growth: CmpValue;
+  business: CmpValue;
+  enterprise: CmpValue;
 }
 
 export default function UpgradePage() {
@@ -42,6 +47,7 @@ export default function UpgradePage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [planConfigs, setPlanConfigs] = useState<PlanConfig[]>([]);
+  const [billing, setBilling] = useState<Billing>("monthly");
 
   useEffect(() => {
     getUserProfile().then((p) => {
@@ -154,13 +160,36 @@ export default function UpgradePage() {
         </div>
       </section>
 
+      {/* Monthly / Yearly toggle */}
+      <div className="max-w-7xl mx-auto flex justify-center mb-8">
+        <div className="inline-flex bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] rounded-full p-1 shadow-sm">
+          <button
+            onClick={() => setBilling("monthly")}
+            className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${billing === "monthly" ? "bg-blue-600 text-white" : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"}`}
+          >
+            {tr.upgrade_billing_monthly}
+          </button>
+          <button
+            onClick={() => setBilling("yearly")}
+            className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors flex items-center gap-2 ${billing === "yearly" ? "bg-blue-600 text-white" : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"}`}
+          >
+            {tr.upgrade_billing_yearly}
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${billing === "yearly" ? "bg-white text-blue-600" : "bg-green-100 text-green-700"}`}>{tr.upgrade_billing_save}</span>
+          </button>
+        </div>
+      </div>
+
       {/* Plan cards */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 md:gap-y-6 items-stretch mb-24">
         {planConfigs.map((config) => {
           const meta = PLAN_META[config.plan];
           const isCurrent = config.plan === currentPlan;
           const planName = config.plan.charAt(0).toUpperCase() + config.plan.slice(1);
-          const isPlatinum = config.plan === "platinum";
+          const isEnterprise = config.plan === "enterprise";
+          const showPrice = billing === "yearly" ? config.price_yearly : config.price;
+          const perLabel = billing === "yearly" ? tr.upgrade_per_yr : tr.upgrade_per_mo;
+          const activePriceId = billing === "yearly" ? meta.priceIdYearly : meta.priceIdMonthly;
+          const yearlyUnavailable = billing === "yearly" && config.plan !== "free" && !meta.priceIdYearly;
 
           return (
             <div
@@ -173,13 +202,13 @@ export default function UpgradePage() {
                 </div>
               )}
               <div className="mb-8">
-                <h4 className={`text-lg font-bold font-headline mb-1 ${isPlatinum ? "text-purple-600" : "text-slate-900 dark:text-slate-100"}`}>{planName}</h4>
+                <h4 className={`text-lg font-bold font-headline mb-1 ${isEnterprise ? "text-purple-600" : "text-slate-900 dark:text-slate-100"}`}>{planName}</h4>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                  {config.plan === "free" ? tr.upgrade_for_individuals : config.plan === "star" ? tr.upgrade_for_smb : config.plan === "premium" ? tr.upgrade_for_high_vol : tr.upgrade_for_enterprise}
+                  {config.plan === "free" ? tr.upgrade_for_individuals : config.plan === "growth" ? tr.upgrade_for_smb : config.plan === "business" ? tr.upgrade_for_high_vol : tr.upgrade_for_enterprise}
                 </p>
                 <div className="flex items-baseline gap-1">
-                  <span className={`text-4xl font-extrabold font-headline ${isCurrent ? "text-blue-600" : "text-slate-900 dark:text-slate-100"}`}>CHF {config.price}</span>
-                  <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">{tr.upgrade_per_mo}</span>
+                  <span className={`text-4xl font-extrabold font-headline ${isCurrent ? "text-blue-600" : "text-slate-900 dark:text-slate-100"}`}>CHF {showPrice}</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">{perLabel}</span>
                 </div>
               </div>
               <ul className="space-y-4 mb-10 flex-1">
@@ -198,14 +227,16 @@ export default function UpgradePage() {
                 <button className="w-full py-3 px-4 rounded-xl bg-gray-100 dark:bg-[#242736] text-slate-500 font-bold cursor-default opacity-60">{tr.upgrade_active_btn}</button>
               ) : config.plan === "free" ? (
                 <button className="w-full py-3 px-4 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors">{tr.upgrade_stay_free}</button>
-              ) : meta.priceId && isOwner ? (
+              ) : yearlyUnavailable ? (
+                <button disabled className="w-full py-3 px-4 rounded-xl bg-gray-100 dark:bg-[#242736] text-slate-500 font-bold cursor-not-allowed opacity-60">{tr.upgrade_yearly_unavailable}</button>
+              ) : activePriceId && isOwner ? (
                 <button
-                  onClick={() => handleUpgrade(meta.priceId!)}
-                  disabled={loading === meta.priceId}
+                  onClick={() => handleUpgrade(activePriceId!)}
+                  disabled={loading === activePriceId}
                   className="w-full py-4 px-4 rounded-xl text-white font-bold transition-all active:scale-95 shadow-md disabled:opacity-60"
-                  style={{ background: isPlatinum ? "linear-gradient(135deg, #6b21a8 0%, #9333ea 100%)" : "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
+                  style={{ background: isEnterprise ? "linear-gradient(135deg, #6b21a8 0%, #9333ea 100%)" : "linear-gradient(135deg, #003ec7 0%, #0052ff 100%)" }}
                 >
-                  {loading === meta.priceId ? tr.upgrade_loading : tr.upgrade_now}
+                  {loading === activePriceId ? tr.upgrade_loading : tr.upgrade_now}
                 </button>
               ) : null}
             </div>
@@ -220,9 +251,9 @@ export default function UpgradePage() {
           <div className="grid grid-cols-6 py-4 px-6 items-center text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-[#242736]">
             <div className="col-span-2">{tr.upgrade_core_feature}</div>
             <div className="text-center">{tr.upgrade_plan_free}</div>
-            <div className="text-center text-blue-600">{tr.upgrade_plan_star}</div>
-            <div className="text-center">{tr.upgrade_plan_premium}</div>
-            <div className="text-center text-purple-600">{tr.upgrade_plan_platinum}</div>
+            <div className="text-center text-blue-600">{tr.upgrade_plan_growth}</div>
+            <div className="text-center">{tr.upgrade_plan_business}</div>
+            <div className="text-center text-purple-600">{tr.upgrade_plan_enterprise}</div>
           </div>
           {(buildCompareRows(tr) as CompareRow[]).map((row) => (
             <div key={row.labelKey} className="grid grid-cols-6 py-5 px-6 items-center hover:bg-gray-50 dark:hover:bg-[#1e2130] transition-colors rounded-xl">
@@ -230,17 +261,17 @@ export default function UpgradePage() {
                 <p className="font-bold text-slate-900 dark:text-slate-100">{tr[row.labelKey as keyof typeof tr] as string}</p>
                 {row.subKey && <p className="text-xs text-slate-400 mt-0.5">{tr[row.subKey as keyof typeof tr] as string}</p>}
               </div>
-              {(["free", "star", "premium", "platinum"] as Plan[]).map((p) => {
+              {(["free", "growth", "business", "enterprise"] as Plan[]).map((p) => {
                 const val = row[p];
-                const isHighlight = p === "star" || p === "platinum";
+                const isHighlight = p === "growth" || p === "enterprise";
                 return (
                   <div key={p} className="flex justify-center">
                     {typeof val === "boolean" ? (
                       val
-                        ? <span className={`material-symbols-outlined ${p === "platinum" ? "text-purple-600" : "text-blue-600"}`}>check</span>
+                        ? <span className={`material-symbols-outlined ${p === "enterprise" ? "text-purple-600" : "text-blue-600"}`}>check</span>
                         : <span className="material-symbols-outlined text-slate-300 dark:text-slate-600">close</span>
                     ) : (
-                      <span className={`text-sm font-medium text-center ${isHighlight ? `font-bold ${p === "platinum" ? "text-purple-600" : "text-blue-600"}` : "text-slate-700 dark:text-slate-300"}`}>{val}</span>
+                      <span className={`text-sm font-medium text-center ${isHighlight ? `font-bold ${p === "enterprise" ? "text-purple-600" : "text-blue-600"}` : "text-slate-700 dark:text-slate-300"}`}>{val}</span>
                     )}
                   </div>
                 );
@@ -255,18 +286,18 @@ export default function UpgradePage() {
 
 function buildCompareRows(tr: ReturnType<typeof useLang>["tr"]): CompareRow[] {
   return [
-    { labelKey: "cmp_qr_codes",       subKey: "cmp_qr_codes_sub",       free: "1",  star: "10",            premium: "100",                  platinum: tr.cmp_unlimited },
-    { labelKey: "cmp_team_members",   subKey: "cmp_team_members_sub",   free: "1",  star: "3",             premium: "10",                   platinum: tr.cmp_unlimited },
-    { labelKey: "cmp_dynamic_qr",     subKey: "cmp_dynamic_qr_sub",     free: true, star: true,            premium: true,                   platinum: true },
-    { labelKey: "cmp_custom_design",  subKey: "cmp_custom_design_sub",  free: true, star: true,            premium: true,                   platinum: true },
-    { labelKey: "cmp_lead_capture",   subKey: "cmp_lead_capture_sub",   free: true, star: true,            premium: true,                   platinum: true },
-    { labelKey: "cmp_analytics",      subKey: "cmp_analytics_sub",      free: true, star: true,            premium: true,                   platinum: true },
-    { labelKey: "cmp_folders",        subKey: "cmp_folders_sub",        free: true, star: true,            premium: true,                   platinum: true },
-    { labelKey: "cmp_bilingual",      subKey: "cmp_bilingual_sub",      free: true, star: true,            premium: true,                   platinum: true },
-    { labelKey: "cmp_csv_export",     subKey: "cmp_csv_export_sub",     free: true, star: true,            premium: true,                   platinum: true },
-    { labelKey: "cmp_templates",      subKey: "cmp_templates_sub",      free: false, star: true,           premium: true,                   platinum: true },
-    { labelKey: "cmp_custom_domain",  subKey: "cmp_custom_domain_sub",  free: false, star: false,          premium: true,                   platinum: true },
-    { labelKey: "cmp_webhook",        subKey: "cmp_webhook_sub",        free: false, star: false,          premium: true,                   platinum: true },
-    { labelKey: "cmp_support",        subKey: "cmp_support_sub",        free: tr.cmp_support_community, star: tr.cmp_support_email, premium: tr.cmp_support_priority, platinum: tr.cmp_support_dedicated },
+    { labelKey: "cmp_qr_codes",       subKey: "cmp_qr_codes_sub",       free: "1",  growth: "10",          business: "100",                 enterprise: tr.cmp_unlimited },
+    { labelKey: "cmp_team_members",   subKey: "cmp_team_members_sub",   free: "1",  growth: "3",           business: "10",                  enterprise: tr.cmp_unlimited },
+    { labelKey: "cmp_dynamic_qr",     subKey: "cmp_dynamic_qr_sub",     free: true, growth: true,          business: true,                  enterprise: true },
+    { labelKey: "cmp_custom_design",  subKey: "cmp_custom_design_sub",  free: true, growth: true,          business: true,                  enterprise: true },
+    { labelKey: "cmp_lead_capture",   subKey: "cmp_lead_capture_sub",   free: true, growth: true,          business: true,                  enterprise: true },
+    { labelKey: "cmp_analytics",      subKey: "cmp_analytics_sub",      free: true, growth: true,          business: true,                  enterprise: true },
+    { labelKey: "cmp_folders",        subKey: "cmp_folders_sub",        free: true, growth: true,          business: true,                  enterprise: true },
+    { labelKey: "cmp_bilingual",      subKey: "cmp_bilingual_sub",      free: true, growth: true,          business: true,                  enterprise: true },
+    { labelKey: "cmp_csv_export",     subKey: "cmp_csv_export_sub",     free: true, growth: true,          business: true,                  enterprise: true },
+    { labelKey: "cmp_templates",      subKey: "cmp_templates_sub",      free: false, growth: true,         business: true,                  enterprise: true },
+    { labelKey: "cmp_custom_domain",  subKey: "cmp_custom_domain_sub",  free: false, growth: false,        business: true,                  enterprise: true },
+    { labelKey: "cmp_webhook",        subKey: "cmp_webhook_sub",        free: false, growth: false,        business: true,                  enterprise: true },
+    { labelKey: "cmp_support",        subKey: "cmp_support_sub",        free: tr.cmp_support_community, growth: tr.cmp_support_email, business: tr.cmp_support_priority, enterprise: tr.cmp_support_dedicated },
   ];
 }

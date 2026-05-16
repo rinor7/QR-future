@@ -10,9 +10,9 @@ import { Plan, PLAN_LABELS } from "@/lib/types";
 
 const PLAN_COLORS: Record<Plan, string> = {
   free: "bg-gray-100 text-gray-600",
-  star: "bg-yellow-100 text-yellow-700",
-  premium: "bg-blue-100 text-blue-700",
-  platinum: "bg-purple-100 text-purple-700",
+  growth: "bg-yellow-100 text-yellow-700",
+  business: "bg-blue-100 text-blue-700",
+  enterprise: "bg-purple-100 text-purple-700",
 };
 
 interface ClientProfile {
@@ -38,6 +38,7 @@ interface QRCode {
   updatedAt: string;
   isActive: boolean;
   scans: number;
+  nfcScans: number;
 }
 
 interface ClientDetail {
@@ -45,6 +46,7 @@ interface ClientDetail {
   members: Member[];
   qrCodes: QRCode[];
   totalScans: number;
+  totalNfcScans: number;
 }
 
 export default function ClientDetailPage() {
@@ -87,7 +89,7 @@ export default function ClientDetailPage() {
     );
   }
 
-  const { profile, members, qrCodes, totalScans } = detail;
+  const { profile, members, qrCodes, totalScans, totalNfcScans } = detail;
   const activeCount = qrCodes.filter((q) => q.isActive).length;
   const pausedCount = qrCodes.filter((q) => !q.isActive).length;
 
@@ -126,7 +128,7 @@ export default function ClientDetailPage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <StatCard
           label={tr.client_detail_qrcodes}
           value={qrCodes.length}
@@ -150,6 +152,12 @@ export default function ClientDetailPage() {
           value={totalScans}
           icon={<BarChart2 className="w-5 h-5 text-orange-500" />}
           bg="bg-orange-50 dark:bg-orange-900/20"
+        />
+        <StatCard
+          label={tr.client_detail_total_nfc_scans}
+          value={totalNfcScans ?? 0}
+          icon={<span className="material-symbols-outlined text-[20px] text-indigo-600">contactless</span>}
+          bg="bg-indigo-50 dark:bg-indigo-900/20"
         />
       </div>
 

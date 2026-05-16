@@ -74,20 +74,20 @@ export interface QRContact {
 export type CreateQRContact = Omit<QRContact, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'originalCreatorDeleted'>;
 
 // Plans
-export type Plan = 'free' | 'star' | 'premium' | 'platinum';
+export type Plan = 'free' | 'growth' | 'business' | 'enterprise';
 
 export const PLAN_LIMITS: Record<Plan, number> = {
   free: 1,
-  star: 10,
-  premium: 100,
-  platinum: -1, // unlimited
+  growth: 10,
+  business: 100,
+  enterprise: -1, // unlimited
 };
 
 export const PLAN_LABELS: Record<Plan, string> = {
   free: 'Free',
-  star: 'Star',
-  premium: 'Premium',
-  platinum: 'Platinum',
+  growth: 'Growth',
+  business: 'Business',
+  enterprise: 'Enterprise',
 };
 
 export type Role = 'admin' | 'writer' | 'owner';

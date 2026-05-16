@@ -10,9 +10,9 @@ import { Trash2, Users, AlertTriangle, Eye, Lock, Mail, X, Copy, Check, Send, Lo
 
 const PLAN_COLORS: Record<Plan, string> = {
   free: "bg-gray-100 text-gray-600",
-  star: "bg-yellow-100 text-yellow-700",
-  premium: "bg-blue-100 text-blue-700",
-  platinum: "bg-purple-100 text-purple-700",
+  growth: "bg-yellow-100 text-yellow-700",
+  business: "bg-blue-100 text-blue-700",
+  enterprise: "bg-purple-100 text-purple-700",
 };
 
 export default function ClientsPage() {
@@ -243,7 +243,7 @@ export default function ClientsPage() {
   // Stats
   const planCounts = clients.reduce<Record<Plan, number>>(
     (acc, c) => { acc[c.plan] = (acc[c.plan] ?? 0) + 1; return acc; },
-    { free: 0, star: 0, premium: 0, platinum: 0 }
+    { free: 0, growth: 0, business: 0, enterprise: 0 }
   );
 
   if (loading) {
@@ -268,7 +268,7 @@ export default function ClientsPage() {
           <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{clients.length}</p>
           <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{tr.clients_stat_total}</p>
         </div>
-        {(["free", "star", "premium", "platinum"] as Plan[]).map((plan) => (
+        {(["free", "growth", "business", "enterprise"] as Plan[]).map((plan) => (
           <div key={plan} className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-100 dark:border-[#242736] shadow-sm p-4 text-center">
             <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{planCounts[plan]}</p>
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full mt-1 inline-block ${PLAN_COLORS[plan]}`}>

@@ -38,7 +38,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       .order("created_at", { ascending: false }),
     supabase
       .from("qr_scans")
-      .select("scanned_at, device_type, os, country, city, referrer, is_returning, visitor_id")
+      .select("scanned_at, device_type, os, country, city, referrer, is_returning, visitor_id, source")
       .eq("contact_id", contactId)
       .order("scanned_at", { ascending: false }),
     supabase
@@ -185,8 +185,11 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     .sort((a, b) => b.score - a.score)
     .slice(0, 20);
 
+  const nfcScansCount = s.filter((r) => r.source === "nfc").length;
+
   return NextResponse.json({
     total: s.length,
+    nfcScans: nfcScansCount,
     unique: totalUnique,
     returning: returningCount,
     new: s.length - returningCount,

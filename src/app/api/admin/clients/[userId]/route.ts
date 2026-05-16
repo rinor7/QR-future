@@ -58,18 +58,29 @@ export async function GET(
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
-  // Fetch scan counts for these QR codes
+  // Fetch scan counts for these QR codes (split QR vs NFC).
   const contactIds = (contacts ?? []).map((c) => c.id);
   const scanCounts: Record<string, number> = {};
+  const nfcCounts: Record<string, number> = {};
 
   if (contactIds.length > 0) {
-    const { data: scans } = await supabase
+    let scans: { contact_id: string; source?: string | null }[] | null = null;
+    const r = await supabase
       .from("qr_scans")
-      .select("contact_id")
+      .select("contact_id, source")
       .in("contact_id", contactIds);
+    scans = r.data as { contact_id: string; source?: string | null }[] | null;
+    if (r.error) {
+      const f = await supabase
+        .from("qr_scans")
+        .select("contact_id")
+        .in("contact_id", contactIds);
+      scans = f.data as { contact_id: string; source?: string | null }[] | null;
+    }
 
-    (scans ?? []).forEach((s: { contact_id: string }) => {
+    (scans ?? []).forEach((s) => {
       scanCounts[s.contact_id] = (scanCounts[s.contact_id] ?? 0) + 1;
+      if (s.source === "nfc") nfcCounts[s.contact_id] = (nfcCounts[s.contact_id] ?? 0) + 1;
     });
   }
 
@@ -81,6 +92,7 @@ export async function GET(
     updatedAt: c.updated_at,
     isActive: c.is_active ?? true,
     scans: scanCounts[c.id] ?? 0,
+    nfcScans: nfcCounts[c.id] ?? 0,
   }));
 
   return NextResponse.json({
@@ -99,5 +111,6 @@ export async function GET(
     })),
     qrCodes,
     totalScans: Object.values(scanCounts).reduce((a, b) => a + b, 0),
+    totalNfcScans: Object.values(nfcCounts).reduce((a, b) => a + b, 0),
   });
 }
