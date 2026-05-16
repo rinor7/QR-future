@@ -9,6 +9,7 @@ import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import QRStylePicker from "@/components/QRStylePicker";
 import { useRole } from "@/lib/useRole";
+import { normalizeUrl as sharedNormalizeUrl } from "@/lib/normalize-url";
 
 const DEFAULTS: CreateQRContact = {
   qrLabel: "",
@@ -249,12 +250,7 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
     setForm((prev) => ({ ...prev, links }));
   }
 
-  function normalizeUrl(url: string): string {
-    if (!url) return url;
-    if (url.startsWith("http://") || url.startsWith("https://")) return url;
-    if (!url.includes(".")) return "";
-    return `https://${url}`;
-  }
+  const normalizeUrl = sharedNormalizeUrl;
 
   function confirmLink() {
     const url = normalizeUrl(pendingUrl.trim());
@@ -1063,19 +1059,19 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
             <>
               <div className="flex flex-wrap gap-2 min-w-0 max-w-full">
                 {([
-                  { key: "linkedinUrl", label: "LinkedIn", prefix: "linkedin.com/in/", fullPrefix: "https://linkedin.com/in/" },
-                  { key: "instagramUrl", label: "Instagram", prefix: "instagram.com/", fullPrefix: "https://instagram.com/" },
-                  { key: "facebookUrl", label: "Facebook", prefix: "facebook.com/", fullPrefix: "https://facebook.com/" },
-                  { key: "tiktokUrl", label: "TikTok", prefix: "tiktok.com/@", fullPrefix: "https://tiktok.com/@" },
-                  { key: "snapchatUrl", label: "Snapchat", prefix: "snapchat.com/add/", fullPrefix: "https://snapchat.com/add/" },
-                  { key: "xUrl", label: "X / Twitter", prefix: "x.com/", fullPrefix: "https://x.com/" },
-                  { key: "otherSocialUrl", label: tr.field_other_social, prefix: null, fullPrefix: null },
-                ] as { key: keyof CreateQRContact; label: string; prefix: string | null; fullPrefix: string | null }[]).map((s) => {
+                  { key: "linkedinUrl", label: "LinkedIn", placeholder: "https://linkedin.com/in/your-handle" },
+                  { key: "instagramUrl", label: "Instagram", placeholder: "https://instagram.com/your-handle" },
+                  { key: "facebookUrl", label: "Facebook", placeholder: "https://facebook.com/your-page" },
+                  { key: "tiktokUrl", label: "TikTok", placeholder: "https://tiktok.com/@your-handle" },
+                  { key: "snapchatUrl", label: "Snapchat", placeholder: "https://snapchat.com/add/your-handle" },
+                  { key: "xUrl", label: "X / Twitter", placeholder: "https://x.com/your-handle" },
+                  { key: "otherSocialUrl", label: tr.field_other_social, placeholder: "https://example.com" },
+                ] as { key: keyof CreateQRContact; label: string; placeholder: string }[]).map((s) => {
                   const value = (form[s.key] as string) || "";
                   const hasValue = !!value;
                   const isActive = activeSocial === s.key;
                   const fieldLocked = isLocked(SOCIAL_DB_KEY[s.key]);
-                  const handleText = s.fullPrefix && value.startsWith(s.fullPrefix) ? value.slice(s.fullPrefix.length) : value.replace(/^https?:\/\//, "");
+                  const handleText = value.replace(/^https?:\/\//, "");
                   return (
                     <button
                       key={s.key}
@@ -1105,21 +1101,26 @@ export default function QRForm({ initial, onSubmit, submitLabel, saved, loading,
               </div>
               {activeSocial && (() => {
                 const fieldLocked = isLocked(SOCIAL_DB_KEY[activeSocial]);
-                const s = [
-                  { key: "linkedinUrl", prefix: "linkedin.com/in/", fullPrefix: "https://linkedin.com/in/" },
-                  { key: "instagramUrl", prefix: "instagram.com/", fullPrefix: "https://instagram.com/" },
-                  { key: "facebookUrl", prefix: "facebook.com/", fullPrefix: "https://facebook.com/" },
-                  { key: "tiktokUrl", prefix: "tiktok.com/@", fullPrefix: "https://tiktok.com/@" },
-                  { key: "snapchatUrl", prefix: "snapchat.com/add/", fullPrefix: "https://snapchat.com/add/" },
-                  { key: "xUrl", prefix: "x.com/", fullPrefix: "https://x.com/" },
-                ].find((x) => x.key === activeSocial);
+                const placeholderMap: Record<string, string> = {
+                  linkedinUrl: "https://linkedin.com/in/your-handle",
+                  instagramUrl: "https://instagram.com/your-handle",
+                  facebookUrl: "https://facebook.com/your-page",
+                  tiktokUrl: "https://tiktok.com/@your-handle",
+                  snapchatUrl: "https://snapchat.com/add/your-handle",
+                  xUrl: "https://x.com/your-handle",
+                  otherSocialUrl: "https://example.com",
+                };
                 return (
                   <div className={`mt-2 ${fieldLocked ? "pointer-events-none opacity-60" : ""}`}>
-                    {s ? (
-                      <PrefixInput prefix={s.prefix} fullPrefix={s.fullPrefix} value={form[activeSocial as keyof CreateQRContact] as string} onChange={(v) => set(activeSocial as keyof CreateQRContact, v)} placeholder={tr.social_placeholder} />
-                    ) : (
-                      <input type="text" value={form[activeSocial as keyof CreateQRContact] as string} onChange={(e) => set(activeSocial as keyof CreateQRContact, e.target.value)} onBlur={(e) => { if (e.target.value) set(activeSocial as keyof CreateQRContact, normalizeUrl(e.target.value.trim())); }} placeholder="example.com" className={input} autoFocus />
-                    )}
+                    <input
+                      type="text"
+                      value={form[activeSocial as keyof CreateQRContact] as string}
+                      onChange={(e) => set(activeSocial as keyof CreateQRContact, e.target.value)}
+                      onBlur={(e) => { if (e.target.value) set(activeSocial as keyof CreateQRContact, normalizeUrl(e.target.value.trim())); }}
+                      placeholder={placeholderMap[activeSocial] ?? "https://example.com"}
+                      className={input}
+                      autoFocus
+                    />
                   </div>
                 );
               })()}
@@ -1411,44 +1412,3 @@ function Field({
 const input =
   "w-full bg-gray-50 dark:bg-[#242736] border border-gray-200 dark:border-slate-700 dark:text-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-slate-500";
 
-function PrefixInput({
-  prefix,
-  fullPrefix,
-  value,
-  onChange,
-  placeholder,
-}: {
-  prefix: string;
-  fullPrefix: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  // Extract just the handle/slug from the stored full URL
-  function getSuffix(full: string): string {
-    if (!full) return "";
-    if (full.startsWith(fullPrefix)) return full.slice(fullPrefix.length);
-    // Fallback for old manually-entered values
-    const variants = [fullPrefix, fullPrefix.replace("https://", "http://"), fullPrefix.replace("https://", "")];
-    for (const v of variants) {
-      if (full.startsWith(v)) return full.slice(v.length);
-    }
-    return full;
-  }
-
-  return (
-    <div className="w-full flex items-stretch border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
-      <span className="flex items-center text-xs text-gray-400 bg-gray-50 px-3 border-r border-gray-200 whitespace-nowrap shrink-0 select-none">
-        {prefix}
-      </span>
-      <input
-        type="text"
-        value={getSuffix(value)}
-        onChange={(e) => onChange(e.target.value ? fullPrefix + e.target.value.trim() : "")}
-        placeholder={placeholder}
-        size={1}
-        className="flex-1 min-w-0 px-3 py-2.5 text-sm focus:outline-none bg-white placeholder:text-gray-400"
-      />
-    </div>
-  );
-}

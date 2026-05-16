@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import PhonePreview from "./PhonePreview";
 import QRCodeStyled from "./QRCodeStyled";
 import AddressAutocomplete from "./AddressAutocomplete";
+import { normalizeUrl } from "@/lib/normalize-url";
 import type { CreateQRContact } from "@/lib/types";
 
 export interface QRTemplate {
@@ -49,12 +50,6 @@ export interface OrgDefaults {
   acctPhone?: string;
   acctEmail?: string;
   acctWebsite?: string;
-  acctLinkedin?: string;
-  acctInstagram?: string;
-  acctFacebook?: string;
-  acctTiktok?: string;
-  acctSnapchat?: string;
-  acctX?: string;
   acctStreet?: string;
   acctStreetNr?: string;
   acctPlz?: string;
@@ -72,15 +67,6 @@ interface Props {
 
 type FieldValues = Record<string, string | boolean>;
 
-const SOCIAL_PREFIXES: Record<string, { prefix: string; fullPrefix: string }> = {
-  linkedin_url: { prefix: "linkedin.com/in/", fullPrefix: "https://linkedin.com/in/" },
-  instagram_url: { prefix: "instagram.com/", fullPrefix: "https://instagram.com/" },
-  facebook_url: { prefix: "facebook.com/", fullPrefix: "https://facebook.com/" },
-  tiktok_url: { prefix: "tiktok.com/@", fullPrefix: "https://tiktok.com/@" },
-  snapchat_url: { prefix: "snapchat.com/add/", fullPrefix: "https://snapchat.com/add/" },
-  x_url: { prefix: "x.com/", fullPrefix: "https://x.com/" },
-};
-
 const FIELD_GROUPS = [
   {
     key: "company_info",
@@ -90,20 +76,6 @@ const FIELD_GROUPS = [
       { key: "company", label: "Company Name", type: "text", fromAccount: "organizationName" as const },
       { key: "logo_url", label: "Logo URL", type: "url", fromAccount: "brandLogoUrl" as const },
       { key: "description", label: "Description", type: "textarea" },
-    ],
-  },
-  {
-    key: "social",
-    label: "Social Links",
-    icon: "link",
-    fields: [
-      { key: "linkedin_url", label: "LinkedIn", type: "url", fromAccount: "acctLinkedin" as const },
-      { key: "instagram_url", label: "Instagram", type: "url", fromAccount: "acctInstagram" as const },
-      { key: "facebook_url", label: "Facebook", type: "url", fromAccount: "acctFacebook" as const },
-      { key: "tiktok_url", label: "TikTok", type: "url", fromAccount: "acctTiktok" as const },
-      { key: "snapchat_url", label: "Snapchat", type: "url", fromAccount: "acctSnapchat" as const },
-      { key: "x_url", label: "X / Twitter", type: "url", fromAccount: "acctX" as const },
-      { key: "other_social_url", label: "Other Social", type: "url" },
     ],
   },
   {
@@ -156,13 +128,6 @@ function templateToValues(t: QRTemplate): FieldValues {
     logo_url: t.logo_url ?? "",
     website: t.website ?? "",
     description: t.description ?? "",
-    linkedin_url: t.linkedin_url ?? "",
-    instagram_url: t.instagram_url ?? "",
-    facebook_url: t.facebook_url ?? "",
-    tiktok_url: t.tiktok_url ?? "",
-    snapchat_url: t.snapchat_url ?? "",
-    x_url: t.x_url ?? "",
-    other_social_url: t.other_social_url ?? "",
     primary_color: t.primary_color,
     theme: t.theme,
     show_logo_in_qr: t.show_logo_in_qr,
@@ -494,29 +459,16 @@ export default function TemplateEditorModal({ open, onClose, onSaved, editing, o
                               {field.type === "text" && (
                                 <input type="text" value={(val as string) || ""} onChange={(e) => setVal(field.key, e.target.value)} placeholder={field.label} className={inputCls} />
                               )}
-                              {field.type === "url" && (() => {
-                                const p = SOCIAL_PREFIXES[field.key];
-                                if (!p) {
-                                  return <input type="text" value={(val as string) || ""} onChange={(e) => setVal(field.key, e.target.value)} placeholder="https://example.com" className={inputCls} />;
-                                }
-                                const full = (val as string) || "";
-                                const suffix = full.startsWith(p.fullPrefix) ? full.slice(p.fullPrefix.length) : full.replace(/^https?:\/\//, "");
-                                return (
-                                  <div className="w-full flex items-stretch border border-slate-200 dark:border-[#2a2e3e] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all bg-white dark:bg-[#242736]">
-                                    <span className="flex items-center text-xs text-slate-400 bg-slate-50 dark:bg-[#1a1d27] px-3 border-r border-slate-200 dark:border-[#2a2e3e] whitespace-nowrap shrink-0 select-none">
-                                      {p.prefix}
-                                    </span>
-                                    <input
-                                      type="text"
-                                      value={suffix}
-                                      onChange={(e) => setVal(field.key, e.target.value ? p.fullPrefix + e.target.value.trim() : "")}
-                                      placeholder="username"
-                                      size={1}
-                                      className="flex-1 min-w-0 px-3 py-2.5 text-sm focus:outline-none bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
-                                    />
-                                  </div>
-                                );
-                              })()}
+                              {field.type === "url" && (
+                                <input
+                                  type="text"
+                                  value={(val as string) || ""}
+                                  onChange={(e) => setVal(field.key, e.target.value)}
+                                  onBlur={(e) => { if (e.target.value) setVal(field.key, normalizeUrl(e.target.value.trim())); }}
+                                  placeholder="https://example.com"
+                                  className={inputCls}
+                                />
+                              )}
                               {field.type === "textarea" && (
                                 <textarea value={(val as string) || ""} onChange={(e) => setVal(field.key, e.target.value)} placeholder={field.label} rows={2} className={`${inputCls} resize-none`} />
                               )}

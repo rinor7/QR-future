@@ -91,12 +91,6 @@ export default function SettingsPage() {
   const [acctSaved, setAcctSaved] = useState(false);
 
   // Social media links (company-level)
-  const [acctLinkedin, setAcctLinkedin] = useState("");
-  const [acctInstagram, setAcctInstagram] = useState("");
-  const [acctFacebook, setAcctFacebook] = useState("");
-  const [acctTiktok, setAcctTiktok] = useState("");
-  const [acctSnapchat, setAcctSnapchat] = useState("");
-  const [acctX, setAcctX] = useState("");
 
   // 2FA / MFA state
   const [mfaEnrolled, setMfaEnrolled] = useState(false);
@@ -241,14 +235,6 @@ export default function SettingsPage() {
             setAcctPlz(prof.account_plz ?? "");
             setAcctCity(prof.account_city ?? "");
             setAcctCountry(prof.account_country ?? "");
-            // Social media links
-            const socials = (() => { try { return JSON.parse(prof.account_socials ?? "{}"); } catch { return {}; } })();
-            setAcctLinkedin(socials.linkedin ?? "");
-            setAcctInstagram(socials.instagram ?? "");
-            setAcctFacebook(socials.facebook ?? "");
-            setAcctTiktok(socials.tiktok ?? "");
-            setAcctSnapchat(socials.snapchat ?? "");
-            setAcctX(socials.x ?? "");
           }
           // Load MFA enrollment status
           const { data: mfaFactors } = await supabaseInner.auth.mfa.listFactors();
@@ -417,13 +403,6 @@ export default function SettingsPage() {
     const supabase = getSupabaseBrowser();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const socials: Record<string, string> = {};
-      if (acctLinkedin) socials.linkedin = acctLinkedin;
-      if (acctInstagram) socials.instagram = acctInstagram;
-      if (acctFacebook) socials.facebook = acctFacebook;
-      if (acctTiktok) socials.tiktok = acctTiktok;
-      if (acctSnapchat) socials.snapchat = acctSnapchat;
-      if (acctX) socials.x = acctX;
       await supabase.from("profiles").update({
         organization_name: organizationName || null,
         account_phone: acctPhone || null,
@@ -434,7 +413,7 @@ export default function SettingsPage() {
         account_plz: acctPlz || null,
         account_city: acctCity || null,
         account_country: acctCountry || null,
-        account_socials: Object.keys(socials).length > 0 ? JSON.stringify(socials) : null,
+        account_socials: null,
       }).eq("user_id", user.id);
       setAcctSaved(true);
       setTimeout(() => setAcctSaved(false), 3000);
@@ -966,40 +945,6 @@ export default function SettingsPage() {
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-medium text-slate-500 mb-1">{tr.field_website}</label>
                     <input type="text" value={acctWebsite} onChange={(e) => setAcctWebsite(e.target.value)} placeholder={tr.settings_website_ph} className="w-full bg-gray-50 dark:bg-[#242736] border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Social Media Links */}
-              <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">share</span>
-                  {tr.settings_social_media}
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">LinkedIn</label>
-                    <SocialPrefixInput prefix="linkedin.com/company/" fullPrefix="https://linkedin.com/company/" value={acctLinkedin} onChange={setAcctLinkedin} placeholder="your-company" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Instagram</label>
-                    <SocialPrefixInput prefix="instagram.com/" fullPrefix="https://instagram.com/" value={acctInstagram} onChange={setAcctInstagram} placeholder="username" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Facebook</label>
-                    <SocialPrefixInput prefix="facebook.com/" fullPrefix="https://facebook.com/" value={acctFacebook} onChange={setAcctFacebook} placeholder="pagename" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">TikTok</label>
-                    <SocialPrefixInput prefix="tiktok.com/@" fullPrefix="https://tiktok.com/@" value={acctTiktok} onChange={setAcctTiktok} placeholder="username" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Snapchat</label>
-                    <SocialPrefixInput prefix="snapchat.com/add/" fullPrefix="https://snapchat.com/add/" value={acctSnapchat} onChange={setAcctSnapchat} placeholder="username" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">X / Twitter</label>
-                    <SocialPrefixInput prefix="x.com/" fullPrefix="https://x.com/" value={acctX} onChange={setAcctX} placeholder="handle" />
                   </div>
                 </div>
               </div>
@@ -1742,12 +1687,6 @@ export default function SettingsPage() {
           acctPhone,
           acctEmail,
           acctWebsite,
-          acctLinkedin,
-          acctInstagram,
-          acctFacebook,
-          acctTiktok,
-          acctSnapchat,
-          acctX,
           acctStreet,
           acctStreetNr,
           acctPlz,
@@ -1759,42 +1698,3 @@ export default function SettingsPage() {
   );
 }
 
-function SocialPrefixInput({
-  prefix,
-  fullPrefix,
-  value,
-  onChange,
-  placeholder,
-}: {
-  prefix: string;
-  fullPrefix: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  function getSuffix(full: string): string {
-    if (!full) return "";
-    if (full.startsWith(fullPrefix)) return full.slice(fullPrefix.length);
-    const variants = [fullPrefix.replace("https://", "http://"), fullPrefix.replace("https://", "")];
-    for (const v of variants) {
-      if (full.startsWith(v)) return full.slice(v.length);
-    }
-    return full;
-  }
-
-  return (
-    <div className="w-full flex items-stretch bg-gray-50 dark:bg-[#242736] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-      <span className="flex items-center text-xs text-gray-400 bg-gray-100 dark:bg-[#1e2130] px-3 border-r border-gray-200 dark:border-[#2a2e3e] whitespace-nowrap shrink-0 select-none">
-        {prefix}
-      </span>
-      <input
-        type="text"
-        value={getSuffix(value)}
-        onChange={(e) => onChange(e.target.value ? fullPrefix + e.target.value.trim() : "")}
-        placeholder={placeholder}
-        size={1}
-        className="flex-1 min-w-0 px-3 py-2.5 text-sm bg-transparent focus:outline-none placeholder:text-gray-400"
-      />
-    </div>
-  );
-}
