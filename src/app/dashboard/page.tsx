@@ -21,6 +21,7 @@ const EVENT_ICONS: Record<string, string> = {
 
 interface StatsData {
   total: number;
+  nfcScans: number;
   unique: number;
   returning: number;
   chart: { date: string; count: number }[];
@@ -127,6 +128,7 @@ export default function DashboardPage() {
   const kpiCards = [
     { label: tr.kpi_total_qrs,        display: contacts.length.toLocaleString(),                icon: "qr_code_2",         color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20" },
     { label: tr.kpi_total_scans,      display: (stats?.total ?? 0).toLocaleString(),            icon: "qr_code_scanner",   color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20" },
+    { label: tr.kpi_nfc_scans,        display: (stats?.nfcScans ?? 0).toLocaleString(),         icon: "contactless",       color: "text-indigo-600", bg: "bg-indigo-50 dark:bg-indigo-900/20" },
     { label: tr.kpi_unique_visitors,  display: (stats?.unique ?? 0).toLocaleString(),           icon: "person",            color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20" },
     { label: tr.kpi_returning,        display: (stats?.returning ?? 0).toLocaleString(),        icon: "repeat",            color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-900/20", badge: returningRate > 0 ? `${returningRate}%` : null },
     { label: tr.kpi_conversion_rate,  display: `${stats?.conversionRate ?? 0}%`,                icon: "conversion_path",   color: "text-teal-600",   bg: "bg-teal-50 dark:bg-teal-900/20" },
@@ -157,7 +159,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         {kpiCards.map((card) => (
           <div key={card.label} className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-slate-100 dark:border-[#242736] p-5 hover:-translate-y-0.5 transition-all">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${card.bg}`}>

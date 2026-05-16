@@ -45,7 +45,7 @@ export default function PlanSettingsPage() {
     getUserProfile().then((p) => {
       if (!p?.isPlatformAdmin) { router.replace("/dashboard/clients"); return; }
     });
-    fetch("/api/admin/plan-config")
+    fetch("/api/admin/plan-config", { cache: "no-store" })
       .then((r) => r.json())
       .then(({ plans }) => {
         if (plans) {

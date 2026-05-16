@@ -180,6 +180,11 @@ export default function QRLandingClient({ contact, leadCaptureActive = false, su
       localStorage.setItem("qr_visitor_id", visitorId);
     }
 
+    // NFC tags are programmed with /qr/<id>?src=nfc so we can split NFC
+    // taps from camera scans in stats.
+    const src = new URLSearchParams(window.location.search).get("src");
+    const source = src === "nfc" ? "nfc" : "qr";
+
     fetch("/api/scan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -187,6 +192,7 @@ export default function QRLandingClient({ contact, leadCaptureActive = false, su
         contactId: contact.id,
         referrer: document.referrer || null,
         visitorId,
+        source,
       }),
     }).catch(() => {});
   }, [contact.id]);

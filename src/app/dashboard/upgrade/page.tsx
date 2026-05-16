@@ -49,7 +49,7 @@ export default function UpgradePage() {
       setCurrentPlan(p.plan);
       setIsOwner(p.userId === p.ownerId);
     });
-    fetch("/api/admin/plan-config")
+    fetch("/api/admin/plan-config", { cache: "no-store" })
       .then((r) => r.json())
       .then(({ plans }) => { if (plans) setPlanConfigs(plans); })
       .catch(() => {});

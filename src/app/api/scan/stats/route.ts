@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
   const { data: contacts } = await contactsQuery;
 
   if (!contacts || contacts.length === 0) {
-    return NextResponse.json({ total: 0, unique: 0, returning: 0, last7: [], last30: [], interactions: [], topQR: [] });
+    return NextResponse.json({ total: 0, nfcScans: 0, unique: 0, returning: 0, last7: [], last30: [], interactions: [], topQR: [] });
   }
 
   const contactIds = contacts.map((c: { id: string }) => c.id);
@@ -46,13 +46,28 @@ export async function GET(req: NextRequest) {
   since.setDate(since.getDate() - (days - 1));
   since.setHours(0, 0, 0, 0);
 
-  // All scans (no date filter for totals)
-  const { data: allScans } = await supabase
-    .from("qr_scans")
-    .select("contact_id, scanned_at, visitor_id, is_returning")
-    .in("contact_id", contactIds);
+  type ScanRow = { contact_id: string; scanned_at?: string; visitor_id?: string | null; is_returning?: boolean | null; source?: string | null };
+  let allScans: ScanRow[] | null = null;
+  {
+    const r = await supabase
+      .from("qr_scans")
+      .select("contact_id, scanned_at, visitor_id, is_returning, source")
+      .in("contact_id", contactIds);
+    allScans = (r.data as ScanRow[] | null) ?? null;
+    // Fall back if the source-column migration hasn't been run yet.
+    if (r.error) {
+      const f = await supabase
+        .from("qr_scans")
+        .select("contact_id, scanned_at, visitor_id, is_returning")
+        .in("contact_id", contactIds);
+      allScans = (f.data as ScanRow[] | null) ?? null;
+    }
+  }
 
-  const s = allScans ?? [];
+  const allRows = allScans ?? [];
+  const nfcScansCount = allRows.filter((r) => r.source === "nfc").length;
+  // Total scans excludes NFC taps so the two metrics don't double-count.
+  const s = allRows.filter((r) => r.source !== "nfc");
 
   // Unique visitors
   const knownVisitors = new Set(s.map((r) => r.visitor_id).filter(Boolean));
@@ -103,6 +118,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     total: s.length,
+    nfcScans: nfcScansCount,
     unique: uniqueVisitors,
     returning: returningCount,
     chart: chartData,

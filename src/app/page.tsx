@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import LandingClient from "./LandingClient";
 
+export const revalidate = 0;
+
 const PLAN_ORDER = ["free", "star", "premium", "platinum"];
 
 async function getPlanConfigs() {

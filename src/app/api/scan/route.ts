@@ -32,9 +32,10 @@ export async function POST(req: NextRequest) {
   const { ok } = await rateLimit(limiters.scan, ip || "unknown");
   if (!ok) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
 
-  const { contactId, referrer, visitorId } = await req.json();
+  const { contactId, referrer, visitorId, source } = await req.json();
   if (!contactId) return NextResponse.json({ ok: false });
   if (!UUID_RE.test(contactId)) return NextResponse.json({ error: "Invalid contactId" }, { status: 400 });
+  const scanSource = source === "nfc" ? "nfc" : "qr";
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -72,6 +73,7 @@ export async function POST(req: NextRequest) {
     referrer: referrer ?? null,
     visitor_id: visitorId ?? null,
     is_returning,
+    source: scanSource,
   });
 
   return NextResponse.json({ ok: true });
