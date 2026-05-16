@@ -14,28 +14,17 @@ export async function GET() {
   );
 
   type Row = { plan: string; price: number; price_yearly?: number | null; features: string[]; features_en?: string[] | null };
-  let data: Row[] | null = null;
-  let error: { message: string } | null = null;
-  {
-    const r = await supabase
-      .from("plan_config")
-      .select("plan, price, price_yearly, features, features_en")
-      .order("plan");
-    data = r.data as Row[] | null;
-    error = r.error;
-  }
-  // Falls back if a column hasn't been added yet (bilingual or yearly
-  // migration not run) so the page still renders.
-  if (error) {
-    const fallback = await supabase
-      .from("plan_config")
-      .select("plan, price, features")
-      .order("plan");
-    data = fallback.data as Row[] | null;
-    error = fallback.error;
-  }
+  const r = await supabase
+    .from("plan_config")
+    .select("plan, price, price_yearly, features, features_en")
+    .order("plan");
+  const data = r.data as Row[] | null;
+  const error = r.error;
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[plan-config] select error:", error);
+    return NextResponse.json({ error: error.message, details: error }, { status: 500 });
+  }
 
   const sorted = PLAN_ORDER
     .map((p) => data?.find((r) => r.plan === p))
