@@ -4,14 +4,15 @@
 // `https://instagram.com/foo` and get the same stored value.
 //
 // - empty string stays empty
-// - already-prefixed (`http://` or `https://`) is returned untouched
 // - bare value without a dot is rejected (returned empty) so we don't
 //   accidentally save half a handle as a URL
+// - `http://` is upgraded to `https://` (sane default in 2026)
 // - otherwise we prefix `https://`
 export function normalizeUrl(url: string): string {
   const trimmed = url.trim();
   if (!trimmed) return "";
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^http:\/\//i.test(trimmed)) return "https://" + trimmed.slice(7);
+  if (/^https:\/\//i.test(trimmed)) return trimmed;
   if (!trimmed.includes(".")) return "";
   return `https://${trimmed}`;
 }

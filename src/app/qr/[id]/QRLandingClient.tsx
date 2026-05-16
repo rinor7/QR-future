@@ -52,11 +52,20 @@ import { useLang } from "@/lib/language";
 
 function normalizeUrl(url: string | null | undefined): string {
   if (!url) return "";
-  const trimmed = url.trim();
+  let trimmed = url.trim();
   if (!trimmed) return "";
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  if (!trimmed.includes(".")) return "";
-  return `https://${trimmed}`;
+  // Force https: legacy entries saved as http:// should display as https://.
+  if (/^http:\/\//i.test(trimmed)) trimmed = "https://" + trimmed.slice(7);
+  else if (!/^https:\/\//i.test(trimmed)) {
+    if (!trimmed.includes(".")) return "";
+    trimmed = `https://${trimmed}`;
+  }
+  // Add trailing slash for clean display in hover/status bar, but only when
+  // the URL has no query string or fragment.
+  if (!trimmed.endsWith("/") && !trimmed.includes("?") && !trimmed.includes("#")) {
+    trimmed += "/";
+  }
+  return trimmed;
 }
 
 function formatPhone(phone: string): string {
