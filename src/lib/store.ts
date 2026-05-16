@@ -1,4 +1,3 @@
-import { getSupabase } from "./supabase";
 import { getSupabaseBrowser } from "./supabase-browser";
 import { QRContact, CreateQRContact, ContactLink, UserProfile, Plan, PLAN_LIMITS, Role, TeamMember } from "./types";
 
@@ -224,7 +223,10 @@ export async function getAllContacts(): Promise<QRContact[]> {
 
 // Public QR landing page — no auth needed
 export async function getContact(id: string): Promise<QRContact | null> {
-  const { data, error } = await getSupabase()
+  // Must use the SSR browser client (cookies-aware) so the request runs
+  // as the logged-in user. The plain `getSupabase()` factory has no session
+  // and would fail RLS now that the legacy "Public read" policy is gone.
+  const { data, error } = await getSupabaseBrowser()
     .from("contacts")
     .select("*")
     .eq("id", id)
