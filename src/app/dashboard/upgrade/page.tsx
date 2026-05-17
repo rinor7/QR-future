@@ -285,18 +285,18 @@ export default function UpgradePage() {
 
 function buildCompareRows(tr: ReturnType<typeof useLang>["tr"]): CompareRow[] {
   return [
-    { labelKey: "cmp_qr_codes",       subKey: "cmp_qr_codes_sub",       free: "1",  growth: "10",          business: "100",                 enterprise: tr.cmp_unlimited },
-    { labelKey: "cmp_team_members",   subKey: "cmp_team_members_sub",   free: "1",  growth: "3",           business: "10",                  enterprise: tr.cmp_unlimited },
-    { labelKey: "cmp_dynamic_qr",     subKey: "cmp_dynamic_qr_sub",     free: true, growth: true,          business: true,                  enterprise: true },
-    { labelKey: "cmp_custom_design",  subKey: "cmp_custom_design_sub",  free: true, growth: true,          business: true,                  enterprise: true },
-    { labelKey: "cmp_lead_capture",   subKey: "cmp_lead_capture_sub",   free: true, growth: true,          business: true,                  enterprise: true },
-    { labelKey: "cmp_analytics",      subKey: "cmp_analytics_sub",      free: true, growth: true,          business: true,                  enterprise: true },
-    { labelKey: "cmp_folders",        subKey: "cmp_folders_sub",        free: true, growth: true,          business: true,                  enterprise: true },
-    { labelKey: "cmp_bilingual",      subKey: "cmp_bilingual_sub",      free: true, growth: true,          business: true,                  enterprise: true },
-    { labelKey: "cmp_csv_export",     subKey: "cmp_csv_export_sub",     free: true, growth: true,          business: true,                  enterprise: true },
-    { labelKey: "cmp_templates",      subKey: "cmp_templates_sub",      free: false, growth: true,         business: true,                  enterprise: true },
-    { labelKey: "cmp_custom_domain",  subKey: "cmp_custom_domain_sub",  free: false, growth: false,        business: true,                  enterprise: true },
-    { labelKey: "cmp_webhook",        subKey: "cmp_webhook_sub",        free: false, growth: false,        business: true,                  enterprise: true },
-    { labelKey: "cmp_support",        subKey: "cmp_support_sub",        free: tr.cmp_support_community, growth: tr.cmp_support_email, business: tr.cmp_support_priority, enterprise: tr.cmp_support_dedicated },
+    { labelKey: "cmp_qr_codes",       subKey: "cmp_qr_codes_sub",       free: "1",   growth: "10",         business: "100",  enterprise: tr.cmp_unlimited },
+    { labelKey: "cmp_team_members",   subKey: "cmp_team_members_sub",   free: "1",   growth: "3",          business: "10",   enterprise: tr.cmp_unlimited },
+    { labelKey: "cmp_dynamic_qr",     subKey: "cmp_dynamic_qr_sub",     free: true,  growth: true,         business: true,   enterprise: true },
+    { labelKey: "cmp_custom_design",  subKey: "cmp_custom_design_sub",  free: true,  growth: true,         business: true,   enterprise: true },
+    { labelKey: "cmp_bilingual",      subKey: "cmp_bilingual_sub",      free: true,  growth: true,         business: true,   enterprise: true },
+    { labelKey: "cmp_lead_capture",   subKey: "cmp_lead_capture_sub",   free: false, growth: true,         business: true,   enterprise: true },
+    { labelKey: "cmp_analytics",      subKey: "cmp_analytics_sub",      free: false, growth: true,         business: true,   enterprise: true },
+    { labelKey: "cmp_folders",        subKey: "cmp_folders_sub",        free: false, growth: true,         business: true,   enterprise: true },
+    { labelKey: "cmp_csv_export",     subKey: "cmp_csv_export_sub",     free: false, growth: true,         business: true,   enterprise: true },
+    { labelKey: "cmp_templates",      subKey: "cmp_templates_sub",      free: false, growth: true,         business: true,   enterprise: true },
+    { labelKey: "cmp_webhook",        subKey: "cmp_webhook_sub",        free: false, growth: false,        business: true,   enterprise: true },
+    { labelKey: "cmp_custom_domain",  subKey: "cmp_custom_domain_sub",  free: false, growth: false,        business: false,  enterprise: true },
+    { labelKey: "cmp_support",        subKey: "cmp_support_sub",        free: tr.cmp_support_none, growth: tr.cmp_support_email, business: tr.cmp_support_email, enterprise: tr.cmp_support_email },
   ];
 }
