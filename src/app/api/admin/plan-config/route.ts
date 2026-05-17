@@ -13,10 +13,18 @@ export async function GET() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  type Row = { plan: string; price: number; price_yearly?: number | null; features: string[]; features_en?: string[] | null };
+  type Row = {
+    plan: string;
+    price: number;
+    price_yearly?: number | null;
+    qr_limit?: number | null;
+    team_limit?: number | null;
+    features: string[];
+    features_en?: string[] | null;
+  };
   const r = await supabase
     .from("plan_config")
-    .select("plan, price, price_yearly, features, features_en")
+    .select("plan, price, price_yearly, qr_limit, team_limit, features, features_en")
     .order("plan");
   const data = r.data as Row[] | null;
   const error = r.error;
@@ -26,10 +34,21 @@ export async function GET() {
     return NextResponse.json({ error: error.message, details: error }, { status: 500 });
   }
 
+  // PLAN_LIMITS-style fallback values match the legacy code constants
+  // so older rows without qr_limit/team_limit still render sensibly.
+  const QR_FALLBACK: Record<string, number> = { free: 1, growth: 10, business: 100, enterprise: -1 };
+  const TEAM_FALLBACK: Record<string, number> = { free: 1, growth: 3, business: 10, enterprise: -1 };
+
   const sorted = PLAN_ORDER
     .map((p) => data?.find((r) => r.plan === p))
     .filter(Boolean)
-    .map((r) => ({ ...r, price_yearly: r!.price_yearly ?? 0, features_en: r!.features_en ?? r!.features ?? [] }));
+    .map((r) => ({
+      ...r,
+      price_yearly: r!.price_yearly ?? 0,
+      qr_limit: r!.qr_limit ?? QR_FALLBACK[r!.plan] ?? 1,
+      team_limit: r!.team_limit ?? TEAM_FALLBACK[r!.plan] ?? 1,
+      features_en: r!.features_en ?? r!.features ?? [],
+    }));
   return NextResponse.json({ plans: sorted });
 }
 
@@ -59,7 +78,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { plan, price, price_yearly, features, features_en } = await req.json();
+  const { plan, price, price_yearly, qr_limit, team_limit, features, features_en } = await req.json();
 
   if (!PLAN_ORDER.includes(plan)) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
@@ -67,6 +86,8 @@ export async function POST(req: NextRequest) {
 
   const payload: Record<string, unknown> = { plan, price, features, features_en };
   if (typeof price_yearly === "number") payload.price_yearly = price_yearly;
+  if (typeof qr_limit === "number") payload.qr_limit = qr_limit;
+  if (typeof team_limit === "number") payload.team_limit = team_limit;
 
   const { error } = await supabase
     .from("plan_config")

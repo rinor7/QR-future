@@ -25,7 +25,7 @@ const PLAN_META: Record<Plan, PlanMeta> = {
   enterprise: { priceIdMonthly: "price_1TXqRT1DHdp5yzacOUnF63Jj",     priceIdYearly: "price_1TXqSr1DHdp5yzacnuZ74Laj",     gradient: "linear-gradient(135deg, #6b21a8 0%, #9333ea 100%)", badgeBg: "rgba(107,33,168,0.1)",  badgeText: "#6b21a8", accentColor: "#9333ea" },
 };
 
-interface PlanConfig { plan: Plan; price: number; price_yearly: number; features: string[]; features_en: string[]; }
+interface PlanConfig { plan: Plan; price: number; price_yearly: number; qr_limit: number; team_limit: number; features: string[]; features_en: string[]; }
 
 type Billing = "monthly" | "yearly";
 
@@ -254,7 +254,7 @@ export default function UpgradePage() {
             <div className="text-center">{tr.upgrade_plan_business}</div>
             <div className="text-center text-purple-600">{tr.upgrade_plan_enterprise}</div>
           </div>
-          {(buildCompareRows(tr) as CompareRow[]).map((row) => (
+          {(buildCompareRows(tr, planConfigs) as CompareRow[]).map((row) => (
             <div key={row.labelKey} className="grid grid-cols-6 py-5 px-6 items-center hover:bg-gray-50 dark:hover:bg-[#1e2130] transition-colors rounded-xl">
               <div className="col-span-2">
                 <p className="font-bold text-slate-900 dark:text-slate-100">{tr[row.labelKey as keyof typeof tr] as string}</p>
@@ -283,10 +283,19 @@ export default function UpgradePage() {
   );
 }
 
-function buildCompareRows(tr: ReturnType<typeof useLang>["tr"]): CompareRow[] {
+function buildCompareRows(tr: ReturnType<typeof useLang>["tr"], plans: PlanConfig[]): CompareRow[] {
+  // Pull the editable per-plan limits straight from plan_config (managed in
+  // /dashboard/plan-settings) so this table never drifts from reality.
+  // -1 in the DB means "unlimited" — render the translated string.
+  const limit = (plan: Plan, key: "qr_limit" | "team_limit", fallback: string): string => {
+    const cfg = plans.find((p) => p.plan === plan);
+    const v = cfg?.[key];
+    if (v === undefined || v === null) return fallback;
+    return v === -1 ? tr.cmp_unlimited : String(v);
+  };
   return [
-    { labelKey: "cmp_qr_codes",       subKey: "cmp_qr_codes_sub",       free: "1",   growth: "10",         business: "100",  enterprise: tr.cmp_unlimited },
-    { labelKey: "cmp_team_members",   subKey: "cmp_team_members_sub",   free: "1",   growth: "3",          business: "10",   enterprise: tr.cmp_unlimited },
+    { labelKey: "cmp_qr_codes",       subKey: "cmp_qr_codes_sub",       free: limit("free", "qr_limit", "1"),   growth: limit("growth", "qr_limit", "10"),   business: limit("business", "qr_limit", "100"), enterprise: limit("enterprise", "qr_limit", tr.cmp_unlimited) },
+    { labelKey: "cmp_team_members",   subKey: "cmp_team_members_sub",   free: limit("free", "team_limit", "1"), growth: limit("growth", "team_limit", "3"), business: limit("business", "team_limit", "10"), enterprise: limit("enterprise", "team_limit", tr.cmp_unlimited) },
     { labelKey: "cmp_dynamic_qr",     subKey: "cmp_dynamic_qr_sub",     free: true,  growth: true,         business: true,   enterprise: true },
     { labelKey: "cmp_custom_design",  subKey: "cmp_custom_design_sub",  free: true,  growth: true,         business: true,   enterprise: true },
     { labelKey: "cmp_bilingual",      subKey: "cmp_bilingual_sub",      free: true,  growth: true,         business: true,   enterprise: true },

@@ -274,7 +274,18 @@ export async function createContact(input: CreateQRContact): Promise<QRContact> 
     plan = (ownerData?.plan as Plan) ?? "free";
   }
 
-  const limit = PLAN_LIMITS[plan];
+  // Pull the QR-code limit from plan_config (editable in /dashboard/plan-settings)
+  // so the value here always matches the Compare table on the upgrade page.
+  // Fall back to the hardcoded PLAN_LIMITS if the column isn't there yet.
+  let limit: number = PLAN_LIMITS[plan];
+  const { data: planCfg } = await supabase
+    .from("plan_config")
+    .select("qr_limit")
+    .eq("plan", plan)
+    .maybeSingle();
+  if (planCfg && typeof (planCfg as { qr_limit?: number }).qr_limit === "number") {
+    limit = (planCfg as { qr_limit: number }).qr_limit;
+  }
   if (limit !== -1) {
     const count = await getContactCount();
     if (count >= limit) {

@@ -27,6 +27,8 @@ interface PlanConfig {
   plan: Plan;
   price: number;
   price_yearly: number;
+  qr_limit: number;     // -1 = unlimited
+  team_limit: number;   // -1 = unlimited
   features: string[];     // German
   features_en: string[];  // English
 }
@@ -52,6 +54,8 @@ export default function PlanSettingsPage() {
           setConfigs(plans.map((p: PlanConfig) => ({
             ...p,
             price_yearly: p.price_yearly ?? 0,
+            qr_limit: p.qr_limit ?? 1,
+            team_limit: p.team_limit ?? 1,
             features: (p.features ?? []).slice(0, MAX_FEATURES),
             features_en: (p.features_en ?? p.features ?? []).slice(0, MAX_FEATURES),
           })));
@@ -94,6 +98,13 @@ export default function PlanSettingsPage() {
     });
   }
 
+  function setDraftLimit(key: "qr_limit" | "team_limit", value: string) {
+    if (!draft) return;
+    // Empty input or non-numeric → treat as 0. -1 stays as -1 (unlimited).
+    const n = parseInt(value, 10);
+    setDraft({ ...draft, [key]: Number.isFinite(n) ? n : 0 });
+  }
+
   async function doSave() {
     if (!draft) return;
     setSaving(true);
@@ -104,7 +115,15 @@ export default function PlanSettingsPage() {
     await fetch("/api/admin/plan-config", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: draft.plan, price: draft.price, price_yearly: draft.price_yearly, features, features_en }),
+      body: JSON.stringify({
+        plan: draft.plan,
+        price: draft.price,
+        price_yearly: draft.price_yearly,
+        qr_limit: draft.qr_limit,
+        team_limit: draft.team_limit,
+        features,
+        features_en,
+      }),
     });
     setConfigs((prev) => prev.map((c) => c.plan === draft.plan ? { ...draft, features, features_en } : c));
     setSaving(false);
@@ -166,6 +185,35 @@ export default function PlanSettingsPage() {
                 </div>
               </div>
               <p className="-mt-2 text-[11px] text-gray-400 dark:text-slate-500 italic">{tr.plan_settings_price_locked}</p>
+
+              {/* Limits (editable) — -1 means unlimited */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-gray-600 dark:text-slate-400 mb-1 block">{tr.plan_settings_qr_limit}</label>
+                  <input
+                    type="number"
+                    min="-1"
+                    step="1"
+                    value={current.qr_limit}
+                    onChange={(e) => setDraftLimit("qr_limit", e.target.value)}
+                    disabled={!isEditing}
+                    className={`w-full text-sm font-semibold text-gray-900 dark:text-slate-100 bg-white dark:bg-[#1a1d27] border rounded-xl px-3 py-2 focus:outline-none disabled:text-gray-400 dark:disabled:text-slate-500 disabled:bg-gray-50 dark:disabled:bg-[#1a1d27] ${isEditing ? "border-blue-300" : "border-gray-200 dark:border-[#242736]"}`}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600 dark:text-slate-400 mb-1 block">{tr.plan_settings_team_limit}</label>
+                  <input
+                    type="number"
+                    min="-1"
+                    step="1"
+                    value={current.team_limit}
+                    onChange={(e) => setDraftLimit("team_limit", e.target.value)}
+                    disabled={!isEditing}
+                    className={`w-full text-sm font-semibold text-gray-900 dark:text-slate-100 bg-white dark:bg-[#1a1d27] border rounded-xl px-3 py-2 focus:outline-none disabled:text-gray-400 dark:disabled:text-slate-500 disabled:bg-gray-50 dark:disabled:bg-[#1a1d27] ${isEditing ? "border-blue-300" : "border-gray-200 dark:border-[#242736]"}`}
+                  />
+                </div>
+              </div>
+              <p className="-mt-2 text-[11px] text-gray-400 dark:text-slate-500 italic">{tr.plan_settings_limit_hint}</p>
 
               {/* Features */}
               <div className="flex-1">
