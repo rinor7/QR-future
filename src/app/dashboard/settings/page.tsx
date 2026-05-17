@@ -19,6 +19,23 @@ export default function SettingsPage() {
   const [plan, setPlan] = useState<Plan>("free");
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState<string | null>(null);
+
+  // Inline invoices list — fetched separately from /api/stripe/invoices so the
+  // user can see "no invoices yet" or a quick list without leaving Settings.
+  interface InvoiceRow {
+    id: string;
+    number: string | null;
+    status: string | null;
+    amount: number;
+    currency: string;
+    created: number;
+    pdfUrl: string | null;
+    hostedUrl: string | null;
+  }
+  const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
+  const [showAllInvoices, setShowAllInvoices] = useState(false);
+  const INVOICE_PREVIEW = 5;
   const [hasStripeSubscription, setHasStripeSubscription] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
@@ -210,6 +227,16 @@ export default function SettingsPage() {
           const { data: prof } = await supabaseInner.from("profiles").select("lead_capture_disabled, brand_name, brand_logo_url, brand_primary_color, stripe_customer_id, organization_name, account_phone, account_email, account_website, account_phones, account_emails, account_websites, account_street, account_street_nr, account_plz, account_city, account_country, account_socials").eq("user_id", u.id).single();
           if (prof) {
             setHasStripeSubscription(!!prof.stripe_customer_id);
+            // Fetch invoice list as soon as we know the user has a Stripe
+            // customer. Free users skip the request entirely.
+            if (prof.stripe_customer_id) {
+              setInvoicesLoading(true);
+              fetch("/api/stripe/invoices", { cache: "no-store" })
+                .then((r) => r.json())
+                .then((data) => { if (Array.isArray(data?.invoices)) setInvoices(data.invoices); })
+                .catch(() => {})
+                .finally(() => setInvoicesLoading(false));
+            }
             setLeadCaptureDisabled(!!prof.lead_capture_disabled);
             setBrandName(prof.brand_name ?? "");
             setBrandLogoUrl(prof.brand_logo_url ?? "");
@@ -1528,6 +1555,114 @@ export default function SettingsPage() {
                 )}
               </div>
             </div>
+          </section>
+        )}
+
+        {/* Invoices (12 cols) — always visible for owners; shows empty state
+            when there's no Stripe customer or no invoices yet. */}
+        {isOwner && !isPlatformAdmin && (
+          <section className="col-span-12 bg-white dark:bg-[#1a1d27] rounded-xl p-5 sm:p-8 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-teal-500/10 p-3 rounded-xl text-teal-600">
+                <span className="material-symbols-outlined">receipt_long</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-2xl font-bold font-headline">{tr.settings_invoices_title}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{tr.settings_invoices_subtitle}</p>
+              </div>
+            </div>
+
+            {invoicesLoading ? (
+              <div className="py-10 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+              </div>
+            ) : invoices.length === 0 ? (
+              <div className="py-10 px-4 text-center bg-slate-50 dark:bg-[#1e2130] rounded-xl border border-dashed border-slate-200 dark:border-[#242736]">
+                <span className="material-symbols-outlined text-[36px] text-slate-300 dark:text-slate-600 mb-2 block">receipt_long</span>
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{tr.settings_invoices_empty_title}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{tr.settings_invoices_empty_body}</p>
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[480px]">
+                    <thead>
+                      <tr className="text-xs text-slate-400 uppercase tracking-wide border-b border-slate-100 dark:border-[#242736]">
+                        <th className="text-left py-2 px-3 font-semibold">{tr.settings_invoices_col_date}</th>
+                        <th className="text-left py-2 px-3 font-semibold">{tr.settings_invoices_col_number}</th>
+                        <th className="text-right py-2 px-3 font-semibold">{tr.settings_invoices_col_amount}</th>
+                        <th className="text-center py-2 px-3 font-semibold">{tr.settings_invoices_col_status}</th>
+                        <th className="text-right py-2 px-3 font-semibold sr-only">{tr.settings_invoices_col_download}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(showAllInvoices ? invoices : invoices.slice(0, INVOICE_PREVIEW)).map((inv) => (
+                        <tr key={inv.id} className="border-b border-slate-50 dark:border-[#242736]/60 last:border-0">
+                          <td className="py-3 px-3 text-slate-700 dark:text-slate-300">
+                            {new Date(inv.created).toLocaleDateString(lang === "de" ? "de-CH" : "en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                          </td>
+                          <td className="py-3 px-3 font-mono text-xs text-slate-500 dark:text-slate-400">
+                            {inv.number ?? "—"}
+                          </td>
+                          <td className="py-3 px-3 text-right font-semibold text-slate-900 dark:text-slate-100">
+                            {inv.currency} {inv.amount.toFixed(2)}
+                          </td>
+                          <td className="py-3 px-3 text-center">
+                            <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                              inv.status === "paid"
+                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                                : inv.status === "open"
+                                ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+                            }`}>
+                              {inv.status ?? "—"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-right">
+                            {inv.pdfUrl ? (
+                              <a
+                                href={inv.pdfUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">download</span>
+                                PDF
+                              </a>
+                            ) : inv.hostedUrl ? (
+                              <a
+                                href={inv.hostedUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+                              >
+                                {tr.settings_invoices_view}
+                              </a>
+                            ) : (
+                              <span className="text-xs text-slate-400">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {invoices.length > INVOICE_PREVIEW && (
+                  <div className="flex justify-center mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowAllInvoices((v) => !v)}
+                      className="text-sm font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">{showAllInvoices ? "expand_less" : "expand_more"}</span>
+                      {showAllInvoices
+                        ? tr.settings_invoices_show_less
+                        : `${tr.settings_invoices_show_all} (${invoices.length})`}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </section>
         )}
       </div>

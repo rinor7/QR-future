@@ -11,7 +11,10 @@ create index if not exists folders_deleted_at_idx  on folders(deleted_at)  where
 -- 2. Enable pg_cron (Supabase has this extension available; safe to call repeatedly)
 create extension if not exists pg_cron;
 
--- 3. Purge function — deletes anything soft-deleted more than 72 hours ago
+-- 3. Purge function — deletes anything soft-deleted more than 72 hours ago.
+-- NOTE: the analytics tables use `contact_id`, not `qr_id`. An earlier
+-- version of this function referenced `qr_id` which made every run abort
+-- before the contacts/folders deletes — soft-deleted rows stayed forever.
 create or replace function purge_soft_deleted()
 returns void
 language plpgsql
@@ -20,11 +23,11 @@ as $$
 begin
   -- Cascade: when a contact is permanently deleted, also clean its analytics rows
   delete from qr_scans
-   where qr_id in (select id from contacts where deleted_at < now() - interval '72 hours');
+   where contact_id in (select id from contacts where deleted_at < now() - interval '72 hours');
   delete from qr_interactions
-   where qr_id in (select id from contacts where deleted_at < now() - interval '72 hours');
+   where contact_id in (select id from contacts where deleted_at < now() - interval '72 hours');
   delete from qr_leads
-   where qr_id in (select id from contacts where deleted_at < now() - interval '72 hours');
+   where contact_id in (select id from contacts where deleted_at < now() - interval '72 hours');
 
   delete from contacts where deleted_at < now() - interval '72 hours';
   delete from folders  where deleted_at < now() - interval '72 hours';
