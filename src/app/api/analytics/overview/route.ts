@@ -35,22 +35,36 @@ export async function GET() {
 
   const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [scansRes, leadsRes] = await Promise.all([
-    supabase
+  // Select `source` too so we can split NFC taps out of the total. Fall back
+  // gracefully if the migration that added the column hasn't run yet — older
+  // rows simply won't be tallied as NFC.
+  type ScanRow = { contact_id: string; scanned_at?: string | null; visitor_id?: string | null; source?: string | null };
+  let scans: ScanRow[] = [];
+  {
+    const r = await supabase
       .from("qr_scans")
-      .select("contact_id, scanned_at, visitor_id")
-      .in("contact_id", ids),
-    supabase
-      .from("qr_leads")
-      .select("contact_id")
-      .in("contact_id", ids),
-  ]);
+      .select("contact_id, scanned_at, visitor_id, source")
+      .in("contact_id", ids);
+    if (r.error) {
+      const fallback = await supabase
+        .from("qr_scans")
+        .select("contact_id, scanned_at, visitor_id")
+        .in("contact_id", ids);
+      scans = (fallback.data as ScanRow[] | null) ?? [];
+    } else {
+      scans = (r.data as ScanRow[] | null) ?? [];
+    }
+  }
 
-  const scans = scansRes.data ?? [];
-  const leads = leadsRes.data ?? [];
+  const { data: leadsData } = await supabase
+    .from("qr_leads")
+    .select("contact_id")
+    .in("contact_id", ids);
+  const leads = leadsData ?? [];
 
   type Agg = {
     total: number;
+    nfc: number;
     last7d: number;
     visitors: Set<string>;
     visitorlessUnique: number;
@@ -61,6 +75,7 @@ export async function GET() {
   for (const id of ids) {
     agg.set(id, {
       total: 0,
+      nfc: 0,
       last7d: 0,
       visitors: new Set(),
       visitorlessUnique: 0,
@@ -70,14 +85,15 @@ export async function GET() {
   }
 
   for (const s of scans) {
-    const a = agg.get(s.contact_id as string);
+    const a = agg.get(s.contact_id);
     if (!a) continue;
     a.total++;
-    if (s.scanned_at && (s.scanned_at as string) >= since7d) a.last7d++;
-    if (s.visitor_id) a.visitors.add(s.visitor_id as string);
+    if (s.source === "nfc") a.nfc++;
+    if (s.scanned_at && s.scanned_at >= since7d) a.last7d++;
+    if (s.visitor_id) a.visitors.add(s.visitor_id);
     else a.visitorlessUnique++;
-    if (s.scanned_at && (!a.lastScanAt || (s.scanned_at as string) > a.lastScanAt)) {
-      a.lastScanAt = s.scanned_at as string;
+    if (s.scanned_at && (!a.lastScanAt || s.scanned_at > a.lastScanAt)) {
+      a.lastScanAt = s.scanned_at;
     }
   }
 
@@ -96,6 +112,7 @@ export async function GET() {
       name: c.name as string,
       company: c.company as string,
       totalScans: a.total,
+      nfcScans: a.nfc,
       last7d: a.last7d,
       uniqueVisitors: unique,
       leads: a.leads,

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { getContact, updateContact, getUserProfile } from "@/lib/store";
+import { downloadQR, type QRFormat } from "@/lib/qr-download";
 import { QRContact, CreateQRContact } from "@/lib/types";
 import QRForm from "@/components/QRForm";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
@@ -97,54 +98,10 @@ export default function EditPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function handleDownloadQR() {
+  function handleDownloadQR(format: QRFormat) {
     const svgEl = document.querySelector("#qr-preview svg") as SVGElement;
     if (!svgEl) return;
-    const exportSize = 400;
-    const clone = svgEl.cloneNode(true) as SVGElement;
-    clone.setAttribute("width", String(exportSize));
-    clone.setAttribute("height", String(exportSize));
-    const svgData = new XMLSerializer().serializeToString(clone);
-    const svgUrl = URL.createObjectURL(new Blob([svgData], { type: "image/svg+xml;charset=utf-8" }));
-    const canvas = document.createElement("canvas");
-    canvas.width = exportSize;
-    canvas.height = exportSize;
-    const ctx = canvas.getContext("2d")!;
-    const qrImg = new Image();
-    qrImg.onload = () => {
-      ctx.drawImage(qrImg, 0, 0, exportSize, exportSize);
-      URL.revokeObjectURL(svgUrl);
-      const finish = () => {
-        const a = document.createElement("a");
-        a.href = canvas.toDataURL("image/png");
-        a.download = `qr-${id}.png`;
-        a.click();
-      };
-      const logoUrl = previewLogoUrl;
-      if (logoUrl) {
-        const logoSize = Math.round(exportSize * 0.32);
-        const padding = Math.round(logoSize * 0.1);
-        const offset = (exportSize - logoSize) / 2;
-        const logoImg = new Image();
-        logoImg.crossOrigin = "anonymous";
-        logoImg.onload = () => {
-          const scale = Math.min(logoSize / logoImg.naturalWidth, logoSize / logoImg.naturalHeight);
-          const drawW = logoImg.naturalWidth * scale;
-          const drawH = logoImg.naturalHeight * scale;
-          const drawX = offset + (logoSize - drawW) / 2;
-          const drawY = offset + (logoSize - drawH) / 2;
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(offset - padding, offset - padding, logoSize + padding * 2, logoSize + padding * 2);
-          ctx.drawImage(logoImg, drawX, drawY, drawW, drawH);
-          finish();
-        };
-        logoImg.onerror = finish;
-        logoImg.src = logoUrl;
-      } else {
-        finish();
-      }
-    };
-    qrImg.src = svgUrl;
+    downloadQR({ svgEl, id, format, logoUrl: previewLogoUrl });
   }
 
   async function handleSubmit(data: CreateQRContact) {
@@ -302,13 +259,32 @@ export default function EditPage() {
                   {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                   {copied ? tr.copied : tr.copy_link}
                 </button>
-                <button
-                  onClick={handleDownloadQR}
-                  className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  {tr.download_qr}
-                </button>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">{tr.download_qr}</p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      onClick={() => handleDownloadQR("png")}
+                      className="flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-2 py-2 rounded-xl text-xs font-semibold transition-colors"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      PNG
+                    </button>
+                    <button
+                      onClick={() => handleDownloadQR("svg")}
+                      className="flex items-center justify-center gap-1 border border-blue-200 text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/10 px-2 py-2 rounded-xl text-xs font-semibold transition-colors"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      SVG
+                    </button>
+                    <button
+                      onClick={() => handleDownloadQR("pdf")}
+                      className="flex items-center justify-center gap-1 border border-blue-200 text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/10 px-2 py-2 rounded-xl text-xs font-semibold transition-colors"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      PDF
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

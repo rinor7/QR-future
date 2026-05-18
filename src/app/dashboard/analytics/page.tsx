@@ -10,6 +10,7 @@ type Row = {
   name: string;
   company: string;
   totalScans: number;
+  nfcScans: number;
   last7d: number;
   uniqueVisitors: number;
   leads: number;
@@ -53,12 +54,13 @@ export default function AnalyticsOverviewPage() {
   const totals = (rows ?? []).reduce(
     (acc, r) => {
       acc.scans += r.totalScans;
+      acc.nfc += r.nfcScans ?? 0;
       acc.scans7d += r.last7d;
       acc.unique += r.uniqueVisitors;
       acc.leads += r.leads;
       return acc;
     },
-    { scans: 0, scans7d: 0, unique: 0, leads: 0 }
+    { scans: 0, nfc: 0, scans7d: 0, unique: 0, leads: 0 }
   );
 
   return (
@@ -71,11 +73,12 @@ export default function AnalyticsOverviewPage() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <SummaryCard icon="visibility" label={tr.analytics_col_total} value={totals.scans} />
-        <SummaryCard icon="trending_up" label={tr.analytics_col_7d} value={totals.scans7d} />
-        <SummaryCard icon="group" label={tr.analytics_col_unique} value={totals.unique} />
-        <SummaryCard icon="how_to_reg" label={tr.analytics_col_leads} value={totals.leads} />
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <SummaryCard icon="visibility"   label={tr.analytics_col_total}  value={totals.scans} />
+        <SummaryCard icon="contactless"  label={tr.kpi_nfc_scans}        value={totals.nfc}   accent="indigo" />
+        <SummaryCard icon="trending_up"  label={tr.analytics_col_7d}     value={totals.scans7d} />
+        <SummaryCard icon="group"        label={tr.analytics_col_unique} value={totals.unique} />
+        <SummaryCard icon="how_to_reg"   label={tr.analytics_col_leads}  value={totals.leads} />
       </div>
 
       {/* Table */}
@@ -93,6 +96,7 @@ export default function AnalyticsOverviewPage() {
                   <tr className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-[#242736]">
                     <th className="px-6 py-4">{tr.analytics_col_code}</th>
                     <th className="px-6 py-4 text-right">{tr.analytics_col_total}</th>
+                    <th className="px-6 py-4 text-right">{tr.kpi_nfc_scans}</th>
                     <th className="px-6 py-4 text-right">{tr.analytics_col_7d}</th>
                     <th className="px-6 py-4 text-right">{tr.analytics_col_unique}</th>
                     <th className="px-6 py-4 text-right">{tr.analytics_col_leads}</th>
@@ -116,6 +120,16 @@ export default function AnalyticsOverviewPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right tabular-nums font-semibold text-slate-900 dark:text-slate-100">{r.totalScans}</td>
+                      <td className="px-6 py-4 text-right tabular-nums">
+                        {r.nfcScans > 0 ? (
+                          <span className="inline-flex items-center gap-1 text-indigo-700 dark:text-indigo-300 font-semibold">
+                            <span className="material-symbols-outlined text-[14px]">contactless</span>
+                            {r.nfcScans}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">0</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-right tabular-nums text-slate-700 dark:text-slate-300">{r.last7d}</td>
                       <td className="px-6 py-4 text-right tabular-nums text-slate-700 dark:text-slate-300">{r.uniqueVisitors}</td>
                       <td className="px-6 py-4 text-right tabular-nums text-slate-700 dark:text-slate-300">{r.leads}</td>
@@ -154,6 +168,7 @@ export default function AnalyticsOverviewPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-x-3 gap-y-3">
                     <MobileStat label={tr.analytics_col_total} value={r.totalScans} />
+                    <MobileStat label={tr.kpi_nfc_scans} value={r.nfcScans} accent="indigo" />
                     <MobileStat label={tr.analytics_col_7d} value={r.last7d} />
                     <MobileStat label={tr.analytics_col_unique} value={r.uniqueVisitors} />
                     <MobileStat label={tr.analytics_col_leads} value={r.leads} />
@@ -168,11 +183,14 @@ export default function AnalyticsOverviewPage() {
   );
 }
 
-function SummaryCard({ icon, label, value }: { icon: string; label: string; value: number }) {
+function SummaryCard({ icon, label, value, accent = "blue" }: { icon: string; label: string; value: number; accent?: "blue" | "indigo" }) {
+  const palette = accent === "indigo"
+    ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600"
+    : "bg-blue-50 dark:bg-blue-900/20 text-blue-600";
   return (
     <div className="bg-white dark:bg-[#1a1d27] rounded-xl p-5 shadow-[0px_20px_40px_rgba(25,28,30,0.04)]">
       <div className="flex items-center gap-3 mb-2">
-        <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center">
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${palette}`}>
           <span className="material-symbols-outlined text-[18px]">{icon}</span>
         </div>
         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{label}</p>
@@ -182,11 +200,11 @@ function SummaryCard({ icon, label, value }: { icon: string; label: string; valu
   );
 }
 
-function MobileStat({ label, value }: { label: string; value: number }) {
+function MobileStat({ label, value, accent }: { label: string; value: number; accent?: "indigo" }) {
   return (
     <div className="min-w-0">
       <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider leading-tight">{label}</p>
-      <p className="text-base font-bold text-slate-900 dark:text-slate-100 tabular-nums mt-0.5">{value}</p>
+      <p className={`text-base font-bold tabular-nums mt-0.5 ${accent === "indigo" ? "text-indigo-700 dark:text-indigo-300" : "text-slate-900 dark:text-slate-100"}`}>{value}</p>
     </div>
   );
 }

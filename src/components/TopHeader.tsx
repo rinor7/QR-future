@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { getUserProfile } from "@/lib/store";
 import type { Plan } from "@/lib/types";
@@ -39,6 +40,14 @@ export default function TopHeader({
     if (saved) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
   }, []);
+
+  // Close profile menu on Escape, in addition to the backdrop click below.
+  useEffect(() => {
+    if (!profileMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setProfileMenuOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [profileMenuOpen]);
 
   function toggleDark() {
     const next = !darkMode;
@@ -157,10 +166,18 @@ export default function TopHeader({
               >
                 {initial}
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{displayName}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{userEmail}</p>
               </div>
+              <button
+                type="button"
+                onClick={() => setProfileMenuOpen(false)}
+                aria-label="Close"
+                className="shrink-0 w-8 h-8 -mr-1 -mt-1 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
             <div className="p-2">
               <Link

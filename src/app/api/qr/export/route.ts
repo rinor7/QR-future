@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
 
   const { data: contacts } = await contactsQuery;
   if (!contacts || contacts.length === 0) {
-    const header = `"QR Label","Employee Name","Company","Folder","Status","Lead Capture","Total Scans","Unique Visitors","Returning Visitors","Conversion Rate","Leads Captured","Top Country","Top Device","Last Scan","Created"\n`;
+    const header = `"QR Label","Employee Name","Company","Folder","Status","Lead Capture","Total Scans","NFC Scans","Unique Visitors","Returning Visitors","Conversion Rate","Leads Captured","Top Country","Top Device","Last Scan","Created"\n`;
     return new NextResponse(header, {
       headers: {
         "Content-Type": "text/csv",
@@ -91,11 +91,25 @@ export async function GET(req: NextRequest) {
 
   const contactIds = contacts.map((c) => c.id);
 
-  // All scans for these contacts
-  const { data: allScans } = await supabase
-    .from("qr_scans")
-    .select("contact_id, visitor_id, is_returning, country, device_type")
-    .in("contact_id", contactIds);
+  // All scans for these contacts. Pull `source` so NFC taps can be counted
+  // separately. Falls back if the column hasn't been added yet.
+  type ScanRow = { contact_id: string; visitor_id?: string | null; is_returning?: boolean | null; country?: string | null; device_type?: string | null; source?: string | null };
+  let allScans: ScanRow[] = [];
+  {
+    const r = await supabase
+      .from("qr_scans")
+      .select("contact_id, visitor_id, is_returning, country, device_type, source")
+      .in("contact_id", contactIds);
+    if (r.error) {
+      const f = await supabase
+        .from("qr_scans")
+        .select("contact_id, visitor_id, is_returning, country, device_type")
+        .in("contact_id", contactIds);
+      allScans = (f.data as ScanRow[] | null) ?? [];
+    } else {
+      allScans = (r.data as ScanRow[] | null) ?? [];
+    }
+  }
 
   // All interactions for conversion rate
   const { data: allInteractions } = await supabase
@@ -119,6 +133,7 @@ export async function GET(req: NextRequest) {
   // Build per-contact stats
   type ContactStats = {
     totalScans: number;
+    nfcScans: number;
     uniqueVisitors: Set<string>;
     returningScans: number;
     countries: Record<string, number>;
@@ -131,16 +146,17 @@ export async function GET(req: NextRequest) {
   const statsMap: Record<string, ContactStats> = {};
   contactIds.forEach((id) => {
     statsMap[id] = {
-      totalScans: 0, uniqueVisitors: new Set(), returningScans: 0,
+      totalScans: 0, nfcScans: 0, uniqueVisitors: new Set(), returningScans: 0,
       countries: {}, devices: {}, visitorsWithInteractions: new Set(),
       leadsCount: 0, lastScan: "",
     };
   });
 
-  (allScans ?? []).forEach((s) => {
+  allScans.forEach((s) => {
     const st = statsMap[s.contact_id];
     if (!st) return;
     st.totalScans++;
+    if (s.source === "nfc") st.nfcScans++;
     if (s.visitor_id) st.uniqueVisitors.add(s.visitor_id);
     if (s.is_returning) st.returningScans++;
     if (s.country) st.countries[s.country] = (st.countries[s.country] ?? 0) + 1;
@@ -168,7 +184,7 @@ export async function GET(req: NextRequest) {
 
   const headers = [
     "QR Label", "Employee Name", "Company", "Folder", "Status", "Lead Capture",
-    "Total Scans", "Unique Visitors", "Returning Visitors", "Conversion Rate",
+    "Total Scans", "NFC Scans", "Unique Visitors", "Returning Visitors", "Conversion Rate",
     "Leads Captured", "Top Country", "Top Device", "Last Scan", "Created",
   ];
 
@@ -191,6 +207,7 @@ export async function GET(req: NextRequest) {
       c.is_active ? "Active" : "Paused",
       c.lead_capture_enabled ? "Enabled" : "Disabled",
       esc(st.totalScans),
+      esc(st.nfcScans),
       esc(unique),
       esc(st.returningScans),
       esc(convRate),

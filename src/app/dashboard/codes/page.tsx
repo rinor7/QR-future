@@ -7,6 +7,7 @@ import {
   X, ChevronDown,
 } from "lucide-react";
 import { getAllContacts, deleteContact, getUserProfile, toggleContactActive, setFolderContactsActive } from "@/lib/store";
+import { downloadQR, type QRFormat } from "@/lib/qr-download";
 import { QRContact, Plan, PLAN_LIMITS } from "@/lib/types";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useLang } from "@/lib/language";
@@ -269,6 +270,7 @@ export default function CodesPage() {
   const [contacts, setContacts] = useState<QRContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [downloadMenuId, setDownloadMenuId] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "paused">("all");
@@ -810,58 +812,33 @@ export default function CodesPage() {
     setDragContactId(null);
   }
 
-  function handleDownloadQR(id: string, logoUrl?: string, showLogoInQr?: boolean) {
-    if (!showLogoInQr) logoUrl = undefined;
+  function handleDownloadQR(id: string, format: QRFormat, logoUrl?: string, showLogoInQr?: boolean) {
     const svgEl = document.querySelector(`#qr-${id} svg`) as SVGElement;
     if (!svgEl) return;
-    const exportSize = 400;
-    const clone = svgEl.cloneNode(true) as SVGElement;
-    clone.setAttribute("width", String(exportSize));
-    clone.setAttribute("height", String(exportSize));
-    const svgData = new XMLSerializer().serializeToString(clone);
-    const svgUrl = URL.createObjectURL(new Blob([svgData], { type: "image/svg+xml;charset=utf-8" }));
-    const canvas = document.createElement("canvas");
-    canvas.width = exportSize;
-    canvas.height = exportSize;
-    const ctx = canvas.getContext("2d")!;
-    const qrImg = new Image();
-    qrImg.onload = () => {
-      ctx.drawImage(qrImg, 0, 0, exportSize, exportSize);
-      URL.revokeObjectURL(svgUrl);
-      const finish = () => {
-        const a = document.createElement("a");
-        a.href = canvas.toDataURL("image/png");
-        a.download = `qr-${id}.png`;
-        a.click();
-      };
-      if (logoUrl) {
-        const logoSize = Math.round(exportSize * 0.32);
-        const padding = Math.round(logoSize * 0.1);
-        const offset = (exportSize - logoSize) / 2;
-        const logoImg = new Image();
-        logoImg.crossOrigin = "anonymous";
-        logoImg.onload = () => {
-          const scale = Math.min(logoSize / logoImg.naturalWidth, logoSize / logoImg.naturalHeight);
-          const drawW = logoImg.naturalWidth * scale;
-          const drawH = logoImg.naturalHeight * scale;
-          const drawX = offset + (logoSize - drawW) / 2;
-          const drawY = offset + (logoSize - drawH) / 2;
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(offset - padding, offset - padding, logoSize + padding * 2, logoSize + padding * 2);
-          ctx.drawImage(logoImg, drawX, drawY, drawW, drawH);
-          finish();
-        };
-        logoImg.onerror = finish;
-        logoImg.src = logoUrl;
-      } else {
-        finish();
-      }
-    };
-    qrImg.src = svgUrl;
+    downloadQR({ svgEl, id, format, logoUrl: showLogoInQr ? logoUrl : undefined });
   }
 
   // Reset to page 1 whenever the view changes
   useEffect(() => { setPage(1); }, [currentFolderId, search, statusFilter, sortBy, filterByUser]);
+
+  // Close the download-format dropdown on any outside click or Escape.
+  useEffect(() => {
+    if (!downloadMenuId) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent && e.key !== "Escape") return;
+      if (e instanceof MouseEvent) {
+        const target = e.target as HTMLElement;
+        if (target.closest("[data-qr-download-menu]")) return;
+      }
+      setDownloadMenuId(null);
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [downloadMenuId]);
 
   const limit = PLAN_LIMITS[plan];
   const limitReached = limit !== -1 && contacts.length >= limit;
@@ -1239,9 +1216,25 @@ export default function CodesPage() {
                             <a href={buildQRUrl(contact.id)} target="_blank" title="Open page" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                               <span className="material-symbols-outlined text-[17px]">open_in_new</span>
                             </a>
-                            <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                              <span className="material-symbols-outlined text-[17px]">download</span>
-                            </button>
+                            <div data-qr-download-menu className="relative">
+                              <button onClick={() => setDownloadMenuId((id) => id === contact.id ? null : contact.id)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                <span className="material-symbols-outlined text-[17px]">download</span>
+                              </button>
+                              {downloadMenuId === contact.id && (
+                                <div className="absolute z-20 top-full right-0 mt-1 min-w-[120px] bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] rounded-xl shadow-lg overflow-hidden text-xs">
+                                  {(["png", "svg", "pdf"] as QRFormat[]).map((fmt) => (
+                                    <button
+                                      key={fmt}
+                                      onClick={() => { handleDownloadQR(contact.id, fmt, contact.logoUrl, contact.showLogoInQr); setDownloadMenuId(null); }}
+                                      className="flex items-center gap-2 w-full px-3 py-2 hover:bg-slate-50 dark:hover:bg-[#242736] text-slate-700 dark:text-slate-200 font-medium uppercase tracking-wider"
+                                    >
+                                      <span className="material-symbols-outlined text-[14px] text-slate-400">download</span>
+                                      {fmt}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                             {(
                               <button onClick={() => setPauseModal({ id: contact.id, currentlyActive: contact.isActive !== false, isFolder: false })} disabled={togglingId === contact.id} title={contact.isActive !== false ? "Pause" : "Activate"} className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${contact.isActive !== false ? "text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20" : "text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"}`}>
                                 <span className="material-symbols-outlined text-[17px]">{contact.isActive !== false ? "pause" : "play_arrow"}</span>
@@ -1345,9 +1338,25 @@ export default function CodesPage() {
                           <button onClick={() => { navigator.clipboard.writeText(buildQRUrl(contact.id)); setCopiedId(contact.id); setTimeout(() => setCopiedId(null), 2000); }} title="Copy link" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
                             <span className="material-symbols-outlined text-[17px]">{copiedId === contact.id ? "check" : "content_copy"}</span>
                           </button>
-                          <button onClick={() => handleDownloadQR(contact.id, contact.logoUrl, contact.showLogoInQr)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
-                            <span className="material-symbols-outlined text-[17px]">download</span>
-                          </button>
+                          <div data-qr-download-menu className="relative">
+                            <button onClick={() => setDownloadMenuId((id) => id === contact.id ? null : contact.id)} title="Download QR" className="w-8 h-8 flex items-center justify-center text-slate-400 rounded-lg hover:text-primary hover:bg-slate-100 transition-colors">
+                              <span className="material-symbols-outlined text-[17px]">download</span>
+                            </button>
+                            {downloadMenuId === contact.id && (
+                              <div className="absolute z-20 top-full right-0 mt-1 min-w-[120px] bg-white dark:bg-[#1a1d27] border border-slate-200 dark:border-[#242736] rounded-xl shadow-lg overflow-hidden text-xs">
+                                {(["png", "svg", "pdf"] as QRFormat[]).map((fmt) => (
+                                  <button
+                                    key={fmt}
+                                    onClick={() => { handleDownloadQR(contact.id, fmt, contact.logoUrl, contact.showLogoInQr); setDownloadMenuId(null); }}
+                                    className="flex items-center gap-2 w-full px-3 py-2 hover:bg-slate-50 dark:hover:bg-[#242736] text-slate-700 dark:text-slate-200 font-medium uppercase tracking-wider"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px] text-slate-400">download</span>
+                                    {fmt}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                           {(
                             <button
                               onClick={() => setPauseModal({ id: contact.id, currentlyActive: contact.isActive !== false, isFolder: false })}
